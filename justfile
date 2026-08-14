@@ -82,10 +82,33 @@ png FILE="demo.typ" PPI="140":
 # Everything
 all: convert-strict demo conformance
 
+# ----------------------------------------------------------------- golden ---
+
+golden_file := src / "tests" / "golden" / "manifest.json"
+
+# Regenerate the structural manifest and diff it against the approved one
+golden: convert
+    @mkdir -p {{out}}
+    @{{typst}} query --root {{src}} {{font_flag}} --field value --one \
+        {{src}}/tests/golden.typ '<golden>' --pretty > {{out}}/manifest.json
+    @if diff -u {{golden_file}} {{out}}/manifest.json > {{out}}/golden.diff; then \
+        echo "✓ golden manifest unchanged ($(grep -c '\"nodes\"' {{golden_file}}) cases)"; \
+    else \
+        echo "✗ golden manifest drifted:"; cat {{out}}/golden.diff; \
+        echo "   review, then: just golden-update"; exit 1; \
+    fi
+
+# Re-approve the manifest after an intentional change
+golden-update: convert
+    @mkdir -p $(dirname {{golden_file}})
+    {{typst}} query --root {{src}} {{font_flag}} --field value --one \
+        {{src}}/tests/golden.typ '<golden>' --pretty > {{golden_file}}
+    @echo "→ approved $(grep -c '\"nodes\"' {{golden_file}}) cases"
+
 # ------------------------------------------------------------------ check ---
 
-# Converter runs clean and both parsers agree on every sample
-check: convert-strict
+# Converter clean, parsers agree, structural manifest unchanged
+check: convert-strict golden
     @mkdir -p {{out}}
     {{typst}} compile --root {{src}} {{font_flag}} \
         {{src}}/tests/agreement.typ {{out}}/agreement.pdf

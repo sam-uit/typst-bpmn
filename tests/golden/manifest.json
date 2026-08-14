@@ -1,0 +1,226 @@
+{
+  "b04 / full": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 34,
+    "flows": 43,
+    "w": 1360,
+    "h": 1070,
+    "label-pt": 3.99,
+    "by-kind": {
+      "task": 12,
+      "event": 12,
+      "gateway": 7,
+      "data": 2,
+      "annotation": 1
+    }
+  },
+  "b04 / compact-x": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 34,
+    "flows": 43,
+    "w": 1287.0,
+    "h": 1070,
+    "label-pt": 4.22,
+    "by-kind": {
+      "task": 12,
+      "event": 12,
+      "gateway": 7,
+      "data": 2,
+      "annotation": 1
+    }
+  },
+  "b04 / compact-both": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 34,
+    "flows": 43,
+    "w": 1287.0,
+    "h": 1055.0,
+    "label-pt": 4.22,
+    "by-kind": {
+      "task": 12,
+      "event": 12,
+      "gateway": 7,
+      "data": 2,
+      "annotation": 1
+    }
+  },
+  "vertical / full": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 5,
+    "flows": 5,
+    "w": 780,
+    "h": 500,
+    "label-pt": 6.96,
+    "by-kind": {
+      "event": 2,
+      "task": 3
+    }
+  },
+  "vertical / compact-x": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 5,
+    "flows": 5,
+    "w": 530.0,
+    "h": 500,
+    "label-pt": 10.24,
+    "by-kind": {
+      "event": 2,
+      "task": 3
+    }
+  },
+  "vertical / compact-both": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 5,
+    "flows": 5,
+    "w": 530.0,
+    "h": 421.0,
+    "label-pt": 10.24,
+    "by-kind": {
+      "event": 2,
+      "task": 3
+    }
+  },
+  "no-pool / full": {
+    "pools": 0,
+    "lanes": 0,
+    "nodes": 3,
+    "flows": 2,
+    "w": 306,
+    "h": 100,
+    "label-pt": 17.73,
+    "by-kind": {
+      "task": 1,
+      "event": 2
+    }
+  },
+  "no-pool / compact-x": {
+    "pools": 0,
+    "lanes": 0,
+    "nodes": 3,
+    "flows": 2,
+    "w": 288.0,
+    "h": 100,
+    "label-pt": 18.84,
+    "by-kind": {
+      "task": 1,
+      "event": 2
+    }
+  },
+  "no-pool / compact-both": {
+    "pools": 0,
+    "lanes": 0,
+    "nodes": 3,
+    "flows": 2,
+    "w": 288.0,
+    "h": 100.0,
+    "label-pt": 18.84,
+    "by-kind": {
+      "task": 1,
+      "event": 2
+    }
+  },
+  "grid / full": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 8,
+    "flows": 8,
+    "w": 977.0,
+    "h": 614,
+    "label-pt": 5.55,
+    "by-kind": {
+      "event": 2,
+      "task": 5,
+      "gateway": 1
+    }
+  },
+  "grid / compact-x": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 8,
+    "flows": 8,
+    "w": 774.0,
+    "h": 614,
+    "label-pt": 7.01,
+    "by-kind": {
+      "event": 2,
+      "task": 5,
+      "gateway": 1
+    }
+  },
+  "grid / compact-both": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 8,
+    "flows": 8,
+    "w": 774.0,
+    "h": 395.0,
+    "label-pt": 7.01,
+    "by-kind": {
+      "event": 2,
+      "task": 5,
+      "gateway": 1
+    }
+  },
+  "b04 / pool-ts": {
+    "pools": 2,
+    "lanes": 0,
+    "nodes": 13,
+    "flows": 19,
+    "w": 1222.0,
+    "h": 552,
+    "label-pt": 4.44,
+    "by-kind": {
+      "task": 4,
+      "event": 6,
+      "gateway": 2,
+      "data": 1
+    }
+  },
+  "b04 / pool-ts-nobb": {
+    "pools": 1,
+    "lanes": 0,
+    "nodes": 13,
+    "flows": 14,
+    "w": 1222.0,
+    "h": 410,
+    "label-pt": 4.44,
+    "by-kind": {
+      "task": 4,
+      "event": 6,
+      "gateway": 2,
+      "data": 1
+    }
+  },
+  "b04 / lane-hdht": {
+    "pools": 1,
+    "lanes": 1,
+    "nodes": 7,
+    "flows": 6,
+    "w": 760.0,
+    "h": 410,
+    "label-pt": 7.14,
+    "by-kind": {
+      "task": 4,
+      "gateway": 2,
+      "event": 1
+    }
+  },
+  "vertical / pool-bank": {
+    "pools": 2,
+    "lanes": 2,
+    "nodes": 2,
+    "flows": 3,
+    "w": 437.0,
+    "h": 520,
+    "label-pt": 12.42,
+    "by-kind": {
+      "task": 2
+    }
+  }
+}
