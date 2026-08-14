@@ -93,7 +93,16 @@
 }
 
 #let bpmn-from-xml(doc, source: "model.bpmn") = {
-  let root = if type(doc) == array { doc.first() } else { doc }
+  // `xml()` hands back every top-level node, and a comment or processing
+  // instruction ahead of the root shows up as an entry with an empty tag. Take
+  // the first real element rather than the first entry.
+  let root = if type(doc) != array { doc } else {
+    let els = doc.filter(e => type(e) == dictionary and e.at("tag", default: "") != "")
+    if els.len() == 0 {
+      panic("bpmn: no root element in the XML — is this a .bpmn file?")
+    }
+    els.first()
+  }
   let all = _walk(root)
 
   // --- index DI ------------------------------------------------------------
@@ -153,10 +162,15 @@
                     bounds: _bounds(ls)))
       }
     }
-    if lanes.len() > 0 { entry.insert("lanes", lanes.sorted(key: l => l.bounds.y)) }
+    if lanes.len() > 0 {
+      // reading order: top-to-bottom in a horizontal pool, left-to-right in a
+      // vertical one
+      entry.insert("lanes", lanes.sorted(
+        key: l => if entry.horizontal { (l.bounds.y, l.bounds.x) } else { (l.bounds.x, l.bounds.y) }))
+    }
     pools.push(entry)
   }
-  pools = pools.sorted(key: p => p.bounds.y)
+  pools = pools.sorted(key: p => (p.bounds.y, p.bounds.x))
 
   // --- nodes ---------------------------------------------------------------
   let nodes = ()
@@ -193,6 +207,10 @@
       n += (kind: "gateway", gateway: _gateways.at(t))
       if _gateways.at(t) == "exclusive" {
         n += (marker: _attr(shape, "isMarkerVisible", default: "false") != "false")
+      }
+      if _gateways.at(t) == "event" {
+        n += (event-type: lower(_attr(e, "eventGatewayType", default: "Exclusive")),
+              instantiate: _attr(e, "instantiate", default: "false") != "false")
       }
     } else if t in _data {
       n += (kind: "data", data: _data.at(t))

@@ -207,13 +207,17 @@ class Converter:
                         continue
                     lanes.append({"id": lane.get("id"), "name": lane.get("name", "") or "",
                                   "bounds": bounds_of(lshape)})
-            # lanes top-to-bottom so the renderer can draw dividers predictably
-            lanes.sort(key=lambda l: (l["bounds"]["y"], l["bounds"]["x"]))
+            # reading order: top-to-bottom in a horizontal pool, left-to-right
+            # in a vertical one
+            if entry["horizontal"]:
+                lanes.sort(key=lambda l: (l["bounds"]["y"], l["bounds"]["x"]))
+            else:
+                lanes.sort(key=lambda l: (l["bounds"]["x"], l["bounds"]["y"]))
             if lanes:
                 entry["lanes"] = lanes
             out.append(entry)
         out.sort(key=lambda p: (p["bounds"]["y"], p["bounds"]["x"]))
-        return out
+        return out  # y then x covers both orientations
 
     # -- flow nodes -------------------------------------------------------------------------
     def node(self, e: ET.Element) -> dict[str, Any] | None:
@@ -258,6 +262,11 @@ class Converter:
             n["gateway"] = GATEWAYS[t]
             if GATEWAYS[t] == "exclusive":
                 n["marker"] = shape.get("isMarkerVisible", "false") != "false"
+            if GATEWAYS[t] == "event":
+                # BPMN distinguishes the three event-gateway renderings by these
+                # two attributes rather than by element name
+                n["event-type"] = e.get("eventGatewayType", "Exclusive").lower()
+                n["instantiate"] = e.get("instantiate", "false") != "false"
         elif t in DATA:
             n["kind"] = "data"
             n["data"] = DATA[t]

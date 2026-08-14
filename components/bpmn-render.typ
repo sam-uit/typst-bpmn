@@ -236,7 +236,10 @@
       fill: c.fill, stroke: c.stroke)
   } else if kind == "gateway" {
     shape-gateway(b.w * u, b.h * u, kind: n.at("gateway", default: "exclusive"),
-      marker: n.at("marker", default: true), fill: c.fill, stroke: c.stroke)
+      marker: n.at("marker", default: true),
+      event-type: n.at("event-type", default: "exclusive"),
+      instantiate: n.at("instantiate", default: false),
+      fill: c.fill, stroke: c.stroke)
   } else if kind == "data" {
     shape-data(b.w * u, b.h * u, kind: n.at("data", default: "object"),
       collection: n.at("collection", default: false),
@@ -279,9 +282,14 @@
         stroke: 1.6 * u + stroke))
     let name = p.at("name", default: "")
     if name != "" {
+      // a collapsed participant beside a vertical pool is a tall, thin strip;
+      // its name only fits turned
+      let turned = b.h > b.w
+      let inner = box(width: (if turned { b.h } else { b.w }) * u,
+        align(center, text(size: theme.font-size * 1.05 * u, fill: theme.label, name)))
       place(dx: b.x * u, dy: b.y * u,
         box(width: b.w * u, height: b.h * u, align(center + horizon,
-          text(size: theme.font-size * 1.05 * u, fill: theme.label, name))))
+          if turned { rotate(-90deg, reflow: false, inner) } else { inner })))
     }
     return
   }
@@ -289,41 +297,29 @@
   place(dx: b.x * u, dy: b.y * u,
     rect(width: b.w * u, height: b.h * u, fill: theme.pool-fill, stroke: 1.6 * u + stroke))
 
-  let name = p.at("name", default: "")
-  if horiz {
-    place(dx: b.x * u, dy: b.y * u,
-      rect(width: _band * u, height: b.h * u, fill: theme.pool-band, stroke: 1.6 * u + stroke))
-    if name != "" {
-      place(dx: b.x * u, dy: b.y * u,
-        box(width: _band * u, height: b.h * u, align(center + horizon,
-          rotate(-90deg, reflow: false,
-            box(width: b.h * u, align(center,
-              text(size: theme.font-size * u, fill: theme.label, name)))))))
-    }
-  } else {
-    place(dx: b.x * u, dy: b.y * u,
-      rect(width: b.w * u, height: _band * u, fill: theme.pool-band, stroke: 1.6 * u + stroke))
-    if name != "" {
-      place(dx: b.x * u, dy: b.y * u,
-        box(width: b.w * u, height: _band * u, align(center + horizon,
-          text(size: theme.font-size * u, fill: theme.label, name))))
-    }
+  // A title band runs down the left of a horizontal pool and across the top of a
+  // vertical one, with the text turned to match. Lanes follow the same rule: they
+  // stack downwards in a horizontal pool and sit side by side in a vertical one,
+  // so their bands and their text turn with the pool.
+  let band(bb, label, size, thickness, fill) = {
+    let (bw, bh) = if horiz { (_band * u, bb.h * u) } else { (bb.w * u, _band * u) }
+    place(dx: bb.x * u, dy: bb.y * u,
+      rect(width: bw, height: bh, fill: fill, stroke: thickness * u + stroke))
+    if label == "" { return }
+    let inner = box(width: if horiz { bb.h * u } else { bb.w * u },
+      align(center, text(size: size * u, fill: theme.label, label)))
+    place(dx: bb.x * u, dy: bb.y * u,
+      box(width: bw, height: bh, align(center + horizon,
+        if horiz { rotate(-90deg, reflow: false, inner) } else { inner })))
   }
+
+  band(b, p.at("name", default: ""), theme.font-size, 1.6, theme.pool-band)
 
   for l in p.at("lanes", default: ()) {
     let lb = l.bounds
     place(dx: lb.x * u, dy: lb.y * u,
       rect(width: lb.w * u, height: lb.h * u, fill: none, stroke: 1.2 * u + stroke))
-    place(dx: lb.x * u, dy: lb.y * u,
-      rect(width: _band * u, height: lb.h * u, fill: none, stroke: 1.2 * u + stroke))
-    let ln = l.at("name", default: "")
-    if ln != "" {
-      place(dx: lb.x * u, dy: lb.y * u,
-        box(width: _band * u, height: lb.h * u, align(center + horizon,
-          rotate(-90deg, reflow: false,
-            box(width: lb.h * u, align(center,
-              text(size: theme.font-size * 0.95 * u, fill: theme.label, ln)))))))
-    }
+    band(lb, l.at("name", default: ""), theme.font-size * 0.95, 1.2, none)
   }
 }
 
