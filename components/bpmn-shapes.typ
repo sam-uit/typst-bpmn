@@ -297,7 +297,19 @@
 }
 
 /// Gateway: diamond with the symbol for its kind.
-#let shape-gateway(w, h, kind: "exclusive", marker: true, fill: white, stroke: black) = {
+///
+/// The event-based gateway has three renderings, and BPMN distinguishes them by
+/// `eventGatewayType` and `instantiate` rather than by element name:
+///
+///   exclusive, not instantiating  outer ring + inner ring + pentagon  (the common one)
+///   exclusive, instantiating      outer ring + pentagon
+///   parallel  (always instantiating)  outer ring + plus
+///
+/// Radii follow bpmn-js: the outer circle sits at 0.20 × height inset from the
+/// shape, the inner at 0.26, which for a 50-unit gateway gives r = 15 and r = 12.
+#let shape-gateway(w, h, kind: "exclusive", marker: true,
+                   event-type: "exclusive", instantiate: false,
+                   fill: white, stroke: black) = {
   let t = 1.6pt * (w / 50pt)
   let s = calc.min(w, h)
   let g = 0.28 * s // symbol half-extent
@@ -311,12 +323,20 @@
     (place(dx: 0.5 * s - 0.28 * s, dy: 0.5 * s - 0.28 * s,
       circle(radius: 0.28 * s, stroke: 0.075 * s + stroke)),)
   } else if kind == "event" {
-    (place(dx: 0.5 * s - 0.32 * s, dy: 0.5 * s - 0.32 * s,
-      circle(radius: 0.32 * s, stroke: 0.045 * s + stroke)),
-     place(dx: 0.5 * s - 0.27 * s, dy: 0.5 * s - 0.27 * s,
-      circle(radius: 0.27 * s, stroke: 0.045 * s + stroke)),
-     unit-path(s, ((0.50, 0.29), (0.70, 0.43), (0.62, 0.67), (0.38, 0.67), (0.30, 0.43)),
-      close: true, stroke: 0.05 * s + stroke))
+    let ring(r) = place(dx: 0.5 * s - r * s, dy: 0.5 * s - r * s,
+      circle(radius: r * s, stroke: 0.026 * s + stroke))
+    let pentagon = unit-path(s,
+      ((0.50, 0.29), (0.70, 0.43), (0.62, 0.67), (0.38, 0.67), (0.30, 0.43)),
+      close: true, stroke: 0.05 * s + stroke)
+    let plus = (unit-path(s, ((0.5, 0.28), (0.5, 0.72)), stroke: 0.05 * s + stroke),
+                unit-path(s, ((0.28, 0.5), (0.72, 0.5)), stroke: 0.05 * s + stroke))
+    if event-type == "parallel" {
+      (ring(0.30), ..plus)
+    } else if instantiate {
+      (ring(0.30), pentagon)
+    } else {
+      (ring(0.30), ring(0.24), pentagon)
+    }
   } else if kind == "complex" {
     (unit-path(s, ((0.5, 0.20), (0.5, 0.80)), stroke: 0.07 * s + stroke),
      unit-path(s, ((0.20, 0.5), (0.80, 0.5)), stroke: 0.07 * s + stroke),
