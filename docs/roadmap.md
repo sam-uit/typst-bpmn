@@ -28,20 +28,35 @@ can only lay out what Phase 1 can render.
   data association.
 - Pools and lanes, horizontal and vertical, expanded and collapsed.
 
-**Status — largely done (v0.2.0).** Added since v0.1.0: loop, multi-instance
-parallel and sequential, compensation and ad-hoc markers; call-activity thick
-border; transaction double border; collection data objects; data input/output;
-conditional sequence-flow diamonds; the Camunda colour palette with semantic
-aliases. Both parsers read all of it.
+**Status — closed (v0.3.0).**
 
-Still open: vertical pools are drawn but untested against a real model; the
-event-based gateway has one glyph where the spec distinguishes exclusive from
-parallel instantiating variants; no choreography or conversation shapes (out of
-scope).
+Added in v0.2.0: loop, multi-instance parallel and sequential, compensation and
+ad-hoc markers; call-activity thick border; transaction double border; collection
+data objects; data input/output; conditional sequence-flow diamonds; the Camunda
+colour palette with semantic aliases.
+
+Closed in v0.3.0, the two items that were still open:
+
+- **Event-based gateway variants.** BPMN distinguishes three renderings by
+  `eventGatewayType` and `instantiate` rather than by element name: exclusive
+  non-instantiating (two rings + pentagon), exclusive instantiating (one ring +
+  pentagon) and parallel (one ring + plus). Ring radii now follow bpmn-js
+  exactly — outer inset 0.20 × height, inner 0.26.
+- **Vertical pools, tested.** `tests/fixtures/vertical-pools.bpmn` exercises
+  `isHorizontal="false"` for pools and lanes. Lane bands and titles now turn with
+  the pool, lane and pool ordering follows the pool's own axis, and a black-box
+  partner collapses to a band on the side it came from rather than always below.
+
+Out of scope, deliberately: choreography and conversation diagrams.
 
 **Deliverable — done.** `tests/conformance.typ` renders every symbol at three
-scales (100 / 55 / 34%) for side-by-side comparison with Camunda Modeler:
-`just conformance`. `docs/design-system.md` is kept in step.
+scales (100 / 55 / 34%) plus both pool orientations, for side-by-side comparison
+with Camunda Modeler: `just conformance`. `docs/design-system.md` is kept in step.
+
+**Known limitation carried forward.** When a slice collapses a partner to a black
+box, the re-routed message flows take a straight line to the band. If the flow
+starts on the far side of the pool it will pass over the shapes in between. Real
+routing around obstacles is Phase 2 work (edge bundling / corridor assignment).
 
 ### A note on borrowing from bpmn-js
 

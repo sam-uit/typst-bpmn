@@ -80,6 +80,35 @@ Two rules learned the hard way:
 - **Icons are drawn in a unit square and scaled**, so a single definition works at
   every diagram scale.
 
+## Event-based gateway variants
+
+BPMN tells the three renderings apart by `eventGatewayType` and `instantiate`,
+not by element name:
+
+| `event-type` | `instantiate` | Drawn as |
+| --- | --- | --- |
+| `exclusive` | `false` | outer ring + inner ring + pentagon |
+| `exclusive` | `true` | outer ring + pentagon |
+| `parallel` | `true` | outer ring + plus |
+
+Ring radii follow bpmn-js: outer circle inset 0.20 × height from the shape, inner
+0.26, so a 50-unit gateway gets r = 15 and r = 12.
+
+## Pool orientation
+
+A pool's title band and its lanes both follow the pool's own axis:
+
+| | Title band | Title text | Lanes |
+| --- | --- | --- | --- |
+| Horizontal (`isHorizontal="true"`) | down the left | turned −90° | stacked, bands on the left |
+| Vertical | across the top | upright | side by side, bands on top |
+
+Lane and pool ordering follows the same axis — top-to-bottom in a horizontal pool,
+left-to-right in a vertical one — so a slice keeps reading order.
+
+A collapsed (black-box) participant has no band and no lanes: the name is centred
+in the box, turned only when the box is taller than it is wide.
+
 ## Ports
 
 Four attachment points per shape — right, bottom, left, top — which on a gateway

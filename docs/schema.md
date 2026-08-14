@@ -77,6 +77,8 @@ Per-kind fields:
 | | `markers` | as above, plus `adhoc` |
 | `gateway` | `gateway` | `exclusive` `parallel` `inclusive` `event` `complex` |
 | | `marker` | exclusive only; `false` hides the X |
+| | `event-type` | event gateways: `exclusive` (default) or `parallel` |
+| | `instantiate` | event gateways; drops the inner ring |
 | `data` | `data` | `object` `store` |
 | | `collection` | three bars along the bottom |
 | | `direction` | `input` (hollow arrow) or `output` (solid) |

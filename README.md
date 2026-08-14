@@ -42,8 +42,9 @@ components/
   bpmn-compact.typ        collapse empty bands to buy label size
   bpmn-palette.typ        Camunda Modeler's colour swatches
 docs/                     design notes and roadmap
-tests/conformance.typ     every symbol at three scales
+tests/conformance.typ     every symbol at three scales, both pool orientations
 tests/agreement.typ       the two parsers must produce identical models
+tests/fixtures/           synthetic models the real samples do not cover
 justfile                  build / watch / check runner
 examples/leave-request.yaml   hand-authored model, no coordinates
 demo.typ                  every feature, rendered
@@ -232,8 +233,9 @@ Events (start / intermediate catch / intermediate throw / end / boundary,
 interrupting and not) with message, timer, error, signal, escalation, terminate,
 compensate, conditional, link and cancel definitions. Activities: task and the
 seven typed tasks, call activity, collapsed and expanded sub-processes, event
-sub-processes. Gateways: exclusive, parallel, inclusive, event-based, complex.
-Pools and lanes, horizontal and vertical. Data objects and data stores. Groups and
+sub-processes. Gateways: exclusive, parallel, inclusive, complex, and all three event-based
+variants (exclusive instantiating or not, parallel).
+Pools and lanes, horizontal and vertical, expanded and collapsed. Data objects and data stores. Groups and
 text annotations. Sequence, message, association and data-association flows, with
 default-flow markers.
 
@@ -246,7 +248,6 @@ a non-zero exit.
 
 - Icons are redrawn from the spec rather than traced from bpmn.io, so the service
   gear and manual hand read differently at small sizes.
-- Vertical (rotated) pools are drawn but untested against a real model.
 - The grid fallback does no crossing minimisation and no label collision
   avoidance.
 - Boundary events are drawn where the DI puts them; the grid fallback does not
