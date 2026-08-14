@@ -166,6 +166,80 @@
   else { none }
 }
 
+
+// --------------------------------------------------------- activity markers ---
+// BPMN draws these in a row, centred along the bottom edge of an activity.
+
+#let marker-sub(size, paint: black) = canvas(size, size,
+  place(rect(width: size, height: size, stroke: 0.09 * size + paint)),
+  place(dy: size / 2, curve(stroke: 0.09 * size + paint,
+    curve.move((0.22 * size, 0pt)), curve.line((0.78 * size, 0pt)))),
+  place(dx: size / 2, curve(stroke: 0.09 * size + paint,
+    curve.move((0pt, 0.22 * size)), curve.line((0pt, 0.78 * size)))),
+)
+
+#let marker-loop(size, paint: black) = {
+  let (cx, cy, r) = (0.5 * size, 0.54 * size, 0.38 * size)
+  canvas(size, size,
+    place(curve(stroke: (paint: paint, thickness: 0.09 * size, cap: "round"),
+      curve.move((cx + r * calc.cos(35deg), cy - r * calc.sin(35deg))),
+      curve.cubic((cx + r * 1.5, cy - r * 1.2), (cx - r * 1.5, cy - r * 1.2),
+                  (cx - r * calc.cos(20deg), cy + r * calc.sin(20deg))),
+      curve.cubic((cx - r * 0.6, cy + r * 1.3), (cx + r * 0.6, cy + r * 1.3),
+                  (cx + r * 0.95, cy + r * 0.45)))),
+    // arrowhead on the open end
+    unit-path(size, ((0.72, 0.30), (0.98, 0.36), (0.80, 0.56)), close: true, fill: paint),
+  )
+}
+
+#let marker-mi(size, paint: black, sequential: false) = canvas(size, size,
+  ..range(3).map(i => if sequential {
+    place(dy: (0.16 + i * 0.30) * size,
+      rect(width: size, height: 0.13 * size, fill: paint))
+  } else {
+    place(dx: (0.16 + i * 0.30) * size,
+      rect(width: 0.13 * size, height: size, fill: paint))
+  }))
+
+#let marker-compensation(size, paint: black) = canvas(size, size,
+  unit-path(size, ((0.46, 0.14), (0.46, 0.86), (0.02, 0.50)), close: true,
+    stroke: 0.07 * size + paint, fill: paint),
+  unit-path(size, ((0.96, 0.14), (0.96, 0.86), (0.52, 0.50)), close: true,
+    stroke: 0.07 * size + paint, fill: paint),
+)
+
+#let marker-adhoc(size, paint: black) = place(dy: 0.5 * size, curve(
+  stroke: (paint: paint, thickness: 0.13 * size, cap: "round"),
+  curve.move((0.04 * size, 0pt)),
+  curve.cubic((0.28 * size, -0.42 * size), (0.44 * size, 0.42 * size), (0.62 * size, 0pt)),
+  curve.cubic((0.76 * size, -0.30 * size), (0.86 * size, -0.24 * size), (0.96 * size, -0.12 * size)),
+))
+
+#let activity-marker(kind, size, paint: black) = {
+  if kind == "sub" { marker-sub(size, paint: paint) }
+  else if kind == "loop" { marker-loop(size, paint: paint) }
+  else if kind == "mi-parallel" { marker-mi(size, paint: paint) }
+  else if kind == "mi-sequential" { marker-mi(size, paint: paint, sequential: true) }
+  else if kind == "compensation" { marker-compensation(size, paint: paint) }
+  else if kind == "adhoc" { marker-adhoc(size, paint: paint) }
+  else { none }
+}
+
+/// Lay a row of markers along the bottom edge of a (w, h) activity.
+#let marker-row(w, h, markers, paint: black) = {
+  let ms = markers.filter(m => m != none and m != "")
+  if ms.len() == 0 { return none }
+  let s = calc.min(w, h) * 0.16
+  let gap = s * 0.35
+  let total = ms.len() * s + (ms.len() - 1) * gap
+  ms.enumerate().map(((i, m)) => {
+    let ic = activity-marker(m, s, paint: paint)
+    if ic == none { none } else {
+      place(dx: w / 2 - total / 2 + i * (s + gap), dy: h - s * 1.45, ic)
+    }
+  }).join()
+}
+
 // ------------------------------------------------------------------ nodes ---
 
 /// Event: circle, ring style by family, icon by definition.
@@ -189,32 +263,37 @@
     if ic != none { place(dx: r - r / 2, dy: r - r / 2, ic) })
 }
 
-/// Activity: rounded rectangle with a type marker top-left.
-#let shape-task(w, h, kind: "none", fill: white, stroke: black, radius: 10) = {
+/// Activity: rounded rectangle, type marker top-left, behaviour markers bottom-centre.
+/// A call activity gets the spec's thick border.
+#let shape-task(w, h, kind: "none", markers: (), fill: white, stroke: black, radius: 10) = {
   let m = calc.min(w, h) * 0.18
   let ic = task-icon(kind, m, paint: stroke)
+  let t = 1.6pt * (w / 100pt) * (if kind == "call" { 2.8 } else { 1 })
   canvas(w, h,
-    place(rect(width: w, height: h, fill: fill,
-      stroke: 1.6pt * (w / 100pt) + stroke, radius: radius * (w / 100))),
-    if ic != none { place(dx: 0.06 * w, dy: 0.06 * w, ic) })
+    place(rect(width: w, height: h, fill: fill, stroke: t + stroke,
+      radius: radius * (w / 100))),
+    if ic != none { place(dx: 0.06 * w, dy: 0.06 * w, ic) },
+    marker-row(w, h, markers, paint: stroke))
 }
 
-/// Sub-process: like a task, plus a [+] marker bottom-centre when collapsed.
-#let shape-subprocess(w, h, expanded: false, event-sub: false, fill: white, stroke: black) = {
-  let m = calc.min(w, h) * 0.16
+/// Sub-process: a task frame plus the collapsed [+] and any behaviour markers.
+/// `transaction` draws the spec's double border, `event-sub` the dashed one.
+#let shape-subprocess(w, h, expanded: false, event-sub: false, transaction: false,
+                      markers: (), fill: white, stroke: black) = {
+  let t = 1.6pt * (w / 100pt)
+  let r = 10 * (w / 100)
+  let inner = if transaction {
+    let d = 0.04 * calc.min(w, h)
+    (place(dx: d, dy: d, rect(width: w - 2 * d, height: h - 2 * d,
+      stroke: t + stroke, radius: r * 0.8)),)
+  } else { () }
+  let ms = if expanded { markers } else { ("sub",) + markers }
   canvas(w, h,
-    place(rect(width: w, height: h, fill: fill, radius: 10 * (w / 100),
-      stroke: (paint: stroke, thickness: 1.6pt * (w / 100pt),
+    place(rect(width: w, height: h, fill: fill, radius: r,
+      stroke: (paint: stroke, thickness: t,
                dash: if event-sub { "dashed" } else { none }))),
-    if not expanded {
-      place(dx: w / 2 - m / 2, dy: h - m * 1.4, canvas(m, m,
-        place(rect(width: m, height: m, stroke: 0.09 * m + stroke)),
-        place(dy: m / 2, curve(stroke: 0.09 * m + stroke,
-          curve.move((0.22 * m, 0pt)), curve.line((0.78 * m, 0pt)))),
-        place(dx: m / 2, curve(stroke: 0.09 * m + stroke,
-          curve.move((0pt, 0.22 * m)), curve.line((0pt, 0.78 * m)))),
-      ))
-    })
+    ..inner,
+    marker-row(w, h, ms, paint: stroke))
 }
 
 /// Gateway: diamond with the symbol for its kind.
@@ -252,7 +331,8 @@
 }
 
 /// Data object: page with a folded corner. `store` draws a cylinder instead.
-#let shape-data(w, h, kind: "object", fill: white, stroke: black) = {
+#let shape-data(w, h, kind: "object", collection: false, direction: none,
+                fill: white, stroke: black) = {
   let t = 1.2pt * (w / 36pt)
   if kind == "store" {
     let e = 0.16 * h
@@ -268,12 +348,26 @@
     )
   } else {
     let f = 0.3 * w
+    let a = 0.2 * w
+    // data input is an open arrow, data output a filled one
+    let arrow = if direction == none { () } else {
+      (place(dx: 0.13 * w, dy: 0.1 * h, canvas(a, a,
+        unit-path(a, ((0.0, 0.35), (0.55, 0.35), (0.55, 0.1), (1.0, 0.5),
+                      (0.55, 0.9), (0.55, 0.65), (0.0, 0.65)),
+          close: true, stroke: 0.08 * a + stroke,
+          fill: if direction == "output" { stroke } else { none }))),)
+    }
+    let coll = if not collection { () } else {
+      range(3).map(i => place(dx: w / 2 - 0.16 * w + i * 0.16 * w, dy: h - 0.26 * h,
+        rect(width: 0.05 * w, height: 0.2 * h, fill: stroke)))
+    }
     canvas(w, h,
       place(curve(fill: fill, stroke: t + stroke,
         curve.move((0pt, 0pt)), curve.line((w - f, 0pt)), curve.line((w, f)),
         curve.line((w, h)), curve.line((0pt, h)), curve.close())),
       place(curve(stroke: t + stroke,
         curve.move((w - f, 0pt)), curve.line((w - f, f)), curve.line((w, f)))),
+      ..arrow, ..coll,
     )
   }
 }
