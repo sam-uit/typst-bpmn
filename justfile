@@ -82,6 +82,28 @@ png FILE="demo.typ" PPI="140":
 # Everything
 all: convert-strict demo conformance
 
+# ----------------------------------------------------------------- vendor ---
+
+version := `git describe --tags --always --dirty 2>/dev/null || echo "unknown"`
+
+# Copy the components into a report's template, stamped with this version
+vendor DEST:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p "{{DEST}}"
+    for f in {{src}}/components/bpmn*.typ; do
+        name=$(basename "$f")
+        {
+          echo "// vendored from typst-bpmn {{version}} — do not edit here."
+          echo "// Change it upstream, run \`just check\`, then re-run \`just vendor\`."
+          echo ""
+          cat "$f"
+        } > "{{DEST}}/$name"
+        echo "  $name"
+    done
+    echo "→ vendored {{version}} into {{DEST}}"
+    echo "   remember tools/bpmn2yaml.py if the report converts its own models"
+
 # ----------------------------------------------------------------- golden ---
 
 golden_file := src / "tests" / "golden" / "manifest.json"

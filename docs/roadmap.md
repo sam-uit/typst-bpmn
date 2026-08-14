@@ -105,12 +105,16 @@ as well as it possibly can.
    parameter rather than a trailing `<lbl>`, because the figure is returned
    inside a wrapper. A separate `bpmn-index()` turned out to be unnecessary —
    `#outline(target: figure.where(kind: image))` does the job.
-4. **Open: where the components live in the report template**, and whether models
-   are referenced root-absolute or relative to the calling file. This is the last
-   gate and it is a decision about the IE203 repo, not about this code.
+4. ~~Where the components live, and how models are referenced.~~ Settled:
+   vendored into `template/components/`, root-absolute paths for both imports and
+   models, and both `.bpmn` and converted `.yaml` committed to the report.
+   `just vendor <dest>` does the copy and stamps the version.
+   See [integration.md](integration.md).
 
 **Exit criterion.** An IE203 chapter builds end to end with BPMN figures that
-need no manual fiddling.
+need no manual fiddling. Everything on this side is ready; what remains is
+running `just vendor` against the report and converting its models — which has to
+happen in that repo.
 
 ---
 

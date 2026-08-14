@@ -27,6 +27,7 @@ better at layout than a few hundred lines of Typst will ever be.
 - [docs/architecture.md](docs/architecture.md) — pipeline, coordinate model, invariants
 - [docs/design-system.md](docs/design-system.md) — geometry, shape grammar, theme tokens
 - [docs/schema.md](docs/schema.md) — YAML field reference, both dialects
+- [docs/integration.md](docs/integration.md) — vendoring into a report, path conventions
 - [docs/roadmap.md](docs/roadmap.md) — Phase 0 / 1 / 2
 
 ## Files
