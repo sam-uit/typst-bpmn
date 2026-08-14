@@ -1,8 +1,6 @@
 # Design system
 
-Everything here is expressed in **BPMN units** (1 unit = 1 px in the modeler) and
-multiplied by `u` at draw time. Constants below are the defaults Camunda Modeler
-uses, so a converted diagram matches the modeler's proportions.
+Everything here is expressed in **BPMN units** (1 unit = 1 px in the modeler) and multiplied by `u` at draw time. Constants below are the defaults Camunda Modeler uses, so a converted diagram matches the modeler's proportions.
 
 ## Geometry constants
 
@@ -30,8 +28,7 @@ Relative to the shape, so they scale with `u`:
 | Message / association flow | 1.3 units |
 | Pool border | 1.6 units · lane border 1.2 |
 
-Non-interrupting boundary events and event sub-processes use `dash: "dashed"`;
-groups use `"loosely-dashed"`; message flows `"dashed"`; associations `"dotted"`.
+Non-interrupting boundary events and event sub-processes use `dash: "dashed"`; groups use `"loosely-dashed"`; message flows `"dashed"`; associations `"dotted"`.
 
 ## Event ring grammar
 
@@ -45,14 +42,11 @@ The ring says *when*, the icon says *what*, the fill says *catch or throw*.
 | End | single thick | solid |
 | Boundary | double thin | outline; dashed ring if non-interrupting |
 
-Definitions covered: none, message, timer, error, signal, escalation, terminate,
-compensate, conditional, link, cancel.
+Definitions covered: none, message, timer, error, signal, escalation, terminate, compensate, conditional, link, cancel.
 
 ## Activity type markers
 
-Drawn at 0.18 × min(w, h), inset 0.06 × w from the top-left corner: user,
-service, send, receive, manual, script, business rule. A call activity gets the
-spec's thick border instead of an icon.
+Drawn at 0.18 × min(w, h), inset 0.06 × w from the top-left corner: user, service, send, receive, manual, script, business rule. A call activity gets the spec's thick border instead of an icon.
 
 ## Activity behaviour markers
 
@@ -67,23 +61,16 @@ A row centred on the bottom edge, each 0.16 × min(w, h) with a 0.35 gap:
 | `compensation` | double rewind triangle | `isForCompensation="true"` |
 | `adhoc` | tilde | `adHocSubProcess` |
 
-Several can co-exist; they lay out left to right in that order. Transactions get a
-second inset border, event sub-processes a dashed one.
+Several can co-exist; they lay out left to right in that order. Transactions get a second inset border, event sub-processes a dashed one.
 
-Icons are **redrawn from the BPMN 2.0 spec**, not traced from bpmn-js — see
-[roadmap.md](roadmap.md#a-note-on-borrowing-from-bpmn-js) for why that matters.
-Two rules learned the hard way:
+Icons are **redrawn from the BPMN 2.0 spec**, not traced from bpmn-js — see [roadmap.md](roadmap.md#a-note-on-borrowing-from-bpmn-js) for why that matters. Two rules learned the hard way:
 
-- **Outline, not fill, at small sizes.** The first service-task gear was a filled
-  disc with filled teeth; below about 40 units it collapsed into a black blob.
-  Strokes throughout survive the scale-down.
-- **Icons are drawn in a unit square and scaled**, so a single definition works at
-  every diagram scale.
+- **Outline, not fill, at small sizes.** The first service-task gear was a filled disc with filled teeth; below about 40 units it collapsed into a black blob. Strokes throughout survive the scale-down.
+- **Icons are drawn in a unit square and scaled**, so a single definition works at every diagram scale.
 
 ## Event-based gateway variants
 
-BPMN tells the three renderings apart by `eventGatewayType` and `instantiate`,
-not by element name:
+BPMN tells the three renderings apart by `eventGatewayType` and `instantiate`, not by element name:
 
 | `event-type` | `instantiate` | Drawn as |
 | --- | --- | --- |
@@ -91,8 +78,7 @@ not by element name:
 | `exclusive` | `true` | outer ring + pentagon |
 | `parallel` | `true` | outer ring + plus |
 
-Ring radii follow bpmn-js: outer circle inset 0.20 × height from the shape, inner
-0.26, so a 50-unit gateway gets r = 15 and r = 12.
+Ring radii follow bpmn-js: outer circle inset 0.20 × height from the shape, inner 0.26, so a 50-unit gateway gets r = 15 and r = 12.
 
 ## Pool orientation
 
@@ -103,11 +89,9 @@ A pool's title band and its lanes both follow the pool's own axis:
 | Horizontal (`isHorizontal="true"`) | down the left | turned −90° | stacked, bands on the left |
 | Vertical | across the top | upright | side by side, bands on top |
 
-Lane and pool ordering follows the same axis — top-to-bottom in a horizontal pool,
-left-to-right in a vertical one — so a slice keeps reading order.
+Lane and pool ordering follows the same axis — top-to-bottom in a horizontal pool, left-to-right in a vertical one — so a slice keeps reading order.
 
-A collapsed (black-box) participant has no band and no lanes: the name is centred
-in the box, turned only when the box is taller than it is wide.
+A collapsed (black-box) participant has no band and no lanes: the name is centred in the box, turned only when the box is taller than it is wide.
 
 ## Ports
 
