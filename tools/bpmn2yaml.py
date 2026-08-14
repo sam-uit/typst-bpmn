@@ -61,6 +61,23 @@ GATEWAYS = {
     "complexGateway": "complex",
 }
 SUBPROCESS = {"subProcess", "transaction", "adHocSubProcess"}
+GATEWAY_TAGS = set(GATEWAYS)
+
+
+def markers_of(e: ET.Element) -> list[str]:
+    """Behaviour markers BPMN draws along an activity's bottom edge."""
+    out = []
+    for c in e:
+        t = local(c)
+        if t == "standardLoopCharacteristics":
+            out.append("loop")
+        elif t == "multiInstanceLoopCharacteristics":
+            out.append("mi-sequential" if c.get("isSequential") == "true" else "mi-parallel")
+    if local(e) == "adHocSubProcess":
+        out.append("adhoc")
+    if e.get("isForCompensation") == "true":
+        out.append("compensation")
+    return out
 DATA = {"dataObjectReference": "object", "dataStoreReference": "store", "dataInput": "input", "dataOutput": "output"}
 
 # elements we knowingly ignore (structure, not drawn)
@@ -134,9 +151,13 @@ class Converter:
         self.node_lane: dict[str, str] = {}
         self.default_flows: set[str] = set()
         self.category: dict[str, str] = {}
+        self.parent: dict[ET.Element, ET.Element] = {}
 
     # -- indexing ---------------------------------------------------------------------------
     def index(self) -> None:
+        for parent in self.root.iter():
+            for child in parent:
+                self.parent[child] = parent
         for e in self.root.iter():
             t = local(e)
             if t == "BPMNShape":
@@ -220,10 +241,18 @@ class Converter:
         elif t in TASKS:
             n["kind"] = "task"
             n["task"] = TASKS[t]
+            m = markers_of(e)
+            if m:
+                n["markers"] = m
         elif t in SUBPROCESS:
             n["kind"] = "subprocess"
             n["expanded"] = shape.get("isExpanded", "false") != "false"
             n["triggered-by-event"] = e.get("triggeredByEvent", "false") != "false"
+            if t == "transaction":
+                n["transaction"] = True
+            m = markers_of(e)
+            if m:
+                n["markers"] = m
         elif t in GATEWAYS:
             n["kind"] = "gateway"
             n["gateway"] = GATEWAYS[t]
@@ -232,6 +261,13 @@ class Converter:
         elif t in DATA:
             n["kind"] = "data"
             n["data"] = DATA[t]
+            if t in ("dataInput", "dataOutput"):
+                n["direction"] = "input" if t == "dataInput" else "output"
+            # isCollection lives on the referenced dataObject, not the reference
+            ref = self.sem.get(e.get("dataObjectRef", ""))
+            if (ref is not None and ref.get("isCollection") == "true") or \
+                    e.get("isCollection") == "true":
+                n["collection"] = True
         elif t == "textAnnotation":
             n["kind"] = "annotation"
             txt = kid(e, "text")
@@ -288,8 +324,17 @@ class Converter:
             edge = self.edges.get(fid)
             if edge is None:
                 continue
-            f: dict[str, Any] = {"id": fid, "kind": kinds[t],
-                                 "source": e.get("sourceRef", ""), "target": e.get("targetRef", "")}
+            # Data associations name their far end in a *child element*, and take
+            # their near end from the activity they are declared inside.
+            if t in ("dataInputAssociation", "dataOutputAssociation"):
+                host = self.parent.get(e)
+                host_id = host.get("id", "") if host is not None else ""
+                ref = kid(e, "targetRef" if t == "dataOutputAssociation" else "sourceRef")
+                far = (ref.text or "").strip() if ref is not None else ""
+                src, tgt = ((host_id, far) if t == "dataOutputAssociation" else (far, host_id))
+            else:
+                src, tgt = e.get("sourceRef", ""), e.get("targetRef", "")
+            f: dict[str, Any] = {"id": fid, "kind": kinds[t], "source": src, "target": tgt}
             name = (e.get("name") or "").strip()
             if name:
                 f["name"] = name
@@ -300,6 +345,12 @@ class Converter:
                 f["label"] = lb
             if fid in self.default_flows:
                 f["default"] = True
+            # the conditional-flow diamond is drawn only when the source is an
+            # activity; a gateway's branches carry the condition implicitly
+            if kid(e, "conditionExpression") is not None:
+                src = self.sem.get(e.get("sourceRef", ""))
+                if src is None or local(src) not in GATEWAY_TAGS:
+                    f["conditional"] = True
             if t == "association":
                 f["direction"] = e.get("associationDirection", "None").lower()
             f.update(colors_of(edge))

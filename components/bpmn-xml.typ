@@ -38,6 +38,20 @@
   dataInputAssociation: "data", dataOutputAssociation: "data",
 )
 
+#let _markers(e) = {
+  let out = ()
+  for c in (if "children" in e { e.children.filter(x => type(x) == dictionary) } else { () }) {
+    if c.tag == "standardLoopCharacteristics" { out.push("loop") }
+    else if c.tag == "multiInstanceLoopCharacteristics" {
+      out.push(if c.attrs.at("isSequential", default: "") == "true" { "mi-sequential" }
+               else { "mi-parallel" })
+    }
+  }
+  if e.tag == "adHocSubProcess" { out.push("adhoc") }
+  if e.attrs.at("isForCompensation", default: "") == "true" { out.push("compensation") }
+  out
+}
+
 #let _els(e) = if type(e) == dictionary and "children" in e {
   e.children.filter(c => type(c) == dictionary)
 } else { () }
@@ -166,10 +180,15 @@
       }
     } else if t in _tasks {
       n += (kind: "task", task: _tasks.at(t))
+      let mk = _markers(e)
+      if mk.len() > 0 { n += (markers: mk) }
     } else if _subprocess.contains(t) {
       n += (kind: "subprocess",
             expanded: _attr(shape, "isExpanded", default: "false") != "false",
             triggered-by-event: _attr(e, "triggeredByEvent", default: "false") != "false")
+      if t == "transaction" { n += (transaction: true) }
+      let mk = _markers(e)
+      if mk.len() > 0 { n += (markers: mk) }
     } else if t in _gateways {
       n += (kind: "gateway", gateway: _gateways.at(t))
       if _gateways.at(t) == "exclusive" {
@@ -177,6 +196,7 @@
       }
     } else if t in _data {
       n += (kind: "data", data: _data.at(t))
+      if _attr(e, "isCollection", default: "") == "true" { n += (collection: true) }
     } else if t == "textAnnotation" {
       let txt = _first(e, "text")
       n += (kind: "annotation",
@@ -202,14 +222,33 @@
   nodes = nodes.sorted(key: n => (order.at(n.kind, default: 1), n.bounds.y, n.bounds.x))
 
   // --- flows ---------------------------------------------------------------
+  // Data associations name their far end in a child element and take their near
+  // end from the activity they sit inside, so we need a parent index.
+  let parent-of = (:)
+  for e in all {
+    for c in _els(e) {
+      let cid = _attr(c, "id")
+      if cid != none { parent-of.insert(cid, _attr(e, "id", default: "")) }
+    }
+  }
+
   let flows = ()
   for e in all.filter(e => e.tag in _flow-kinds) {
     let id = _attr(e, "id", default: "")
     let edge = edges.at(id, default: none)
     if edge == none { continue }
-    let f = (id: id, kind: _flow-kinds.at(e.tag),
-             source: _attr(e, "sourceRef", default: ""),
-             target: _attr(e, "targetRef", default: ""))
+    let text-of(tag) = {
+      let c = _first(e, tag)
+      if c == none { "" } else { c.children.filter(x => type(x) == str).join("").trim() }
+    }
+    let ends = if e.tag == "dataOutputAssociation" {
+      (parent-of.at(id, default: ""), text-of("targetRef"))
+    } else if e.tag == "dataInputAssociation" {
+      (text-of("sourceRef"), parent-of.at(id, default: ""))
+    } else {
+      (_attr(e, "sourceRef", default: ""), _attr(e, "targetRef", default: ""))
+    }
+    let f = (id: id, kind: _flow-kinds.at(e.tag), source: ends.at(0), target: ends.at(1))
     let nm = _attr(e, "name", default: "")
     if nm != "" { f.insert("name", nm) }
     f.insert("waypoints", _els(edge).filter(w => w.tag == "waypoint")
@@ -217,6 +256,10 @@
     let lb = _bounds(_first(edge, "BPMNLabel"))
     if lb != none and lb.w > 0 { f.insert("label", lb) }
     if defaults.contains(id) { f.insert("default", true) }
+    if _first(e, "conditionExpression") != none and e.tag == "sequenceFlow" {
+      let src = all.find(x => _attr(x, "id", default: "") == _attr(e, "sourceRef", default: ""))
+      if src == none or not (src.tag in _gateways) { f.insert("conditional", true) }
+    }
     if e.tag == "association" {
       f.insert("direction", lower(_attr(e, "associationDirection", default: "None")))
     }
