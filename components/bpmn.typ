@@ -15,6 +15,7 @@
 #import "bpmn-xml.typ": bpmn-from-xml
 #import "bpmn-grid.typ": grid-layout, grid-defaults
 #import "bpmn-compact.typ": compact, compact-defaults
+#import "bpmn-palette.typ": camunda-palette, outline-palette, mono-palette, swatch, swatch-names
 
 // --------------------------------------------------------------- loading ---
 
