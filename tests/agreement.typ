@@ -15,6 +15,9 @@
 // (label, converted YAML, source XML)
 #let PAIRS = (
   ("b04-btvn01", yaml("/models/b04-btvn01.yaml"), xml("/samples/b04-btvn01.bpmn")),
+  // vertical pools, and a leading XML comment ahead of the root element
+  ("vertical-pools", yaml("/models/vertical-pools.yaml"),
+   xml("/tests/fixtures/vertical-pools.bpmn")),
 )
 
 // Views to compare, so the check covers slicing and compaction too, not just the
@@ -24,6 +27,8 @@
   ("compact x", none, true),
   ("compact both", none, (axis: "both")),
 )
+
+// Slice cases run only where the named pool exists, so they are listed per model.
 
 = Parser agreement
 

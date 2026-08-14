@@ -135,12 +135,26 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
 
 #grid(columns: 4, row-gutter: 9pt,
   ..(("exclusive", "exclusive (X)"), ("parallel", "parallel (+)"),
-     ("inclusive", "inclusive (O)"), ("event", "event-based"),
+     ("inclusive", "inclusive (O)"),
      ("complex", "complex (*)")).map(((k, lbl)) =>
     scales(lbl, u => shape-gateway(50 * u, 50 * u, kind: k, fill: white, stroke: ink), base: 50)),
   scales("exclusive, marker hidden",
     u => shape-gateway(50 * u, 50 * u, kind: "exclusive", marker: false,
       fill: white, stroke: ink), base: 50))
+
+*Event-based* — BPMN tells these apart by `eventGatewayType` and `instantiate`,
+not by element name. Ring radii follow bpmn-js: outer inset 0.20 × height, inner
+0.26, so a 50-unit gateway gets r = 15 and r = 12.
+
+#grid(columns: 3, row-gutter: 9pt,
+  scales("exclusive, not instantiating",
+    u => shape-gateway(50 * u, 50 * u, kind: "event", fill: white, stroke: ink), base: 50),
+  scales("exclusive, instantiating",
+    u => shape-gateway(50 * u, 50 * u, kind: "event", instantiate: true,
+      fill: white, stroke: ink), base: 50),
+  scales("parallel (always instantiating)",
+    u => shape-gateway(50 * u, 50 * u, kind: "event", event-type: "parallel",
+      instantiate: true, fill: white, stroke: ink), base: 50))
 
 = Data and artifacts
 
@@ -198,3 +212,24 @@ green and red.
 
 Connections are drawn by the renderer rather than the shape library, so they are
 exercised by the model renders in `demo.typ` instead of here.
+
+#pagebreak()
+
+= Pools, both orientations
+
+Pools stack and lanes divide them along the pool's own axis: a horizontal pool
+carries its title down the left and its lanes across, a vertical pool carries its
+title along the top and its lanes down. The fixture below is rendered from
+`tests/fixtures/vertical-pools.bpmn`.
+
+#import "/components/bpmn.typ": bpmn, default-theme
+
+#let T = default-theme + (font: "Lora")
+
+*Vertical pools, with lanes*
+#bpmn(yaml("/models/vertical-pools.yaml"), theme: T, fit: "width")
+
+#v(8pt)
+*Sliced to one pool — the partner collapses to a band on the side it came from*
+#bpmn(yaml("/models/vertical-pools.yaml"), view: (pool: "Ngân hàng"),
+  compact: (axis: "both"), theme: T, fit: "width")
