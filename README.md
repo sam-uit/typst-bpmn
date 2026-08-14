@@ -40,7 +40,11 @@ components/
   bpmn-xml.typ            read .bpmn directly in Typst (no build step)
   bpmn-grid.typ           layout fallback for coordinate-free YAML
   bpmn-compact.typ        collapse empty bands to buy label size
+  bpmn-palette.typ        Camunda Modeler's colour swatches
 docs/                     design notes and roadmap
+tests/conformance.typ     every symbol at three scales
+tests/agreement.typ       the two parsers must produce identical models
+justfile                  build / watch / check runner
 examples/leave-request.yaml   hand-authored model, no coordinates
 demo.typ                  every feature, rendered
 ```
@@ -180,6 +184,34 @@ nodes:
 flows:
   - { source: t1, target: g1, name: "Có" }
 ```
+
+## Colours
+
+`color:` on any element names a Camunda Modeler swatch instead of repeating hex:
+
+```yaml
+- { id: t3, kind: task, task: send, name: Gửi chấp thuận, color: success }
+```
+
+`default` `blue` `orange` `green` `red` `purple`, plus semantic aliases
+(`success` `happy` `failure` `error` `reject` `warning` `rework` `info`
+`external`). Values match `bpmn-io/bpmn-js-color-picker`; explicit `fill:`/
+`stroke:` still wins. Alternative palettes: `outline-palette`, `mono-palette`.
+
+Full table in [docs/design-system.md](docs/design-system.md#colour).
+
+## Building
+
+```bash
+just            # list recipes
+just demo       # convert samples, build out/demo.pdf
+just watch      # live rebuild while editing
+just conformance# every symbol at three scales
+just check      # converter strict + both parsers agree
+just lint       # compile every source file
+```
+
+Set `BPMN_FONTS=/path/to/fonts` if the fonts are not installed system-wide.
 
 ## Themes
 

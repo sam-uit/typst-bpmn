@@ -53,7 +53,8 @@ Common fields:
   row: 1                         # grid form
   col: 3                         # grid form
   label:  { x, y, w, h }         # external label box; auto-placed in grid form
-  fill: "#c8e6c9"                # bpmn.io colour extensions
+  color: success                 # named palette swatch (see design-system.md)
+  fill: "#c8e6c9"                # explicit hex; wins over `color:`
   stroke: "#205022"
   pool: p_mgr                    # pool id or display name
   lane: l_hr
@@ -69,11 +70,16 @@ Per-kind fields:
 | | `interrupting` | boundary events; `false` dashes the ring |
 | | `attached-to` | boundary events: host node id |
 | `task` | `task` | `none` `user` `service` `send` `receive` `manual` `script` `rule` `call` |
+| | `markers` | any of `loop` `mi-parallel` `mi-sequential` `compensation` |
 | `subprocess` | `expanded` | `false` draws the `[+]` marker |
 | | `triggered-by-event` | dashed border |
+| | `transaction` | second inset border |
+| | `markers` | as above, plus `adhoc` |
 | `gateway` | `gateway` | `exclusive` `parallel` `inclusive` `event` `complex` |
 | | `marker` | exclusive only; `false` hides the X |
 | `data` | `data` | `object` `store` |
+| | `collection` | three bars along the bottom |
+| | `direction` | `input` (hollow arrow) or `output` (solid) |
 | `annotation` | `text` | the annotation body |
 | `group` | `name` | from the BPMN category value |
 
@@ -89,12 +95,19 @@ flows:
     waypoints: [[x, y], [x, y]]  # DI form; grid form routes automatically
     label: { x, y, w, h }
     default: true                # draws the slash near the source
+    conditional: true            # hollow diamond near the source
     direction: none              # associations: none | one | both
+    color: failure               # named swatch, or explicit stroke: below
     stroke: "#205022"
 ```
 
 A flow with explicit `waypoints` is always honoured, even in grid form — the
 layout engine only fills in what is missing.
+
+Note that `dataInputAssociation` and `dataOutputAssociation` in BPMN XML name
+their far end in a *child element* and take their near end from the activity they
+are declared inside; both parsers resolve that, so in YAML they look like any
+other flow.
 
 ## Minimal grid-form model
 

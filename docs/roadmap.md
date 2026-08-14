@@ -28,17 +28,24 @@ can only lay out what Phase 1 can render.
   data association.
 - Pools and lanes, horizontal and vertical, expanded and collapsed.
 
-**Status.** Roughly 80% done — see the coverage list in the README. Missing:
-loop / multi-instance / compensation markers, collection data objects, conditional
-sequence-flow diamonds, transaction double-border, vertical pools untested.
+**Status — largely done (v0.2.0).** Added since v0.1.0: loop, multi-instance
+parallel and sequential, compensation and ad-hoc markers; call-activity thick
+border; transaction double border; collection data objects; data input/output;
+conditional sequence-flow diamonds; the Camunda colour palette with semantic
+aliases. Both parsers read all of it.
 
-**Deliverable.** A visual conformance sheet rendering every symbol at three
-scales, checked side by side against Camunda Modeler, plus `docs/design-system.md`
-kept in step.
+Still open: vertical pools are drawn but untested against a real model; the
+event-based gateway has one glyph where the spec distinguishes exclusive from
+parallel instantiating variants; no choreography or conversation shapes (out of
+scope).
+
+**Deliverable — done.** `tests/conformance.typ` renders every symbol at three
+scales (100 / 55 / 34%) for side-by-side comparison with Camunda Modeler:
+`just conformance`. `docs/design-system.md` is kept in step.
 
 ### A note on borrowing from bpmn-js
 
-Tempting, and worth being careful about. Two separate things are involved:
+**Settled: we draw our own from the spec.** Two separate things are involved:
 
 - **The symbols themselves** come from the OMG BPMN 2.0 specification, which is
   publicly available. Redrawing from the spec is unambiguous and is what the
@@ -48,10 +55,12 @@ Tempting, and worth being careful about. Two separate things are involved:
   bpmn.io") and conditions on the watermark. Copying its path data or icons into
   this project would bring those obligations along.
 
-Recommendation: keep using bpmn-js as a **visual reference** — open a diagram,
-compare proportions, match them — and keep drawing from the spec. If we ever do
-vendor assets, do it deliberately, in a clearly-marked directory, with the licence
-text alongside. This is a "check before you copy" item, not a blocker.
+Since the project is not being published or monetised the practical risk is low
+either way, but drawing from the spec costs little and keeps the question from
+ever arising. bpmn-js stays a **visual reference** — open a diagram, compare
+proportions, match them. The one thing taken verbatim is the colour palette's hex
+values, which are data rather than artwork and are documented as such in
+`components/bpmn-palette.typ`.
 
 ---
 
