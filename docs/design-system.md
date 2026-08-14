@@ -95,15 +95,9 @@ A collapsed (black-box) participant has no band and no lanes: the name is centre
 
 ## Ports
 
-Four attachment points per shape — right, bottom, left, top — which on a gateway
-diamond are exactly its vertices. Every flow touching a node is allocated its own,
-by angle, with conflicts resolved in favour of the better-aligned flow. A gateway
-with one incoming and two outgoing branches therefore uses left / right / bottom,
-which is how a person would draw it.
+Four attachment points per shape — right, bottom, left, top — which on a gateway diamond are exactly its vertices. Every flow touching a node is allocated its own, by angle, with conflicts resolved in favour of the better-aligned flow. A gateway with one incoming and two outgoing branches therefore uses left / right / bottom, which is how a person would draw it.
 
-External labels (events, gateways, data) are then placed on the first side *no
-flow is using*, preferring bottom → top → right → left. Without that, a gateway's
-name lands on top of its own outgoing branch.
+External labels (events, gateways, data) are then placed on the first side *no flow is using*, preferring bottom → top → right → left. Without that, a gateway's name lands on top of its own outgoing branch.
 
 Applies to the grid layout only; DI models use the modeler's waypoints.
 
@@ -128,19 +122,15 @@ Applies to the grid layout only; DI models use the modeler's waypoints.
 )
 ```
 
-Override by addition: `default-theme + (font: "Lora", font-size: 12)`.
-`grayscale-theme` is `default-theme + (honor-colors: false, palette: mono-palette)`.
+Override by addition: `default-theme + (font: "Lora", font-size: 12)`. `grayscale-theme` is `default-theme + (honor-colors: false, palette: mono-palette)`.
 
 ## Colour
 
-Three sources, in precedence order: an explicit `fill:`/`stroke:` hex on the
-element, then a named `color:` swatch, then the theme default.
+Three sources, in precedence order: an explicit `fill:`/`stroke:` hex on the element, then a named `color:` swatch, then the theme default.
 
 ### The Camunda palette
 
-The six swatches Camunda Modeler's colour picker offers. Values taken from
-`bpmn-io/bpmn-js-color-picker` and confirmed against the colours Camunda wrote
-into the reference model.
+The six swatches Camunda Modeler's colour picker offers. Values taken from `bpmn-io/bpmn-js-color-picker` and confirmed against the colours Camunda wrote into the reference model.
 
 | Name | Fill | Stroke |
 | --- | --- | --- |
@@ -151,35 +141,20 @@ into the reference model.
 | `red` | `#FFCDD2` | `#831311` |
 | `purple` | `#E1BEE7` | `#5B176D` |
 
-Note the default stroke: Camunda uses `rgb(34, 36, 42)`, not pure black, and the
-theme now matches.
+Note the default stroke: Camunda uses `rgb(34, 36, 42)`, not pure black, and the theme now matches.
 
-Semantic aliases so a model can say what it means rather than which hue:
-`success`/`happy` → green, `failure`/`error`/`reject` → red, `warning`/`rework` →
-orange, `info` → blue, `external` → purple.
+Semantic aliases so a model can say what it means rather than which hue: `success`/`happy` → green, `failure`/`error`/`reject` → red, `warning`/`rework` → orange, `info` → blue, `external` → purple.
 
-Alternative palettes: `outline-palette` (same hues, white fill) and
-`mono-palette` (everything black on white). Set one with
-`theme: default-theme + (palette: outline-palette)`.
+Alternative palettes: `outline-palette` (same hues, white fill) and `mono-palette` (everything black on white). Set one with `theme: default-theme + (palette: outline-palette)`.
 
-An unknown swatch name falls back to `default` rather than failing the build — a
-typo in a colour should not stop a report.
+An unknown swatch name falls back to `default` rather than failing the build — a typo in a colour should not stop a report.
 
 ### Extension attributes
 
-bpmn.io's non-normative colour extensions (`bioc:fill` / `bioc:stroke`,
-`color:background-color` / `color:border-color`) are carried through and applied
-to the element's border, fill **and its label**. People use these to mark the
-happy path and the failure path, so dropping them loses meaning, not just
-decoration. `honor-colors: false` ignores them for black-and-white printing.
+bpmn.io's non-normative colour extensions (`bioc:fill` / `bioc:stroke`, `color:background-color` / `color:border-color`) are carried through and applied to the element's border, fill **and its label**. People use these to mark the happy path and the failure path, so dropping them loses meaning, not just decoration. `honor-colors: false` ignores them for black-and-white printing.
 
 ## Typography
 
-Labels are set in `theme.font` at `theme.font-size × u` with tight leading. Where
-the DI provides label bounds those are honoured exactly, which reproduces the
-modeler's line breaks — with one exception: **group titles ignore their DI label
-bounds**, because modelers size those to their own font and any other font forces
-a wrap.
+Labels are set in `theme.font` at `theme.font-size × u` with tight leading. Where the DI provides label bounds those are honoured exactly, which reproduces the modeler's line breaks — with one exception: **group titles ignore their DI label bounds**, because modelers size those to their own font and any other font forces a wrap.
 
-The font must cover the diagram's script. For Vietnamese, DejaVu Sans, Noto Sans,
-Lora and Libertinus all work; bpmn.io's own Arial does too.
+The font must cover the diagram's script. For Vietnamese, DejaVu Sans, Noto Sans, Lora and Libertinus all work; bpmn.io's own Arial does too.
