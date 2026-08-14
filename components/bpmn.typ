@@ -141,26 +141,46 @@
     .filter(p => p != "" and not pools.map(q => q.id).contains(p))
     .dedup()
 
-  let kept-top = if pools.len() > 0 { calc.min(..pools.map(p => p.bounds.y)) } else { ce.y }
-  let above = partner-ids.filter(p => orig-pool.at(p).bounds.y < kept-top)
-  let below = partner-ids.filter(p => orig-pool.at(p).bounds.y >= kept-top)
+  // Horizontal pools stack, so a black box goes above or below; vertical pools
+  // sit side by side, so it goes left or right. Either way the band keeps the
+  // partner on the side it was originally on.
+  let vertical = (pools.len() > 0
+    and pools.all(p => not p.at("horizontal", default: true)))
+  let near(p) = if vertical { orig-pool.at(p).bounds.x } else { orig-pool.at(p).bounds.y }
+  let kept-near = if pools.len() == 0 { if vertical { ce.x } else { ce.y } } else {
+    calc.min(..pools.map(p => if vertical { p.bounds.x } else { p.bounds.y }))
+  }
+  let before = partner-ids.filter(p => near(p) < kept-near)
+  let after = partner-ids.filter(p => near(p) >= kept-near)
 
-  let band-x = if pools.len() > 0 { calc.min(..pools.map(p => p.bounds.x)) } else { ce.x }
-  let band-w = if pools.len() > 0 {
-    calc.max(..pools.map(p => p.bounds.x + p.bounds.w)) - band-x
-  } else { ce.w }
+  // the band spans the content on the other axis
+  let span-lo = if pools.len() == 0 { if vertical { ce.y } else { ce.x } } else {
+    calc.min(..pools.map(p => if vertical { p.bounds.y } else { p.bounds.x }))
+  }
+  let span-hi = if pools.len() == 0 { if vertical { ce.y + ce.h } else { ce.x + ce.w } } else {
+    calc.max(..pools.map(p => if vertical { p.bounds.y + p.bounds.h } else { p.bounds.x + p.bounds.w }))
+  }
+  let span = span-hi - span-lo
+
+  let band-at(offset) = if vertical {
+    (x: offset, y: span-lo, w: bb-height, h: span)
+  } else {
+    (x: span-lo, y: offset, w: span, h: bb-height)
+  }
+  let content-lo = if vertical { ce.x } else { ce.y }
+  let content-hi = if vertical { ce.x + ce.w } else { ce.y + ce.h }
 
   let bands = (:)
-  for (i, pid) in above.enumerate() {
-    bands.insert(pid, (x: band-x, y: ce.y - bb-gap - (above.len() - i) * bb-height, w: band-w, h: bb-height))
+  for (i, pid) in before.enumerate() {
+    bands.insert(pid, band-at(content-lo - bb-gap - (before.len() - i) * bb-height))
   }
-  for (i, pid) in below.enumerate() {
-    bands.insert(pid, (x: band-x, y: ce.y + ce.h + bb-gap + i * bb-height, w: band-w, h: bb-height))
+  for (i, pid) in after.enumerate() {
+    bands.insert(pid, band-at(content-hi + bb-gap + i * bb-height))
   }
 
   let bb-pools = partner-ids.map(pid => (
     id: pid, name: orig-pool.at(pid).at("name", default: ""),
-    horizontal: true, blackbox: true, bounds: bands.at(pid),
+    horizontal: not vertical, blackbox: true, bounds: bands.at(pid),
   ))
 
   // re-route each crossing message flow: the original waypoints ran to a shape
@@ -168,16 +188,26 @@
   // surviving node and the edge of its partner's band
   let by-id = (:)
   for n in nodes { by-id.insert(n.id, n) }
-  let bb-flows = crossing.map(f => {
+  let bb-flows = crossing.enumerate().map(((fi, f)) => {
     let src-kept = ids.contains(f.source)
     let node = by-id.at(if src-kept { f.source } else { f.target })
     let pid = pool-of.at(if src-kept { f.target } else { f.source }, default: "")
     if not bands.keys().contains(pid) { return none }
     let bb = bands.at(pid)
-    let nx = node.bounds.x + node.bounds.w / 2
-    let up = bb.y < node.bounds.y
-    let at-node = (nx, if up { node.bounds.y } else { node.bounds.y + node.bounds.h })
-    let at-band = (nx, if up { bb.y + bb.h } else { bb.y })
+    // Nudge each drop off its neighbours: two nodes at the same coordinate would
+    // otherwise put their message flows on exactly the same line and read as one.
+    let nudge = (calc.rem(fi, 3) - 1) * 7
+    let (at-node, at-band) = if vertical {
+      let ny = node.bounds.y + node.bounds.h / 2 + nudge
+      let leftwards = bb.x < node.bounds.x
+      ((if leftwards { node.bounds.x } else { node.bounds.x + node.bounds.w }, ny),
+       (if leftwards { bb.x + bb.w } else { bb.x }, ny))
+    } else {
+      let nx = node.bounds.x + node.bounds.w / 2 + nudge
+      let up = bb.y < node.bounds.y
+      ((nx, if up { node.bounds.y } else { node.bounds.y + node.bounds.h }),
+       (nx, if up { bb.y + bb.h } else { bb.y }))
+    }
     let q = f
     q.waypoints = if src-kept { (at-node, at-band) } else { (at-band, at-node) }
     q.remove("label", default: none)
@@ -188,7 +218,11 @@
   m.pools = pools + bb-pools
   m.nodes = nodes
   m.flows = flows + bb-flows
-  m.meta.extent = if bb-pools.len() == 0 { ce } else {
+  m.meta.extent = if bb-pools.len() == 0 { ce } else if vertical {
+    let x0 = calc.min(ce.x, ..bb-pools.map(p => p.bounds.x)) - pad
+    let x1 = calc.max(ce.x + ce.w, ..bb-pools.map(p => p.bounds.x + p.bounds.w)) + pad
+    (x: x0, y: ce.y, w: x1 - x0, h: ce.h)
+  } else {
     let y0 = calc.min(ce.y, ..bb-pools.map(p => p.bounds.y)) - pad
     let y1 = calc.max(ce.y + ce.h, ..bb-pools.map(p => p.bounds.y + p.bounds.h)) + pad
     (x: ce.x, y: y0, w: ce.w, h: y1 - y0)
