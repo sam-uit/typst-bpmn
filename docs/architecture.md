@@ -96,12 +96,37 @@ and fewer surprises.
 4. **No execution semantics anywhere.** The converter drops them at the door so
    nothing downstream has to think about them.
 
+## Testing
+
+Three layers, in increasing cost to run and decreasing automation:
+
+1. **`tests/agreement.typ`** — the two parsers must produce identical model
+   dictionaries. Cheap, and the only thing standing between a dual-parser design
+   and silent drift.
+2. **`tests/golden.typ`** — a structural manifest over model x view x compact:
+   counts, extents, and the label size each extent implies at a reference width.
+   `just golden` diffs it and fails on drift. Deliberately *not* pixel goldens: a
+   PNG depends on which fonts the machine has, so image comparison would fail on
+   someone else's laptop for reasons unrelated to the code. The trade is that a
+   redrawn icon does not move any number here.
+3. **`tests/conformance.typ`** — the visual check for exactly that gap. Run by
+   eye, beside Camunda Modeler.
+
+Fixtures in `tests/fixtures/` exist for shapes no real sample covers. Both bugs
+they have caught so far — the XML root lookup and the missing-`pools` key — were
+in code paths the reference model simply never took.
+
 ## Known sharp edges
 
 - `layout()` is used to make fit decisions. Inside it, `size.height` is the
   enclosing region's height, not the space remaining on the page, so a figure
   near the bottom of a page may be sized against the full page height and then
   pushed. That is Typst's model, not a bug we can fix here.
+- Because the figure is returned inside a wrapper, a label written as
+  `#bpmn-figure(..) <lbl>` attaches to the wrapper and cannot be referenced. The
+  `label:` parameter attaches it to the figure instead. There is no way to make
+  the trailing-label form work short of returning a bare figure, which would
+  cost the turned caption.
 - A bottom-anchored `place()` forces its container to claim full height. Do not
   reintroduce one in `bpmn-body`.
 - Adding a black box changes a slice's aspect ratio, which can flip `fit: "auto"`

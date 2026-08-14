@@ -44,6 +44,7 @@ components/
 docs/                     design notes and roadmap
 tests/conformance.typ     every symbol at three scales, both pool orientations
 tests/agreement.typ       the two parsers must produce identical models
+tests/golden.typ          structural manifest; `just golden` fails on drift
 tests/fixtures/           synthetic models the real samples do not cover
 justfile                  build / watch / check runner
 examples/leave-request.yaml   hand-authored model, no coordinates
@@ -168,6 +169,22 @@ waste the band it sits in twice over, and the diagram is sized against the space
 the caption actually needs (measured, not guessed). Disable with
 `turn-caption: false`.
 
+## Referencing a figure
+
+`bpmn-figure` returns a wrapper — a `rotate`, a flipped `page`, a `layout` — and
+in Typst `#foo(..) <lbl>` labels the **outermost** element. A label written after
+the call therefore lands on the wrapper, and `@lbl` fails with *cannot reference
+rotate*. Pass it instead:
+
+```typ
+#bpmn-figure(M, caption: [Quy trình tuyển sinh], label: <fig-admission>)
+
+Xem @fig-admission.
+```
+
+Numbering, `@ref` and `#outline(target: figure.where(kind: image))` all work this
+way, including for turned and landscape figures.
+
 ## YAML schema
 
 Two dialects of one schema: **DI form** (absolute coordinates, what the converter
@@ -208,7 +225,9 @@ just            # list recipes
 just demo       # convert samples, build out/demo.pdf
 just watch      # live rebuild while editing
 just conformance# every symbol at three scales
-just check      # converter strict + both parsers agree
+just check      # converter strict + parsers agree + golden manifest unchanged
+just golden     # structural regression check on its own
+just golden-update  # re-approve after an intentional change
 just lint       # compile every source file
 ```
 

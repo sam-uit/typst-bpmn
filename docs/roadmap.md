@@ -96,13 +96,18 @@ as well as it possibly can.
 
 **Remaining before integration into IE203.**
 
-1. Finish the Phase 0 vocabulary gaps that the IE203 models actually use.
-2. Decide where the components live in the report template and how models are
-   referenced (root-absolute vs. call-site relative).
-3. A regression harness: render a fixed set of models, compare against approved
-   PNGs, fail on drift.
-4. Multi-diagram documents: figure numbering, `#ref()` behaviour across turned
-   figures, and a `bpmn-index()` for a list of figures.
+1. ~~Finish the Phase 0 vocabulary gaps.~~ Done in v0.3.0.
+2. ~~A regression harness.~~ Done in v0.4.0 — `tests/golden.typ` plus
+   `just golden`. Structural rather than pixel-based; see
+   [architecture.md](architecture.md#testing) for why.
+3. ~~Multi-diagram documents: numbering, `#ref()` across turned figures, a list
+   of figures.~~ Done in v0.4.0. All three work; referencing needs the `label:`
+   parameter rather than a trailing `<lbl>`, because the figure is returned
+   inside a wrapper. A separate `bpmn-index()` turned out to be unnecessary —
+   `#outline(target: figure.where(kind: image))` does the job.
+4. **Open: where the components live in the report template**, and whether models
+   are referenced root-absolute or relative to the calling file. This is the last
+   gate and it is a decision about the IE203 repo, not about this code.
 
 **Exit criterion.** An IE203 chapter builds end to end with BPMN figures that
 need no manual fiddling.
