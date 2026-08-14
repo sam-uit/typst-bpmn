@@ -30,6 +30,13 @@
     else if type(src) == dictionary and "tag" in src { bpmn-from-xml(src) }
     else { panic("bpmn: expected a model dictionary, yaml() output, or xml() output") }
 
+  // A plain process with no collaboration has no participants at all, and the
+  // YAML writer omits empty sections. Normalise so nothing downstream has to
+  // guard for a missing key.
+  for k in ("pools", "nodes", "flows") {
+    if k not in m { m.insert(k, ()) }
+  }
+
   let needs-layout = (m.meta.at("layout", default: "grid") != "di"
     or m.nodes.any(n => "bounds" not in n))
   if needs-layout { grid-layout(m) } else { m }
@@ -328,6 +335,7 @@
   turn-caption: auto,   // auto = turn the caption too whenever the figure turns
   max-aspect: 2.5,
   landscape: false,
+  label: none,          // see the note below: `<lbl>` after the call will not work
   compact: none,
   debug: false,
   kind: image,
@@ -341,11 +349,17 @@
     let t = m.at("caption", default: m.at("title", default: ""))
     if t != "" { cap = [#t] }
   }
+  // `bpmn-figure` returns a wrapper (a rotate, a flipped page, a layout), and in
+  // Typst `#foo(..) <lbl>` labels the *outermost* element — so a label written
+  // after the call lands on the wrapper and `@lbl` fails with "cannot reference
+  // rotate". Pass `label: <lbl>` instead and it is attached to the figure.
+  let tag(fig) = if label == none { fig } else { [#fig#label] }
+
   if landscape {
     let body = bpmn-body(model, fit: fit, width: width, scale: scale, theme: theme,
       min-font: min-font, turn: turn, max-aspect: max-aspect, debug: debug)
     return page(flipped: true,
-      figure(body, caption: cap, kind: kind, supplement: supplement, ..figure-args))
+      tag(figure(body, caption: cap, kind: kind, supplement: supplement, ..figure-args)))
   }
 
   layout(size => {
@@ -362,7 +376,7 @@
     if not turning {
       let body = bpmn-body(model, fit: fit, width: width, scale: scale, theme: theme,
         min-font: min-font, turn: turn, max-aspect: max-aspect, debug: debug)
-      return figure(body, caption: cap, kind: kind, supplement: supplement, ..figure-args)
+      return tag(figure(body, caption: cap, kind: kind, supplement: supplement, ..figure-args))
     }
 
     // Two passes: size the diagram, measure how tall the caption comes out at
@@ -378,8 +392,8 @@
       align(right, text(size: 6pt, fill: rgb("#b00"),
         [turned · #calc.round(e.w) × #calc.round(e.h) u · label #calc.round(theme.font-size * u / 1pt, digits: 2)pt]))
     }
-    let fig = figure(align(center, box(inner)) + note, caption: cap,
-      kind: kind, supplement: supplement, ..figure-args)
+    let fig = tag(figure(align(center, box(inner)) + note, caption: cap,
+      kind: kind, supplement: supplement, ..figure-args))
     rotate(if turn == "cw" { 90deg } else { -90deg }, reflow: true,
       box(width: e.w * u, fig))
   })

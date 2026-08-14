@@ -462,6 +462,10 @@ def to_yaml(doc: dict[str, Any]) -> str:
     for section in ("meta", "pools", "nodes", "flows"):
         val = doc[section]
         if not val:
+            # keep the key: a process with no pools is legitimate, and a reader
+            # should not have to tell "absent" from "empty"
+            lines.append(f"{section}: []")
+            lines.append("")
             continue
         lines.append(f"{section}:")
         lines.append(dump(val, 1))
