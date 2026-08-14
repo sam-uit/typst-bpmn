@@ -5,35 +5,46 @@
 // file scale-independent: change `u` and the diagram scales, strokes and all.
 
 #import "bpmn-shapes.typ": *
+#import "bpmn-palette.typ": camunda-palette, mono-palette, swatch
 
 // ------------------------------------------------------------------ theme ---
 
 #let default-theme = (
   font: "DejaVu Sans",
-  stroke: rgb("#000000"),
-  fill: rgb("#ffffff"),
-  pool-stroke: rgb("#000000"),
+  // Camunda Modeler's own default stroke is rgb(34, 36, 42), not pure black.
+  stroke: rgb("#22242A"),
+  fill: rgb("#FFFFFF"),
+  palette: camunda-palette,
+  pool-stroke: rgb("#22242A"),
   pool-fill: none,
   pool-band: rgb("#f8f8f8"),
   blackbox-fill: rgb("#f4f4f4"),
-  lane-stroke: rgb("#000000"),
+  lane-stroke: rgb("#22242A"),
   group-stroke: rgb("#666666"),
-  label: rgb("#000000"),
+  label: rgb("#22242A"),
   font-size: 11, // BPMN units
   label-leading: 0.32,
   honor-colors: true, // use bioc:/color: extensions from the model
 )
 
-#let grayscale-theme = (default-theme + (honor-colors: false))
+#let grayscale-theme = (default-theme + (honor-colors: false, palette: mono-palette))
 
 // ---------------------------------------------------------------- helpers ---
 
 #let _col(v, fallback) = if v == none or v == "" { fallback } else { rgb(v) }
 
+/// Colour precedence: explicit `fill:`/`stroke:` hex, then a named `color:`
+/// swatch, then the theme default. `honor-colors: false` collapses all of it.
 #let _node-colors(n, theme) = {
   if not theme.honor-colors { return (fill: theme.fill, stroke: theme.stroke) }
-  (fill: _col(n.at("fill", default: none), theme.fill),
-   stroke: _col(n.at("stroke", default: none), theme.stroke))
+  let base = (fill: theme.fill, stroke: theme.stroke)
+  let named = n.at("color", default: none)
+  if named != none {
+    let sw = swatch(named, palette: theme.at("palette", default: camunda-palette))
+    if sw != none { base = sw }
+  }
+  (fill: _col(n.at("fill", default: none), base.fill),
+   stroke: _col(n.at("stroke", default: none), base.stroke))
 }
 
 /// Text block placed at absolute DI label bounds.
@@ -118,13 +129,29 @@
     curve.line(((c.at(0) + ax * 6) * u, (c.at(1) + ay * 6) * u))))
 }
 
+/// The hollow diamond a conditional sequence flow carries at its source.
+#let _condition-diamond(pts, u, paint) = {
+  let (p0, p1) = (pts.at(0), pts.at(1))
+  let (dx, dy) = _norm(p1.at(0) - p0.at(0), p1.at(1) - p0.at(1))
+  let (px, py) = (-dy, dx)
+  let (l, w) = (9, 5)
+  let pt(a, b) = ((p0.at(0) + dx * a + px * b) * u, (p0.at(1) + dy * a + py * b) * u)
+  place(curve(fill: white, stroke: 1.2 * u + paint,
+    curve.move(pt(0, 0)), curve.line(pt(l, w)), curve.line(pt(2 * l, 0)),
+    curve.line(pt(l, -w)), curve.close()))
+}
+
 #let draw-flow(f, u, theme) = {
   let pts = f.waypoints
   if pts.len() < 2 { return none }
   let kind = f.at("kind", default: "sequence")
-  let paint = if theme.honor-colors {
-    _col(f.at("stroke", default: none), theme.stroke)
-  } else { theme.stroke }
+  let paint = if not theme.honor-colors { theme.stroke } else {
+    let named = f.at("color", default: none)
+    let base = if named == none { theme.stroke } else {
+      swatch(named, palette: theme.at("palette", default: camunda-palette)).stroke
+    }
+    _col(f.at("stroke", default: none), base)
+  }
 
   let dash = if kind == "message" { "dashed" }
     else if kind in ("association", "data") { "dotted" }
@@ -154,6 +181,7 @@
     _arrow(last, dir, u, paint, open: true, size: 8)
   }
   if f.at("default", default: false) { _default-slash(pts, u, paint) }
+  if f.at("conditional", default: false) { _condition-diamond(pts, u, paint) }
 
   if "label" in f and f.at("name", default: "") != "" {
     _label(f.label, f.name, u, theme, paint: paint, size: theme.font-size * 0.92)
@@ -198,17 +226,21 @@
       fill: c.fill, stroke: c.stroke)
   } else if kind == "task" {
     shape-task(b.w * u, b.h * u, kind: n.at("task", default: "none"),
-      fill: c.fill, stroke: c.stroke)
+      markers: n.at("markers", default: ()), fill: c.fill, stroke: c.stroke)
   } else if kind == "subprocess" {
     shape-subprocess(b.w * u, b.h * u,
       expanded: n.at("expanded", default: false),
       event-sub: n.at("triggered-by-event", default: false),
+      transaction: n.at("transaction", default: false),
+      markers: n.at("markers", default: ()),
       fill: c.fill, stroke: c.stroke)
   } else if kind == "gateway" {
     shape-gateway(b.w * u, b.h * u, kind: n.at("gateway", default: "exclusive"),
       marker: n.at("marker", default: true), fill: c.fill, stroke: c.stroke)
   } else if kind == "data" {
     shape-data(b.w * u, b.h * u, kind: n.at("data", default: "object"),
+      collection: n.at("collection", default: false),
+      direction: n.at("direction", default: none),
       fill: c.fill, stroke: c.stroke)
   } else { none }
 
