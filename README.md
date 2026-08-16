@@ -57,6 +57,7 @@ src/
   bpmn-palette.typ        Camunda Modeler's colour swatches
   bpmn-note.typ           analysis callouts anchored to nodes
   bpmn-span.typ           slice a flow between two element ids
+  bpmn-sheet.typ          the whole model, folded across landscape pages
   noteplace.typ           the placement solver the callouts run on
   annotate.typ            free-form overlay on any figure
   bpstep.typ / bpmap.typ  step flows and process maps
