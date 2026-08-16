@@ -13,10 +13,10 @@ exists as a fallback for models that have no coordinates at all.
 ## Pipeline
 
 ```
- .bpmn ──┬── tools/bpmn2yaml.py ──► model.yaml ──┐
-         │   (strips execution attrs)            │
-         └── components/bpmn-xml.typ ────────────┤   both produce the same
-             (in-Typst parser, no build step)    │   model dictionary
+ .bpmn ──┬── bpmn2yaml (bpmn-generator) ──► model.yaml ──┐
+         │   (strips execution attrs)                    │
+         └── src/bpmn-xml.typ ──────────────────────────┤  both produce the same
+             (in-Typst parser, no build step)            │  model dictionary
                                                  ▼
                                       ┌──────────────────┐
                           no bounds?  │   bpmn-grid.typ  │  row/col -> bounds,

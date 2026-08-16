@@ -1,8 +1,19 @@
 # typst-bpmn
 
-Draw BPMN collaboration diagrams inside a Typst report. Same idea as `bpstep` and
-`bpmap`: **content lives in data, drawing lives in a component, the document just
-calls the component.** Pure Typst — no `cetz`, no `fletcher`, no packages at all.
+Draw business process diagrams inside a Typst document: BPMN 2.0 collaborations from
+BPMNDI, plus step flows, process maps, org charts and analysis overlays. One idea
+throughout: **content lives in data, drawing lives in a component, the document just
+calls the component.** Pure Typst — no `cetz`, no `fletcher`, no dependencies at all.
+
+Installed as a Typst local package:
+
+```bash
+just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
+```
+
+```typ
+#import "@local/typst-bpmn:0.6.0": *
+```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution
 semantics: the converter drops `extensionElements`, `zeebe:*`, `camunda:*`,
@@ -27,14 +38,16 @@ better at layout than a few hundred lines of Typst will ever be.
 - [docs/architecture.md](docs/architecture.md) — pipeline, coordinate model, invariants
 - [docs/design-system.md](docs/design-system.md) — geometry, shape grammar, theme tokens
 - [docs/schema.md](docs/schema.md) — YAML field reference, both dialects
-- [docs/integration.md](docs/integration.md) — vendoring into a report, path conventions
+- [docs/integration.md](docs/integration.md) — installing the package into a document,
+  the file-access constraint, path conventions
 - [docs/roadmap.md](docs/roadmap.md) — Phase 0 / 1 / 2
 
 ## Files
 
 ```
-tools/bpmn2yaml.py        BPMN XML -> trimmed YAML (the build step)
-components/
+typst.toml               package manifest; entrypoint is src/lib.typ
+src/
+  lib.typ                 the facade — one import gets everything below
   bpmn.typ                public API: bpmn-figure, bpmn, bpmn-info, bpmn-slice
   bpmn-render.typ         canvas: pools, lanes, edges, labels, themes
   bpmn-shapes.typ         shape vocabulary: events, activities, gateways, data
@@ -42,6 +55,14 @@ components/
   bpmn-grid.typ           layout fallback for coordinate-free YAML
   bpmn-compact.typ        collapse empty bands to buy label size
   bpmn-palette.typ        Camunda Modeler's colour swatches
+  bpmn-note.typ           analysis callouts anchored to nodes
+  bpmn-span.typ           slice a flow between two element ids
+  noteplace.typ           the placement solver the callouts run on
+  annotate.typ            free-form overlay on any figure
+  bpstep.typ / bpmap.typ  step flows and process maps
+  orgchart.typ            org charts
+  bptable.typ             tabular views of the same step data
+  whywhy.typ              5 Whys chains, as prose list or diagram notes
 docs/                     design notes and roadmap
 tests/conformance.typ     every symbol at three scales, both pool orientations
 tests/agreement.typ       the two parsers must produce identical models
@@ -57,17 +78,17 @@ are deliberately **not** in the repo — they are inputs and build products, not
 code. `demo.typ` expects them; regenerate with:
 
 ```bash
-python3 tools/bpmn2yaml.py samples/<model>.bpmn -o models/<model>.yaml
+just convert     # calls bpmn2yaml from the sibling bpmn-generator checkout
 ```
 
 ## Use
 
 ```bash
-python3 tools/bpmn2yaml.py model.bpmn -o models/model.yaml
+uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "/components/bpmn.typ": *
+#import "@local/typst-bpmn:0.6.0": *
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 
@@ -222,17 +243,25 @@ Full table in [docs/design-system.md](docs/design-system.md#colour).
 ## Building
 
 ```bash
-just            # list recipes
-just demo       # convert samples, build out/demo.pdf
-just watch      # live rebuild while editing
-just conformance# every symbol at three scales
-just check      # converter strict + parsers agree + golden manifest unchanged
-just golden     # structural regression check on its own
-just golden-update  # re-approve after an intentional change
-just lint       # compile every source file
+just              # list recipes
+just install-lib  # install the package into the local Typst package store
+just link-dev     # point the store at this checkout instead — edit and see
+just unlink-lib   # remove it from the store
+just lint-src     # compile every file in src/ — the gate for install-lib
+just demo         # convert samples, build out/demo.pdf
+just watch        # live rebuild while editing
+just conformance  # every symbol at three scales
+just check        # converter strict + parsers agree + golden manifest unchanged
+just golden       # structural regression check on its own
+just golden-update# re-approve after an intentional change
+just lint         # lint-src, plus demo.typ and tests/ (these need models/)
 ```
 
 Set `BPMN_FONTS=/path/to/fonts` if the fonts are not installed system-wide.
+
+`install-lib` needs nothing but a clone. `check`, `demo` and `lint` additionally need
+`samples/` and a sibling [bpmn-generator](https://github.com/sam-uit/bpmn-generator)
+checkout (that is where `bpmn2yaml` lives); override with `PYTHON=...`.
 
 ## Themes
 
@@ -286,6 +315,8 @@ a non-zero exit.
 ## Status
 
 Phase 1 (modeler-first) is feature-complete; Phase 2 (hand-authored) has layout,
-ports and routing but no crossing minimisation. Integration into the IE203 report
-template happens after Phase 1 closes — the components sit here until then.
+ports and routing but no crossing minimisation. Since v0.6.0 this ships as a Typst
+local package rather than being vendored into a report, and it carries the whole
+`bp*` family (`bpstep`, `bpmap`, `orgchart`, `bptable`, `whywhy`) — the target is a
+business analyst's toolkit, not one report's template.
 See [docs/roadmap.md](docs/roadmap.md).

@@ -75,7 +75,7 @@ either way, but drawing from the spec costs little and keeps the question from
 ever arising. bpmn-js stays a **visual reference** — open a diagram, compare
 proportions, match them. The one thing taken verbatim is the colour palette's hex
 values, which are data rather than artwork and are documented as such in
-`components/bpmn-palette.typ`.
+`src/bpmn-palette.typ`.
 
 ---
 
@@ -105,16 +105,17 @@ as well as it possibly can.
    parameter rather than a trailing `<lbl>`, because the figure is returned
    inside a wrapper. A separate `bpmn-index()` turned out to be unnecessary —
    `#outline(target: figure.where(kind: image))` does the job.
-4. ~~Where the components live, and how models are referenced.~~ Settled:
-   vendored into `template/components/`, root-absolute paths for both imports and
-   models, and both `.bpmn` and converted `.yaml` committed to the report.
-   `just vendor <dest>` does the copy and stamps the version.
+4. ~~Where the components live, and how models are referenced.~~ Settled twice.
+   First as vendored copies in the report's `template/components/`; then, in
+   v0.6.0, as a **Typst local package** (`just install-lib`, then
+   `#import "@local/typst-bpmn:<ver>"`). Vendoring was cheap but merged two
+   histories into one `git log`; the package separates them and pins a version.
+   Root-absolute paths and committing both `.bpmn` and `.yaml` survived unchanged.
    See [integration.md](integration.md).
 
-**Exit criterion.** An IE203 chapter builds end to end with BPMN figures that
-need no manual fiddling. Everything on this side is ready; what remains is
-running `just vendor` against the report and converting its models — which has to
-happen in that repo.
+**Exit criterion.** ~~An IE203 chapter builds end to end with BPMN figures that
+need no manual fiddling.~~ Met in v0.6.0: the report imports the package and the
+chapters build with no vendored copy in sight.
 
 ---
 

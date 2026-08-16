@@ -1,56 +1,101 @@
-# Integrating into a report (IE203)
+# Dùng typst-bpmn trong một tài liệu
 
-The three decisions, settled:
+Ba quyết định, đã chốt:
 
-| Question | Decision |
+| Câu hỏi | Quyết định |
 | --- | --- |
-| Where the components live | **Vendored** into the report's `template/components/` |
-| Path style | **Root-absolute** for both imports and models |
-| Model pipeline | **Both** `.bpmn` and converted `.yaml` committed to the report |
+| Thư viện nằm ở đâu | **Package Typst local** — `@local/typst-bpmn:<ver>` |
+| Kiểu đường dẫn | **Tuyệt đối từ gốc tài liệu** cho cả import lẫn model |
+| Đường đi của model | **Cả hai** `.bpmn` và `.yaml` đều commit vào tài liệu |
 
-## Why vendored rather than a package
+## Vì sao là package chứ không phải vendor
 
-The report has to build from a fresh clone with nothing installed. A Typst local package (`@local/typst-bpmn`) is cleaner on versioning but moves a build dependency outside the repo, and a submodule makes the build depend on a checkout
-sitting in the right place. Copying six `.typ` files costs nothing and matches how `bpstep` and `bpmap` already live there.
+Trước đây sáu file `.typ` được chép thẳng vào `template/components/` của báo cáo. Rẻ,
+nhưng nó làm hai thứ khác nhau nằm chung một `git log`: sửa nội dung báo cáo và sửa thư
+viện vẽ trông giống hệt nhau khi đọc lịch sử. Với một báo cáo thì chịu được; với một
+thư viện còn dùng tiếp sau môn học thì không.
 
-typst-bpmn stays upstream: changes are made and tested here, then re-vendored. `just vendor` stamps the version into each copied file so a report can say which one it is carrying.
+Package local giải quyết đúng chỗ đó: một số version trong dòng `#import`, một kho cài
+đặt, và hai lịch sử tách rời. Cái giá là tài liệu cần một bước cài — nhưng đó là một
+lệnh, và nó tái lập được.
 
-## One-time setup
+## Cài lần đầu
 
 ```bash
-# from the typst-bpmn checkout
-just vendor ~/repos/ie203-report/template/components
+cd <typst-bpmn> && just install-lib
 ```
 
-Then add the import to the report's central template file — `template/lib.typ` or equivalent — so every chapter gets it for free:
+`install-lib` chép `typst.toml` và `src/` vào
+`$XDG_DATA_HOME/typst/packages/local/typst-bpmn/<ver>`. Nó chỉ phụ thuộc `just lint-src`
+— biên dịch mọi file trong `src/` — nên **không** cần `samples/`, `models/`, hay repo
+`bpmn-generator` nằm cạnh. Cài được ngay sau khi clone.
+
+Rồi thêm một dòng import vào file template trung tâm của tài liệu (`template/lib.typ`
+hoặc tương đương), để mọi chương dùng được mà không phải khai lại:
 
 ```typ
-#import "/template/components/bpmn.typ": *
+#import "@local/typst-bpmn:0.6.0": *
 ```
 
-Layout in the report repo:
+**Ghim version trong dòng import.** Nâng version bên thư viện thì phải sửa dòng này —
+cố ý, vì một tài liệu đã nộp phải dựng lại được y hệt.
+
+## Sửa thư viện trong lúc viết tài liệu
+
+```bash
+cd <typst-bpmn> && just link-dev     # kho local trỏ symlink thẳng vào repo
+```
+
+Từ đó sửa `src/*.typ` là tài liệu thấy ngay, không phải cài lại. **Chạy lại
+`just install-lib` trước khi nộp** — symlink chỉ tồn tại trên máy bạn.
+`just unlink-lib` gỡ hẳn.
+
+## Một ràng buộc của Typst phải nhớ
+
+**Package chỉ đọc được file nằm trong chính nó.** Đường dẫn `/content/...` bên trong
+package resolve theo gốc *của package*, không phải gốc tài liệu — nên một hàm `*-file()`
+do package cung cấp sẽ báo không tìm thấy file khi tài liệu gọi.
+
+Nên ranh giới là: **việc đọc file xảy ra ở tầng tài liệu.** Package nhận dữ liệu đã nạp
+(`bpflow-data`, `bpmap-data`, `orgchart-data`, `bptable-data`, `whywhy`), còn tài liệu
+giữ một hàm `load-data` và vài shim `*-file` gọi nó:
+
+```typ
+#let load-data(path, id: none) = { /* yaml() / json() / csv() ở tầng tài liệu */ }
+#let bpflow-file(path, id: none, ..args) = bpflow-data(load-data(path, id: id), ..args)
+```
+
+Thêm component mới có nạp file thì đặt điểm vào `*-data` ở package và shim `*-file` ở
+tài liệu, đừng làm ngược.
+
+## Bố trí trong repo tài liệu
 
 ```
-template/components/bpmn*.typ     vendored, do not edit here
+template/lib.typ                #import "@local/typst-bpmn:<ver>" + các shim *-file
 content/processes/
-  admission.bpmn                  edit this in Camunda Modeler
-  admission.yaml                  generated; commit it
-justfile                          add a `bpmn` recipe (below)
+  admission.bpmn                sửa file này trong Camunda Modeler
+  admission.yaml                bpmn2yaml sinh ra; vẫn commit
+justfile                        recipe `bpmn` gọi bpmn2yaml
 ```
 
-Regeneration recipe for the report's own justfile:
+`bpmn2yaml` thuộc repo [bpmn-generator](https://github.com/sam-uit/bpmn-generator), không
+thuộc repo này — ranh giới giữa hai repo là **chiều đi của dữ liệu**:
+
+```
+brief.yaml ──► .bpmn         bpmn-generator   (soạn thảo)
+.bpmn ──► .yaml ──► figure    typst-bpmn      (kết xuất)
+```
+
+Recipe cho justfile của tài liệu:
 
 ```just
-# Reconvert every BPMN model
 bpmn:
     @for f in content/processes/*.bpmn; do \
-        python3 tools/bpmn2yaml.py "$f" -o "${f%.bpmn}.yaml" --strict; \
+        uv run bpmn2yaml "$f" -o "${f%.bpmn}.yaml" --strict; \
     done
 ```
 
-Copy `tools/bpmn2yaml.py` across as well — it is the only non-Typst piece.
-
-## Using it in a chapter
+## Dùng trong một chương
 
 ```typ
 #let admission = yaml("/content/processes/admission.yaml")
@@ -66,51 +111,60 @@ Copy `tools/bpmn2yaml.py` across as well — it is the only non-Typst piece.
 Như @fig-admission-student cho thấy, ...
 ```
 
-Root-absolute paths mean a chapter file can move between directories without any edit. The one thing that is *not* optional: **`label:` rather than a trailing `<lbl>`** — see [the README](../README.md#referencing-a-figure) for why.
+Đường dẫn tuyệt đối từ gốc nghĩa là file chương di chuyển được mà không phải sửa gì.
+Thứ **không** tuỳ chọn: dùng tham số **`label:` chứ không phải `<lbl>` đặt sau** — xem
+[README](../README.md#referencing-a-figure).
 
-## Matching the report's typography
+## Khớp với kiểu chữ của tài liệu
 
-The component defaults to DejaVu Sans. Give it the report's font once, in `lib.typ`:
+Component mặc định dùng DejaVu Sans. Truyền font của tài liệu một lần, ở `lib.typ`:
 
 ```typ
 #let bpmn-theme = default-theme + (font: "Lora")
 ```
 
-and pass `theme: bpmn-theme` at each call, or wrap `bpmn-figure` in a thin report-local helper that supplies it.
+rồi truyền `theme: bpmn-theme` ở mỗi lần gọi, hoặc bọc `bpmn-figure` trong một helper
+mỏng của tài liệu để nó tự truyền.
 
-`font-size` is in **BPMN units, not points** — it scales with the diagram. Leave it at 11 unless the report's body text is unusually large.
+`font-size` tính bằng **đơn vị BPMN, không phải point** — nó co giãn theo sơ đồ. Cứ để
+11 trừ khi chữ thân bài lớn bất thường.
 
-## Fitting diagrams to the page
+## Vừa trang
 
-In order of what to reach for, and why, see [the README](../README.md#fitting-a-wide-diagram-onto-a4). For a typical A4 report body at 174mm text width:
+Thứ tự nên với tới, và vì sao: xem
+[README](../README.md#fitting-a-wide-diagram-onto-a4). Với A4 bề rộng chữ 174mm:
 
-- A whole collaboration will land around 4pt. Too small. Slice it.
-- One pool, compacted: 4.5–5pt. Readable in print, tight on screen.
-- One lane, compacted: 7pt+. Comfortable.
+- Cả collaboration rơi vào khoảng 4pt. Quá nhỏ. Cắt đi.
+- Một pool, đã nén: 4,5–5pt. Đọc được khi in, chật khi xem màn hình.
+- Một lane, đã nén: 7pt+. Thoải mái.
 
-`bpmn-info(M, view: .., compact: .., width: 174mm).label-size` gives the number before you commit to a layout, which is worth checking once per diagram rather than eyeballing the PDF.
+`bpmn-info(M, view: .., compact: .., width: 174mm).label-size` cho con số **trước** khi
+chốt bố cục — đáng kiểm một lần cho mỗi sơ đồ, hơn là nhìn PDF đoán.
 
-### A turned figure takes its own page
+### Hình xoay chiếm trọn một trang
 
-`fit: "auto"` will turn a figure whose labels would otherwise fall below `min-font`, and a turned figure is sized against the full page height — so it cannot share a page with the paragraph that introduces it. In a chapter that usually reads badly: a page of text with one line on it, then the diagram.
+`fit: "auto"` sẽ xoay một hình mà nhãn của nó rơi xuống dưới `min-font`, và hình xoay
+được tính theo trọn chiều cao trang — nên nó không thể ở chung trang với đoạn văn giới
+thiệu nó. Trong một chương thì thường đọc rất tệ: một trang chữ chỉ có một dòng, rồi
+mới tới sơ đồ.
 
-For a slice that is only mildly too small, pin it flat and accept the type size:
+Với lát cắt chỉ hơi nhỏ, ghim phẳng và chấp nhận cỡ chữ:
 
 ```typ
 #bpmn-figure(admission, view: (pool: "Thí Sinh"), compact: true,
-  fit: "width",              // stay inline, do not turn
+  fit: "width",              // ở nguyên dòng, không xoay
   theme: bpmn-theme, caption: [...], label: <fig-student>)
 ```
 
-Rule of thumb: turn a *whole collaboration* (it needs the space), keep *single pool and lane slices* flat. `debug: true` tells you which mode it picked.
+Nguyên tắc: xoay *cả collaboration* (nó cần chỗ), giữ *lát cắt một pool hoặc một lane*
+nằm phẳng. `debug: true` cho biết nó đã chọn chế độ nào.
 
-## Keeping the vendored copy honest
+## Sửa thư viện thì làm gì
 
-The report should not edit `template/components/bpmn*.typ`. If something needs changing:
+1. Sửa ở đây, trong typst-bpmn.
+2. `just check` — hai bộ phân tích khớp nhau, golden manifest không đổi hoặc đã duyệt lại.
+3. `just conformance` nếu có ký hiệu đổi hình — và **nhìn** nó.
+4. `just install-lib`, rồi nâng version trong dòng `#import` của tài liệu nếu có đổi.
 
-1. Change it here, in typst-bpmn.
-2. `just check` — parsers agree, golden manifest unchanged or re-approved.
-3. `just conformance` if a shape changed, and look at it.
-4. `just vendor <report>/template/components` again.
-
-The version stamp at the top of each vendored file makes a stale copy obvious.
+`just check` cần `samples/`, `models/` và repo `bpmn-generator` nằm cạnh; `just
+install-lib` thì không. Đó là lý do hai thứ tách nhau.
