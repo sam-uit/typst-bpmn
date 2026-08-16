@@ -87,6 +87,21 @@ Several can co-exist; they lay out left to right in that order. Transactions get
 
 Icons are **redrawn from the BPMN 2.0 spec**, not traced from bpmn-js — see [roadmap.md](roadmap.md#a-note-on-borrowing-from-bpmn-js) for why that matters. Two rules learned the hard way:
 
+- **Centre on the box, and derive the centre — never write it as a literal.**
+  `place(circle(radius: r))` puts the circle's *edge* at the origin, so a dial written
+  as `radius: 0.46 * size` is centred on 0.46, not 0.5. The timer icon carried that 4%
+  offset for a long time: it looks like nothing on its own and like an unbalanced white
+  margin once it sits inside an event ring. Do what `icon-service` does — name
+  `(cx, cy) = (0.5 size, 0.5 size)` and place everything relative to it. Where the ink
+  is deliberately asymmetric (the loop marker's arrowhead sticks out past the arc),
+  solve for the centre of the *inked* extent instead of the geometric one.
+- **Draw arrows on a real tangent.** The loop marker was two hand-fitted cubics with the
+  arrowhead pinned at fixed unit coordinates, so the head did not sit on the curve and
+  read as a wedge parked next to it. A circular arc plus a head built from the tangent
+  vector at the end angle costs the same and is self-correcting when the radius changes.
+  Using the glyph `↻` instead was considered and rejected: it comes out much lighter
+  than the neighbouring markers, and it would make a BPMN symbol depend on the host
+  document's font.
 - **Outline, not fill, at small sizes.** The first service-task gear was a filled disc with filled teeth; below about 40 units it collapsed into a black blob. Strokes throughout survive the scale-down.
 - **Icons are drawn in a unit square and scaled**, so a single definition works at every diagram scale.
 

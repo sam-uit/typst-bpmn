@@ -36,20 +36,28 @@
   )
 }
 
-#let icon-timer(size, paint: black) = canvas(size, size,
-  place(circle(radius: 0.46 * size, stroke: 0.055 * size + paint)),
-  ..range(12).map(i => {
-    let a = i * 30deg
-    let (c, s) = (calc.cos(a), calc.sin(a))
-    place(curve(stroke: 0.04 * size + paint,
-      curve.move((0.46 * size + 0.38 * size * c, 0.46 * size + 0.38 * size * s)),
-      curve.line((0.46 * size + 0.45 * size * c, 0.46 * size + 0.45 * size * s))))
-  }),
-  place(curve(stroke: 0.055 * size + paint,
-    curve.move((0.46 * size, 0.46 * size)), curve.line((0.46 * size, 0.16 * size)))),
-  place(curve(stroke: 0.055 * size + paint,
-    curve.move((0.46 * size, 0.46 * size)), curve.line((0.70 * size, 0.60 * size)))),
-)
+// The dial is centred on the box, like every other icon here. It used to be built
+// around 0.46 — `place(circle(radius: 0.46 * size))` puts the *edge* at the origin,
+// so the centre lands at 0.46, not 0.5, and the whole clock sat 0.04 × size up and
+// to the left inside its box. Subtle on its own and obvious once the icon is inside
+// an event ring, where the white margin is visibly fatter on the right and below.
+#let icon-timer(size, paint: black) = {
+  let (cx, cy, r) = (0.5 * size, 0.5 * size, 0.46 * size)
+  canvas(size, size,
+    place(dx: cx - r, dy: cy - r, circle(radius: r, stroke: 0.055 * size + paint)),
+    ..range(12).map(i => {
+      let a = i * 30deg
+      let (c, s) = (calc.cos(a), calc.sin(a))
+      place(curve(stroke: 0.04 * size + paint,
+        curve.move((cx + 0.38 * size * c, cy + 0.38 * size * s)),
+        curve.line((cx + 0.45 * size * c, cy + 0.45 * size * s))))
+    }),
+    place(curve(stroke: 0.055 * size + paint,
+      curve.move((cx, cy)), curve.line((cx, cy - 0.30 * size)))),
+    place(curve(stroke: 0.055 * size + paint,
+      curve.move((cx, cy)), curve.line((cx + 0.24 * size, cy + 0.14 * size)))),
+  )
+}
 
 #let icon-user(size, paint: black) = canvas(size, size,
   place(rect(width: size, height: size, stroke: 0.05 * size + paint, radius: 0.06 * size)),
@@ -178,26 +186,58 @@
     curve.move((0pt, 0.22 * size)), curve.line((0pt, 0.78 * size)))),
 )
 
+/// Loop marker: a real circular arc with the arrowhead on its tangent.
+///
+/// It used to be two hand-fitted cubics with the arrowhead pinned at fixed unit
+/// coordinates. The head therefore did not sit on the curve's tangent — it read as a
+/// separate wedge stuck beside the arc — and the whole mark sat off-centre.
+///
+/// Angles run clockwise from twelve o'clock, so `P(θ) = (cx + r sinθ, cy − r cosθ)`
+/// and the tangent is `(cosθ, sinθ)`. Sweeping to θ = 360° puts the tip at the top
+/// pointing right, which is the direction that makes it read as ↻ rather than ↺.
+///
+/// The obvious alternative — the glyph `↻` — was tried and rejected: it comes out far
+/// lighter than the neighbouring markers (this family is drawn at 0.09–0.13 × size),
+/// and it would make a BPMN symbol depend on whichever font the host document happens
+/// to set. The same symbol has to look the same in every report.
 #let marker-loop(size, paint: black) = {
-  let (cx, cy, r) = (0.5 * size, 0.54 * size, 0.38 * size)
+  let r = 0.36 * size
+  let t = 0.10 * size
+  let hl = 0.24 * size            // arrowhead length, along the tangent
+  let hw = 0.096 * size           // arrowhead half-width, across it
+  // Centre vertically on the *inked* extent, not on the circle: the head sticks out
+  // past the top of the arc by `hw`, the stroke past the bottom by `t/2`. Solving
+  // (cy − r − hw) + (cy + r + t/2) = size for cy keeps the two margins equal.
+  let cx = 0.5 * size
+  let cy = (size - t / 2 + hw) / 2
+  let sweep = 315deg
+  let P(a) = (cx + r * calc.sin(a), cy - r * calc.cos(a))
+  let tip = P(360deg)
+  let (tx, ty) = (calc.cos(360deg), calc.sin(360deg))
+  let base = (tip.at(0) - hl * tx, tip.at(1) - hl * ty)
+  // Stop the arc short of the tip so the stroke does not poke out of the head.
+  let stop = 360deg - 1rad * (hl * 0.75 / r)
+  let n = 60
+  let pts = range(n + 1).map(i => P(360deg - sweep + (stop - 360deg + sweep) * i / n))
   canvas(size, size,
-    place(curve(stroke: (paint: paint, thickness: 0.09 * size, cap: "round"),
-      curve.move((cx + r * calc.cos(35deg), cy - r * calc.sin(35deg))),
-      curve.cubic((cx + r * 1.5, cy - r * 1.2), (cx - r * 1.5, cy - r * 1.2),
-                  (cx - r * calc.cos(20deg), cy + r * calc.sin(20deg))),
-      curve.cubic((cx - r * 0.6, cy + r * 1.3), (cx + r * 0.6, cy + r * 1.3),
-                  (cx + r * 0.95, cy + r * 0.45)))),
-    // arrowhead on the open end
-    unit-path(size, ((0.72, 0.30), (0.98, 0.36), (0.80, 0.56)), close: true, fill: paint),
+    place(curve(stroke: (paint: paint, thickness: t, cap: "round"),
+      curve.move(pts.first()), ..pts.slice(1).map(p => curve.line(p)))),
+    place(curve(fill: paint,
+      curve.move(tip),
+      curve.line((base.at(0) - hw * ty, base.at(1) + hw * tx)),
+      curve.line((base.at(0) + hw * ty, base.at(1) - hw * tx)),
+      curve.close())),
   )
 }
 
+// Three bars of 0.13 with 0.17 between them span 0.73, so the margins are 0.135 —
+// not the 0.16 that was there, which pushed the group 0.025 off centre.
 #let marker-mi(size, paint: black, sequential: false) = canvas(size, size,
   ..range(3).map(i => if sequential {
-    place(dy: (0.16 + i * 0.30) * size,
+    place(dy: (0.135 + i * 0.30) * size,
       rect(width: size, height: 0.13 * size, fill: paint))
   } else {
-    place(dx: (0.16 + i * 0.30) * size,
+    place(dx: (0.135 + i * 0.30) * size,
       rect(width: 0.13 * size, height: size, fill: paint))
   }))
 

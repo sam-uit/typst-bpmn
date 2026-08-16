@@ -204,6 +204,63 @@ not by element name. Ring radii follow bpmn-js: outer inset 0.20 × height, inne
 
 #pagebreak()
 
+= Centring
+
+Every icon is drawn into a square box and then centred inside its shape, so an icon
+that is off-centre *within its own box* shifts inside every symbol that uses it — and
+nothing looks broken, it just looks slightly wrong in a way nobody can name. The
+crosshair is the whole test: it marks the true centre of the box, so anything that
+does not straddle it is off.
+
+The one that got through this way was the timer. `place(circle(radius: r))` puts the
+circle's *edge* at the origin, so a dial written as `radius: 0.46 * size` centres on
+0.46, not 0.5, and the clock sat 4% of its size up and to the left. Inside an event
+ring that reads as a fatter white margin on the right and below.
+
+Judge the *ink*, not the outline: a shape with mass off to one side (the hand, the
+compensation arrows) is meant to look that way — what matters is that its bounding box
+straddles the cross.
+
+#let xbox(label, body, s: 46pt) = box(width: 62pt)[
+  #align(center)[
+    #box(width: s, height: s)[
+      #place(line(start: (0pt, s / 2), end: (s, s / 2), stroke: 0.3pt + rgb("#d33")))
+      #place(line(start: (s / 2, 0pt), end: (s / 2, s), stroke: 0.3pt + rgb("#d33")))
+      #place(rect(width: s, height: s, stroke: 0.3pt + rgb("#bbd")))
+      #body
+    ]
+    #v(2pt) #text(size: 6.5pt, fill: rgb("#555"))[#label]
+  ]
+]
+#let xi(label, f) = xbox(label, f(46pt, paint: ink))
+
+#grid(columns: 7, row-gutter: 8pt,
+  xi("message", icon-message), xi("timer", icon-timer), xi("user", icon-user),
+  xi("service", icon-service), xi("script", icon-script), xi("rule", icon-rule),
+  xi("manual", icon-manual),
+  xi("error", icon-error), xi("signal", icon-signal), xi("escalation", icon-escalation),
+  xi("link", icon-link), xi("conditional", icon-conditional),
+  xi("compensate", icon-compensate), xi("terminate", icon-terminate),
+  xi("sub-process", marker-sub), xi("loop", marker-loop), xi("multi-instance", marker-mi),
+  xi("compensation", marker-compensation))
+
+#v(6pt)
+And the same icon inside the shape that carries it — the margin around the dial has to
+look equal on all four sides:
+
+#grid(columns: 4, column-gutter: 12pt, align: horizon,
+  xbox("intermediate timer", shape-event(46pt, 46pt, family: "intermediate",
+    definition: "timer", fill: white, stroke: ink)),
+  xbox("boundary timer", shape-event(46pt, 46pt, family: "boundary",
+    definition: "timer", fill: white, stroke: ink)),
+  align(center)[#shape-task(86pt, 52pt, kind: "user", markers: ("loop",),
+    fill: white, stroke: ink) #v(2pt) #text(size: 6.5pt, fill: rgb("#555"))[loop marker in place]],
+  align(center)[#shape-task(86pt, 52pt, kind: "none",
+    markers: ("sub", "loop", "mi-parallel"), fill: white, stroke: ink)
+    #v(2pt) #text(size: 6.5pt, fill: rgb("#555"))[marker row]])
+
+#pagebreak()
+
 = Colour palette
 
 The six swatches Camunda Modeler's colour picker offers, plus its default.
