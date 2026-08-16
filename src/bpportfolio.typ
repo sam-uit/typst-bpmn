@@ -257,7 +257,7 @@
   label-gap: 11pt,
   key-columns: 2,
   key-headers: ("Quy trình", "Imp", "Health", "Feas"),
-  axis-labels: ("*Health*: mức độ lành mạnh của quy trình (%)", "*Importance*: mức độ quan trọng (%)"),
+  axis-labels: ("*Health*: chỉ số sức khỏe (%)", "*Importance*: mức độ quan trọng (%)"),
   zone-label: [Vùng ưu tiên cải tiến],
   legend: true,
   legend-label: [*Feasibility*: mức độ khả thi],
