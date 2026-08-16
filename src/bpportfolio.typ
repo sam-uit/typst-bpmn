@@ -20,6 +20,10 @@
 // Version: 0.1.0
 // License: MIT
 //
+// Legend kích thước nằm dọc ở lề phải, đối xứng với nhãn trục tung, và chạy từ dưới
+// lên (25% ở đáy, 100% ở đỉnh) — cùng chiều với Importance, nên mắt so hai thứ mà
+// không phải đổi quy ước giữa chừng.
+//
 // Bảng chú giải mã (chế độ "tag") là một lưới 5 cột cho mỗi khối:
 //
 //   ● mã | tên quy trình ......... | Imp | Health | Feas
@@ -257,10 +261,10 @@
   label-gap: 11pt,
   key-columns: 2,
   key-headers: ("Quy trình", "Imp", "Health", "Feas"),
-  axis-labels: ("*Health*: chỉ số sức khỏe (%)", "*Importance*: mức độ quan trọng (%)"),
+  axis-labels: ("Health — mức độ lành mạnh của quy trình (%)", "Importance — mức độ quan trọng (%)"),
   zone-label: [Vùng ưu tiên cải tiến],
   legend: true,
-  legend-label: [*Feasibility*: mức độ khả thi],
+  legend-label: [Feasibility — mức độ khả thi],
   font: none,
   size-text: 8pt,
   theme: "camunda",
@@ -288,7 +292,12 @@
   let label-gap = _len(label-gap, default: 11pt)
   let pad-left = 1.15cm // chỗ cho nhãn trục tung
   let pad-bottom = 1.05cm // chỗ cho nhãn trục hoành
-  let pad-right = 0.2cm
+  // Legend kích thước nằm dọc ở lề phải, đối xứng với nhãn trục tung bên trái:
+  // một cột bong bóng, rồi tới nhãn xoay dọc. Không có legend thì lề phải chỉ đủ
+  // để nhãn "100" của trục hoành không bị cắt.
+  let legend-gap = 7pt
+  let legend-title-h = 0.42cm
+  let pad-right = if legend { r-max + legend-gap + legend-title-h + 4pt } else { 0.2cm }
   let pad-top = 0.2cm
 
   // Chuyển giá trị 0..100 thành toạ độ trong vùng vẽ. Trục tung lật lại: 100% ở trên.
@@ -374,6 +383,53 @@
           align(center, text(size: 0.92em, fill: th.axis, weight: "medium", bp-text(axis-labels.at(1)))),
         )),
       )
+
+      // --- legend kích thước: cột dọc ở lề phải ---
+      //
+      // Đặt đối xứng với nhãn trục tung, và chạy *từ dưới lên*: 25% ở đáy, 100% ở
+      // đỉnh — cùng chiều với Importance, nên mắt so hai thứ mà không phải đổi quy
+      // ước giữa chừng.
+      //
+      // Trị số nằm trong bong bóng khi lọt, rơi xuống dưới khi không. Ngưỡng đo
+      // bằng `measure`, không đoán: bề rộng "100%" phụ thuộc font của tài liệu, mà
+      // ở cỡ 25% thì đường kính chỉ hơn bề rộng chữ vài point.
+      if legend {
+        let col-x = pad-left + pw + legend-gap
+        let item(v) = context {
+          let d = R(v)
+          let lbl = text(size: 0.78em, fill: th.muted, [#v%])
+          if measure(lbl).width + 6pt <= d {
+            circle(radius: d / 2, fill: th.bubble, stroke: 0.7pt + th.bubble-line, lbl)
+          } else {
+            stack(
+              dir: ttb,
+              spacing: 1.5pt,
+              align(center, circle(radius: d / 2, fill: th.bubble, stroke: 0.7pt + th.bubble-line)),
+              align(center, lbl),
+            )
+          }
+        }
+        place(
+          dx: col-x,
+          dy: pad-top,
+          box(width: r-max, height: ph, align(center + horizon, stack(
+            dir: ttb,
+            spacing: 10pt,
+            ..(100, 50, 25).map(v => align(center, item(v))),
+          ))),
+        )
+        // Xoay cùng chiều với nhãn trục tung (đọc từ dưới lên), không phải chiều
+        // ngược lại như trục phụ thường thấy: hai nhãn dọc của cùng một hình mà
+        // đọc hai chiều khác nhau thì người đọc phải nghiêng đầu hai lần.
+        place(
+          dx: col-x + r-max + 2pt,
+          dy: pad-top + ph,
+          rotate(-90deg, origin: top + left, box(
+            width: ph,
+            align(center, text(size: 0.92em, fill: th.axis, weight: "medium", bp-text(legend-label))),
+          )),
+        )
+      }
 
       // --- bong bóng: vẽ cái to trước để cái nhỏ không bị che ---
       let ramp = th.at("ramp", default: none)
@@ -540,7 +596,7 @@
         .flatten(),
       row-gutter: 2.5pt,
       ..(head-row * key-columns).flatten(),
-      // grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
+      grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
       ..rows,
     )
   }
@@ -549,37 +605,7 @@
     stack(dir: ttb, spacing: 8pt, body, key-table)
   }
 
-  if not legend { return block(breakable: false, chart) }
-
-  // --- chú giải kích thước: ba mốc, cùng đường kính với hình ---
-  let key = (25, 50, 75, 100)
-  let legend-box = {
-    set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
-    box(height: R(100), {
-      stack(
-        dir: ltr,
-        spacing: 8pt,
-        align(horizon, text(size: 0.85em, fill: th.muted, bp-text(legend-label) + [:])),
-        ..key.map(v => {
-          let d = R(v)
-          align(horizon, stack(
-            dir: ltr,
-            spacing: 3pt,
-            circle(radius: d / 2, fill: th.bubble, stroke: 0.7pt + th.bubble-line),
-            text(size: 0.85em, fill: th.muted, [#v%]),
-          ))
-        }),
-      )
-    })
-  }
-
-  block(breakable: false, stack(
-    dir: ttb,
-    spacing: 6pt,
-    body,
-    align(center, legend-box),
-    ..(if key-table == none { () } else { (key-table,) }),
-  ))
+  block(breakable: false, chart)
 }
 
 // MARK: Wrapper — dựng từ dữ liệu đã nạp
