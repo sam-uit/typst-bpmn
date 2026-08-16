@@ -251,7 +251,7 @@
 // theme         : tên trong `bpf-themes`, hoặc một dict
 #let bpportfolio(
   processes: (),
-  size: (12cm, 8cm),
+  size: (12cm, 6.5cm),
   zone: (50, 60),
   bubble: (9pt, 30pt),
   grid-step: 25,
@@ -261,10 +261,12 @@
   label-gap: 11pt,
   key-columns: 2,
   key-headers: ("Quy trình", "Imp", "Health", "Feas"),
-  axis-labels: ("Health — mức độ lành mạnh của quy trình (%)", "Importance — mức độ quan trọng (%)"),
+  axis-labels: ("*Health*: chỉ số sức khỏe (%)", "*Importance*: mức độ quan trọng (%)"),
   zone-label: [Vùng ưu tiên cải tiến],
   legend: true,
-  legend-label: [Feasibility — mức độ khả thi],
+  legend-label: [*Feasibility*: mức độ khả thi],
+  // Các mốc của legend, khai từ trên xuống dưới (lớn -> nhỏ).
+  legend-key: (100, 75, 50, 25),
   font: none,
   size-text: 8pt,
   theme: "camunda",
@@ -415,7 +417,7 @@
           box(width: r-max, height: ph, align(center + horizon, stack(
             dir: ttb,
             spacing: 10pt,
-            ..(100, 50, 25).map(v => align(center, item(v))),
+            ..legend-key.map(v => align(center, item(v))),
           ))),
         )
         // Xoay cùng chiều với nhãn trục tung (đọc từ dưới lên), không phải chiều
@@ -596,7 +598,7 @@
         .flatten(),
       row-gutter: 2.5pt,
       ..(head-row * key-columns).flatten(),
-      grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
+      // grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
       ..rows,
     )
   }
