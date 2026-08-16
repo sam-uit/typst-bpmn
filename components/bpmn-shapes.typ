@@ -247,16 +247,35 @@
                  interrupting: true, fill: white, stroke: black) = {
   let r = calc.min(w, h) / 2
   let dash = if family == "boundary" and not interrupting { "dashed" } else { none }
-  let thin = 0.055 * r * 2
-  let thick = 0.13 * r * 2
-  let outer = if family == "end" { thick } else { thin }
+  // Weights follow bpmn-js on its 36-unit event box: start 2, end 4, and — the part
+  // that is easy to get wrong — **1.5 for both rings of a double-ring event**, with
+  // the inner circle 3 units smaller in radius (`INNER_OUTER_DIST`).
+  //
+  // Those three numbers are one system, not three independent knobs. Draw the double
+  // ring at the single-ring weight (0.055 d) and the white gap works out to exactly
+  // zero: centreline distance 0.11 r == 0.055 d, minus two half-strokes of 0.0275 d,
+  // leaves nothing. The two rings touch and read as one thick ring — indistinguishable
+  // from an end event, which is precisely the distinction the ring grammar carries.
+  let thin = 0.055 * r * 2            // 2/36  — start
+  let thick = 0.13 * r * 2            // end
+  let double = 0.042 * r * 2          // 1.5/36 — each ring of a double-ring event
+  // bpmn-js puts the inner circle 3/18 r inside, which leaves 4,2% of the diameter
+  // as white. That is enough on a modeller canvas at 100% zoom and not enough on an
+  // A4 figure, where the whole event is a few millimetres: the gap closes up and the
+  // double ring reads as one thick ring again — the same failure, just later.
+  // Pulling the inner circle in to 0.22 r nearly doubles the white to 7,4% and buys
+  // the distinction back. It stays clear of the icon, which occupies the middle
+  // r x r box (corners at 0.71 r).
+  let gap = 0.22 * r                  // inner radius = r - gap
+  let doubled = family in ("intermediate", "boundary")
+  let outer = if family == "end" { thick } else if doubled { double } else { thin }
   let ring = (
     place(circle(radius: r, fill: fill,
       stroke: (paint: stroke, thickness: outer, dash: dash))),
   )
-  let inner = if family in ("intermediate", "boundary") {
-    (place(dx: 0.11 * r, dy: 0.11 * r, circle(radius: 0.89 * r,
-      stroke: (paint: stroke, thickness: thin, dash: dash))),)
+  let inner = if doubled {
+    (place(dx: gap, dy: gap, circle(radius: r - gap,
+      stroke: (paint: stroke, thickness: double, dash: dash))),)
   } else { () }
   let ic = event-icon(definition, r, paint: stroke, filled: throw)
   canvas(w, h, ..ring, ..inner,

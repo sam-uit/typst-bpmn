@@ -139,7 +139,7 @@ check: convert-strict golden
 # Typst syntax check without producing output
 lint:
     @for f in {{src}}/components/*.typ {{src}}/demo.typ {{src}}/tests/*.typ; do \
-        {{typst}} compile --root {{src}} {{font_flag}} "$f" /dev/null 2>/dev/null \
+        {{typst}} compile --root {{src}} {{font_flag}} -f pdf "$f" /dev/null 2>/dev/null \
             && echo "ok   $(basename $f)" || echo "FAIL $(basename $f)"; \
     done
 

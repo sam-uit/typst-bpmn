@@ -93,6 +93,36 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
   scales("message (non-interrupting)", u => shape-event(36 * u, 36 * u, family: "boundary",
     definition: "message", interrupting: false, stroke: ink)))
 
+*Ring grammar — the one comparison worth making deliberately*
+
+The families are only meaningful if they stay apart from each other. Read this row
+across, not down: start must be *one thin* ring, intermediate and boundary *two thin
+rings with white between them*, end *one thick* ring. The failure mode is silent and
+specific — draw the double ring at the single-ring weight and the two strokes touch,
+so an intermediate event renders as a thick ring and reads as an end event. The icon
+inside stays correct the whole time, which is what makes it easy to miss.
+
+Check the *smallest* column hardest. A figure squeezed onto A4 puts an event at
+roughly 25pt across, between the first and second column here.
+
+#grid(columns: 4, row-gutter: 9pt,
+  scales("start — one thin", u => shape-event(36 * u, 36 * u, family: "start",
+    definition: "message", fill: white, stroke: ink)),
+  scales("intermediate — two thin", u => shape-event(36 * u, 36 * u,
+    family: "intermediate", definition: "message", fill: white, stroke: ink)),
+  scales("boundary — two thin", u => shape-event(36 * u, 36 * u, family: "boundary",
+    definition: "message", fill: white, stroke: ink)),
+  scales("end — one thick", u => shape-event(36 * u, 36 * u, family: "end",
+    definition: "none", fill: white, stroke: ink)))
+
+At the size a report actually uses, side by side, no icons to distract:
+
+#let bare(fam, lbl) = cell(lbl, shape-event(25pt, 25pt, family: fam,
+  definition: "none", fill: white, stroke: ink), w: 66pt)
+#grid(columns: 4, row-gutter: 6pt,
+  bare("start", "start"), bare("intermediate", "intermediate"),
+  bare("boundary", "boundary"), bare("end", "end"))
+
 #pagebreak()
 
 = Activities

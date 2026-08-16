@@ -21,7 +21,8 @@ Relative to the shape, so they scale with `u`:
 
 | Stroke | Weight |
 | --- | --- |
-| Start / intermediate event ring | 0.055 × diameter |
+| Start event ring | 0.055 × diameter |
+| Intermediate / boundary event ring | 0.042 × diameter, **both** rings |
 | End event ring | 0.13 × diameter |
 | Activity / gateway border | 1.6 units at nominal size |
 | Sequence flow | 1.6 units |
@@ -41,6 +42,27 @@ The ring says *when*, the icon says *what*, the fill says *catch or throw*.
 | Intermediate throw | double thin | solid |
 | End | single thick | solid |
 | Boundary | double thin | outline; dashed ring if non-interrupting |
+
+### The double ring is three numbers, not one
+
+Ring weight, inner radius and the white between them are one system. Get it wrong in
+the obvious way — draw the double ring at the single-ring weight of 0.055 d, with the
+inner circle bpmn-js's 3/18 r inside — and the arithmetic gives a white gap of exactly
+zero: centreline distance 0.055 d minus two half-strokes of 0.0275 d. The strokes
+touch, and an intermediate event renders as one thick ring, which is the end event.
+The icon stays right the whole time, so nothing looks broken; the *grammar* is what
+breaks, silently.
+
+So: each ring 0.042 × diameter (bpmn-js's 1.5 on a 36 box), inner radius `r − 0.22 r`.
+
+The 0.22 is deliberately wider than bpmn-js's 3/18 = 0.167. Their gap leaves 4.2% of
+the diameter as white, which is fine on a modeller canvas and not fine on an A4 figure
+where the whole event is a few millimetres across — it closes up and you are back to
+one thick ring, just at a smaller size. 0.22 r leaves 7.4% and survives the scale-down.
+It still clears the icon, which occupies the middle `r × r` box (corners at 0.71 r).
+
+This is the same rule as the service-task gear below: **fidelity at nominal size is not
+the whole spec — the symbol has to still say what it says after it is shrunk.**
 
 Definitions covered: none, message, timer, error, signal, escalation, terminate, compensate, conditional, link, cancel.
 
