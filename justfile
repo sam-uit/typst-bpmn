@@ -84,8 +84,37 @@ all: convert-strict demo conformance
 
 # ---------------------------------------------------------------- package ---
 
-typst_pkgs := env("XDG_DATA_HOME", home_directory() / ".local/share") / "typst/packages/local"
+# Typst tìm package local trong thư mục *data của hệ điều hành*, không phải một
+# đường dẫn cố định. Đoán sai thì `install-lib` báo thành công còn Typst vẫn nói
+# "package not found" — im lặng và khó lần ra.
+#
+#   macOS    ~/Library/Application Support/typst   (KHÔNG phải ~/.local/share)
+#   Linux    $XDG_DATA_HOME/typst, mặc định ~/.local/share/typst
+#   Windows  %APPDATA%\typst
+typst_data := if os() == "macos" {
+    home_directory() / "Library/Application Support"
+} else if os() == "windows" {
+    env("APPDATA", home_directory() / "AppData/Roaming")
+} else {
+    env("XDG_DATA_HOME", home_directory() / ".local/share")
+}
+typst_pkgs := env("TYPST_LOCAL_PKGS", typst_data / "typst/packages/local")
 pkg_name := "typst-bpmn"
+
+# Kho local đang nằm ở đâu, và có gì trong đó
+where-lib:
+    #!/usr/bin/env bash
+    echo "hệ điều hành : {{os()}}"
+    echo "kho local    : {{typst_pkgs}}"
+    if [ -d "{{typst_pkgs}}/{{pkg_name}}" ]; then
+        echo "đã cài       : $(ls "{{typst_pkgs}}/{{pkg_name}}" | tr '\n' ' ')"
+    else
+        echo "đã cài       : (chưa có gì) — chạy \`just install-lib\`"
+    fi
+    other="$HOME/.local/share/typst/packages/local/{{pkg_name}}"
+    if [ "{{os()}}" != "linux" ] && [ -d "$other" ]; then
+        echo "CẢNH BÁO     : còn một bản cũ ở $other mà Typst không đọc — xoá đi"
+    fi
 
 # Cài package vào kho local: tài liệu dùng `#import "@local/typst-bpmn:<ver>"`
 install-lib: lint-src
@@ -96,7 +125,12 @@ install-lib: lint-src
     rm -rf "$dest" && mkdir -p "$dest"
     cp typst.toml "$dest/" && cp -r src "$dest/"
     echo "→ đã cài {{pkg_name}}:$ver"
+    echo "   vào : $dest"
     echo "   dùng: #import \"@local/{{pkg_name}}:$ver\": *"
+    other="$HOME/.local/share/typst/packages/local/{{pkg_name}}"
+    if [ "{{os()}}" != "linux" ] && [ -d "$other" ]; then
+        echo "   ! còn một bản cũ ở $other mà Typst không đọc — xoá đi cho khỏi lẫn"
+    fi
 
 # Trỏ kho local vào repo này bằng symlink — sửa là thấy, không phải cài lại
 link-dev:
