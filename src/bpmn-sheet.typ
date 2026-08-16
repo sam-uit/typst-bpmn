@@ -24,7 +24,9 @@
 //      hình; và nếu nửa dưới chỉ có một dải black box thì một trang gần như trống.
 //      Biên pool là chỗ bản vẽ *vốn đã* có đường kẻ.
 //   2. **Lặp lại dải tên** ở mọi cột sau cột đầu, như khoá cột của bảng tính. Không có
-//      nó, trang 2 là một rừng hộp không ai biết của bộ phận nào.
+//      nó, trang 2 là một rừng hộp không ai biết của bộ phận nào. Tắt được bằng
+//      `repeat-header: false` khi dải tên chiếm chỗ hơn là giúp được: mô hình mà mỗi
+//      lane chỉ có một hai bước thì cứ theo mũi tên vào/ra là biết mình đang ở đâu.
 //   3. **Chồng lấn** một dải giữa hai cột (`overlap`, đơn vị BPMN), kèm vạch đứt đánh
 //      dấu. Không có nó, một task nằm đúng chỗ cắt bị chẻ đôi và không trang nào đọc được.
 //   4. **Mỗi hàng cắt cột theo phần có nội dung của riêng nó.** Một lưới cột dùng chung
@@ -61,14 +63,20 @@
 
 // Bề rộng dải tên bên trái: dải tên pool cộng dải tên lane (nếu pool có lane).
 // Suy từ chính bản vẽ chứ không phải hằng số — pool không lane chỉ có một dải.
+//
+// Đo từ `extent.x`, KHÔNG phải từ mép pool. Khung nhìn cắt dải tên bắt đầu ở gốc
+// extent, mà gốc extent lùi ra trước mép pool đúng một khoảng đệm; đo từ mép pool rồi
+// áp từ gốc extent thì dải bị hụt đúng khoảng đệm đó, và chữ tên lane — vốn căn giữa
+// dải 30 đơn vị của nó — rơi ngay lên đường ghép. Đã dính.
+#let _band = 30.0 // bề rộng dải tên pool/lane, khớp `_band` của bpmn-render
 #let _header-width(model) = {
+  let e = model.meta.extent
   let pools = model.pools.filter(p => "bounds" in p)
-  if pools.len() == 0 { return 30.0 }
+  if pools.len() == 0 { return _band }
   let px = calc.min(..pools.map(p => p.bounds.x))
   let lanes = pools.map(p => p.at("lanes", default: ())).flatten().filter(l => "bounds" in l)
-  if lanes.len() == 0 { return 30.0 }
-  let lx = calc.min(..lanes.map(l => l.bounds.x))
-  (lx - px) + 30.0
+  let inner = if lanes.len() == 0 { px } else { calc.min(..lanes.map(l => l.bounds.x)) }
+  (inner + _band) - e.x
 }
 
 // Mọi đường ngang mà bản vẽ *vốn đã* có: biên trên/dưới của từng pool và từng lane.
@@ -152,13 +160,13 @@
   max-pages: 4,
   min-font: 6pt,
   overlap: 30,
-  header: true,
+  repeat-header: true,
 ) = {
   let e = model.meta.extent
   let font-size = 11
   let u-want = min-font / font-size
   let cuts = _band-cuts(model)
-  let hw = if header { _header-width(model) } else { 0.0 }
+  let hw = if repeat-header { _header-width(model) } else { 0.0 }
 
   // Một dải không chia nhỏ hơn được nữa, nên dải cao nhất đặt trần cứng cho tỉ lệ.
   let tallest-band = calc.max(..range(cuts.len() - 1).map(j => cuts.at(j + 1) - cuts.at(j)))
@@ -274,7 +282,7 @@
 // max-pages   trần số trang; vượt thì thu tỉ lệ thay vì trải thêm
 // min-font    cỡ chữ nhắm tới; `debug: true` cho biết có đạt không
 // overlap     dải chồng lấn giữa hai cột, tính bằng đơn vị BPMN
-// header      lặp lại dải tên pool/lane ở các cột sau
+// repeat-header  dán lại dải tên pool/lane vào mép mỗi trang sau trang đầu
 // turn        chiều xoay bản vẽ. "cw" (mặc định) cho trục x chạy xuống trang, để các
 //             trang nối nhau đúng chiều lật giấy; "ccw" theo quy ước sidewaysfigure
 // chrome      giữ header/footer/số trang của tài liệu; `false` để nhường chỗ cho hình
@@ -285,7 +293,7 @@
   max-pages: 4,
   min-font: 6pt,
   overlap: 30,
-  header: true,
+  repeat-header: true,
   turn: "cw",
   chrome: true,
   margin: (x: 12mm, y: 10mm),
@@ -340,7 +348,7 @@
       max-pages: max-pages,
       min-font: min-font,
       overlap: overlap,
-      header: header,
+      repeat-header: repeat-header,
     )
 
     // Vẽ MỘT lần ở tỉ lệ đã chốt; mỗi trang chỉ là một khung nhìn lên bản vẽ đó.
