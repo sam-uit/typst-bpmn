@@ -20,6 +20,15 @@
 // Version: 0.1.0
 // License: MIT
 //
+// Bảng chú giải mã (chế độ "tag") là một lưới 5 cột cho mỗi khối:
+//
+//   ● mã | tên quy trình ......... | Imp | Health | Feas
+//        căn trái                      ba cột căn phải
+//
+// Ba con số căn phải để hàng đơn vị thẳng nhau — đọc dọc một cột là so sánh được
+// ngay. `key-columns` là số khối cạnh nhau; nhiều khối thì xếp *theo cột*, tức là
+// chạy hết khối trái rồi mới sang khối phải, để thứ tự khai báo không vỡ vụn.
+//
 // API công khai:
 //   - bpportfolio(processes: (..), ..)  : vẽ ma trận.
 //   - bpportfolio-data(data, ..)        : dựng từ dict đã nạp (YAML/JSON).
@@ -247,6 +256,7 @@
   label-width: 3.1cm,
   label-gap: 11pt,
   key-columns: 2,
+  key-headers: ("Quy trình", "Imp", "Health", "Feas"),
   axis-labels: ("Health — mức độ lành mạnh của quy trình (%)", "Importance — mức độ quan trọng (%)"),
   zone-label: [Vùng ưu tiên cải tiến],
   legend: true,
@@ -459,34 +469,79 @@
   }
 
   // --- bảng chú giải mã, chỉ ở chế độ tag ---
+  //
+  // Năm cột cho mỗi khối: chấm+mã | tên | Imp | Health | Feas. Ba con số căn phải
+  // để hàng đơn vị thẳng nhau — đọc dọc một cột số là so sánh được ngay, việc mà
+  // "· I 65 · H 70 · F 50" chạy trong dòng văn không làm được.
+  //
+  // Nhiều khối thì xếp *theo cột*: M01…S04 chạy hết khối trái rồi mới sang khối
+  // phải. Xếp theo hàng (M01 M02 / M03 C01 …) làm thứ tự khai báo vỡ vụn.
   let key-table = if mode != "tag" { none } else {
     set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
-    // `figure` căn giữa nội dung, mà bảng mã thì phải căn trái mới đọc thành cột.
-    let cell(p) = align(left, box(width: 100%, inset: (y: 1.5pt), stack(
-      dir: ltr,
-      spacing: 5pt,
-      box(width: 1.05cm, {
-        // Chấm màu trước mã: bảng chú giải và hình nói cùng một thứ tiếng.
-        let sw = if th.at("ramp", default: none) == none {
-          (fill: th.bubble, stroke: th.bubble-line)
-        } else { bpf-ramp-at(th.ramp, p.health / 100) }
-        box(
-          baseline: 1pt,
-          circle(radius: 2.4pt, fill: sw.fill, stroke: 0.5pt + sw.stroke),
-        )
-        h(3.5pt)
-        text(weight: "bold", fill: if p.select { th.pick-line } else { th.muted }, [#p.tag])
-      }),
-      {
-        text(weight: if p.select { "bold" } else { "regular" }, p.name)
-        text(size: 0.82em, fill: th.muted, [ · I #calc.round(p.importance) · H #calc.round(p.health) · F #calc.round(p.feasibility)])
-      },
-    )))
+
+    // Chấm màu + mã, chấm căn giữa theo chiều dọc của dòng.
+    //
+    // Cách hiển nhiên — `box(baseline: ..)` — là đặt đáy hộp lên baseline rồi đẩy
+    // xuống một khoảng. Nhưng khoảng đó phải suy từ chiều cao chữ, mà Typst không
+    // cho đọc font metrics: `measure(text("x")).height` trả về chiều cao *khung
+    // dòng* (bằng nhau cho "x", "X" và "xy"), không phải x-height. Mọi con số rút
+    // ra từ đó đều là số mò, và sẽ sai khi tài liệu đổi font.
+    //
+    // Nên để `grid` làm: `align: horizon` căn cả hai ô theo tâm hàng, tức là chấm
+    // tự căn giữa so với hộp chữ của mã. Không hằng số, không phụ thuộc font.
+    let dot-tag(p) = {
+      let sw = if th.at("ramp", default: none) == none {
+        (fill: th.bubble, stroke: th.bubble-line)
+      } else { bpf-ramp-at(th.ramp, p.health / 100) }
+      grid(
+        columns: (auto, auto),
+        column-gutter: 3.5pt,
+        align: horizon,
+        circle(radius: 2.4pt, fill: sw.fill, stroke: 0.5pt + sw.stroke),
+        text(weight: "bold", fill: if p.select { th.pick-line } else { th.muted }, [#p.tag]),
+      )
+    }
+    let num(v) = text(size: 0.92em, [#calc.round(v)])
+
+    let cells(p) = (
+      dot-tag(p),
+      text(weight: if p.select { "bold" } else { "regular" }, p.name),
+      num(p.importance),
+      num(p.health),
+      num(p.feasibility),
+    )
+    let blank = ([], [], [], [], [])
+
+    let heads = key-headers.map(h => bp-text(h))
+    let head-row = (
+      [],
+      ..heads.map(h => text(size: 0.85em, fill: th.muted, h)),
+    )
+
+    let per = calc.ceil(items.len() / key-columns)
+    let rows = range(per)
+      .map(r => range(key-columns)
+        .map(c => {
+          let i = c * per + r
+          if i < items.len() { cells(items.at(i)) } else { blank }
+        })
+        .flatten())
+      .flatten()
+
     grid(
-      columns: (1fr,) * key-columns,
-      column-gutter: 10pt,
-      row-gutter: 1pt,
-      ..items.map(cell),
+      columns: ((auto, 1fr, auto, auto, auto) * key-columns).flatten(),
+      // `figure` căn giữa nội dung của nó, nên phải khai căn chỉnh ở đây — nếu không
+      // tên quy trình trôi vào giữa cột và cả bảng mất trục trái.
+      align: ((left, left, right, right, right) * key-columns).flatten(),
+      // `column-gutter` chỉ có (số cột − 1) khe. Bốn khe trong một khối, cộng một khe
+      // rộng giữa hai khối — khe cuối cùng của khối cuối không tồn tại.
+      column-gutter: range(key-columns)
+        .map(c => (4pt, 7pt, 5pt, 5pt) + (if c + 1 < key-columns { (13pt,) } else { () }))
+        .flatten(),
+      row-gutter: 2.5pt,
+      ..(head-row * key-columns).flatten(),
+      grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
+      ..rows,
     )
   }
 
