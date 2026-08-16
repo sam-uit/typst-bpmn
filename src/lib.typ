@@ -44,7 +44,7 @@
 // `bpmn-sheet` is the opposite move from `bpmn-span`: instead of cutting the model
 // down to what a paragraph needs, it keeps the model whole and cuts the *page*.
 // For the appendix, where the reader wants the thing entire.
-#import "bpmn-sheet.typ": bpmn-sheet, bpmn-sheet-plan
+#import "bpmn-sheet.typ": bpmn-sheet, bpmn-sheet-plan, bpmn-sheet-info
 
 // --- Step flows, process maps, org charts ----------------------------------
 // Levels 1–2 of APQC PCF, where a process is still a chain rather than a graph.

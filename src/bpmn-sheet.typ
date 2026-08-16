@@ -56,8 +56,14 @@
 // API công khai:
 //   - bpmn-sheet(src, ..)       : phát ra n trang, mỗi trang một figure đã xoay.
 //   - bpmn-sheet-plan(model, ..): chỉ tính toán (lưới, tỉ lệ, cỡ chữ) — không vẽ.
+//   - bpmn-sheet-info(src, ..)  : ngân sách trang của một mô hình — cần bao nhiêu
+//                                 trang ở mỗi cỡ chữ, và phải cắt bớt bao nhiêu đơn
+//                                 vị bề rộng để tròn n trang. Không vẽ gì.
 
 #import "bpmn.typ": bpmn-model
+// Đổi tên khi nạp: `compact` cũng là tên tham số của `bpmn-sheet`, và trong thân hàm
+// thì tham số che mất hàm.
+#import "bpmn-compact.typ": compact as compact-model
 #import "bpmn-render.typ": draw-canvas, default-theme
 #import "bptext.typ": bp-text
 
@@ -282,6 +288,74 @@
   )
 }
 
+// MARK: bpmn-sheet-info
+//
+/// Ngân sách trang của một mô hình, không vẽ gì.
+///
+/// Vì sao có hàm này: Camunda Modeler không có lưới trang như DrawIO, nên trong lúc
+/// dựng mô hình không ai biết mình đang tiêu bao nhiêu tờ A4. Kết quả là bản vẽ hay
+/// rộng hơn mức cần, và chỉ lộ ra khi đã đem vào tài liệu. Đây là chỗ trả lời trước:
+/// ở mỗi cỡ chữ thì hết mấy trang, và phải bớt bao nhiêu đơn vị bề rộng để tròn n trang.
+///
+/// Số "bớt bao nhiêu" là thứ mang về Modeler dùng được: một task cỡ 100 đơn vị, một
+/// khoảng thở giữa hai bước cỡ 40--60, nên "bớt 250" đọc ra là "kéo hai ba bước lại
+/// gần nhau" chứ không phải một con số trừu tượng.
+///
+/// Trả về:
+///   extent      (w, h) của bản vẽ, đơn vị BPMN
+///   sizes       mỗi cỡ chữ một dòng: (font, cols, rows, pages, label-size, capped)
+///   width-fit   ép mọi pool/lane vào một bề ngang trang: (u, label-size, pages)
+///   trim        với n = 1..4 cột: cần bớt bao nhiêu đơn vị bề rộng để vừa n trang
+///               (âm nghĩa là còn thừa chỗ)
+#let bpmn-sheet-info(
+  src,
+  avail: (width: 277mm, height: 178mm),
+  sizes: (6pt, 7pt, 8pt),
+  max-pages: 4,
+  overlap: 30,
+  repeat-header: true,
+  compact: none,
+) = {
+  let model = bpmn-model(src)
+  if compact != none and compact != false {
+    model = compact-model(model, opts: if type(compact) == dictionary { compact } else { (:) })
+  }
+  let e = model.meta.extent
+  let hdr = _header-width(model)
+  let hw = if repeat-header { hdr } else { 0.0 }
+
+  let rows = sizes.map(f => {
+    let p = bpmn-sheet-plan(
+      model,
+      avail: avail,
+      max-pages: max-pages,
+      min-font: f,
+      overlap: overlap,
+      repeat-header: repeat-header,
+    )
+    (font: f, cols: p.cols, rows: p.rows, pages: p.pages, label-size: p.label-size, capped: p.capped)
+  })
+
+  // Mọi lane trên một bề ngang: tỉ lệ do chiều cao mô hình quyết, không phải cỡ chữ.
+  let u-fit = avail.height / e.h
+  let width-fit = (
+    u: u-fit,
+    label-size: 11 * u-fit,
+    pages: e.w * u-fit / avail.width,
+  )
+
+  // Sức chứa theo bề rộng khi đã chốt một tỉ lệ: cột đầu ôm trọn một tờ, mỗi cột sau
+  // mất phần dải tên dán lại và phần chồng lấn.
+  let capacity(u, n) = {
+    let tile = avail.width / u
+    tile + (n - 1) * calc.max(1.0, tile - hw - overlap)
+  }
+  let u-ref = if rows.len() == 0 { u-fit } else { rows.first().label-size / 11 }
+  let trim = range(1, 5).map(n => (n: n, units: e.w - capacity(u-ref, n)))
+
+  (extent: (w: e.w, h: e.h), header-w: hdr, sizes: rows, width-fit: width-fit, trim: trim, u-ref: u-ref)
+}
+
 // MARK: bpmn-sheet
 //
 // src         model đã nạp, `yaml(..)`, hoặc `xml("..bpmn")` — nạp thẳng .bpmn được
@@ -291,6 +365,17 @@
 // min-font    cỡ chữ nhắm tới; `debug: true` cho biết có đạt không
 // overlap     dải chồng lấn giữa hai cột, tính bằng đơn vị BPMN
 // repeat-header  dán lại dải tên pool/lane vào mép mỗi trang sau trang đầu
+// compact     gấp các dải trống lại trước khi trải (xem bpmn-compact). `none` là mặc
+//             định và là điều đúng cho phụ lục: phụ lục hứa chiếu *nguyên bản*, mà
+//             compact có đụng vào toạ độ. Bật khi mô hình rộng rãi quá mức cần thiết
+//             — hình và chữ giữ nguyên kích thước, chỉ khoảng trống nhỏ lại.
+//
+//             Đáng nói: với mô hình vẽ tay trong Camunda Modeler thì `compact: true`
+//             (mặc định `axis: "x"`) gần như không được gì — 0--2% bề rộng, vì các
+//             bước đã nằm sát nhau theo chiều ngang. Chỗ có mỡ là chiều *dọc*: lane
+//             cao gấp mấy lần hàng phần tử nằm trong nó. `compact: (axis: "both")`
+//             lấy lại 25--30% chiều cao trên sáu mô hình L3 của Hồng Hà, đủ để gộp
+//             lưới 2 hàng thành 1 và bớt hẳn một trang.
 // turn        chiều xoay bản vẽ. "cw" (mặc định) cho trục x chạy xuống trang, để các
 //             trang nối nhau đúng chiều lật giấy; "ccw" theo quy ước sidewaysfigure
 // chrome      giữ header/footer/số trang của tài liệu; `false` để nhường chỗ cho hình
@@ -302,6 +387,7 @@
   min-font: 6pt,
   overlap: 30,
   repeat-header: true,
+  compact: none,
   turn: "cw",
   chrome: true,
   margin: (x: 12mm, y: 10mm),
@@ -327,6 +413,9 @@
   debug: false,
 ) = {
   let model = bpmn-model(src)
+  if compact != none and compact != false {
+    model = compact-model(model, opts: if type(compact) == dictionary { compact } else { (:) })
+  }
   let e = model.meta.extent
 
   let cap = caption
