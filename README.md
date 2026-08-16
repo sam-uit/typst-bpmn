@@ -12,7 +12,7 @@ just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.6.1": *
+#import "@local/typst-bpmn:0.7.0": *
 ```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution
@@ -63,6 +63,7 @@ src/
   orgchart.typ            org charts
   bptable.typ             tabular views of the same step data
   whywhy.typ              5 Whys chains, as prose list or diagram notes
+  bpportfolio.typ         process portfolio matrix — which process to fix first
 docs/                     design notes and roadmap
 tests/conformance.typ     every symbol at three scales, both pool orientations
 tests/agreement.typ       the two parsers must produce identical models
@@ -88,7 +89,7 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.6.1": *
+#import "@local/typst-bpmn:0.7.0": *
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 

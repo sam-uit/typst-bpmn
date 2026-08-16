@@ -1,0 +1,438 @@
+// src/bpportfolio.typ
+// Process Portfolio Matrix — ma trận danh mục quy trình, dùng để *chọn* quy trình
+// nào đáng cải tiến trước, theo ba tiêu chí của FBPM2e:
+//
+//   Importance   quy trình đóng góp bao nhiêu vào mục tiêu chiến lược
+//   Health       nó đang chạy tốt tới đâu (thấp = nhiều rối loạn = nhiều chỗ để sửa)
+//   Feasibility  sửa nó dễ tới đâu (nguồn lực, quyền hạn, độ phức tạp)
+//
+// Hai tiêu chí đầu là hai trục; tiêu chí thứ ba là *đường kính* bong bóng. Đọc hình
+// theo đúng một câu: **quy trình đáng chọn nằm ở góc trên bên trái và vẽ to.**
+//
+// Vì sao Health nằm ở trục hoành và tăng dần sang phải, dù "đáng chọn" lại là bên
+// trái: đảo trục cho vùng đáng chọn về góc trên bên phải sẽ khiến trục đọc ngược
+// (100% ở gốc), và người đọc quen với "trục tăng dần từ gốc" hơn là quen với "góc
+// trên bên phải là tốt". Đổi lại phải nói rõ vùng chọn — nên vùng đó được tô nền
+// và có nhãn.
+//
+// Author: Sam Dinh
+// Version: 0.1.0
+// License: MIT
+//
+// API công khai:
+//   - bpportfolio(processes: (..), ..)  : vẽ ma trận.
+//   - bpportfolio-data(data, ..)        : dựng từ dict đã nạp (YAML/JSON).
+//   - bpf-themes                        : các bộ màu dựng sẵn ("bw", "aqua", "sap").
+//
+// Lược đồ dữ liệu:
+//   caption, label      như mọi component khác
+//   options: (..)       mọi tham số của bpportfolio()
+//   processes:
+//     - name: Xử lý bảo hành
+//       importance: 90        # 0..100
+//       health: 25            # 0..100 — THẤP là xấu
+//       feasibility: 70       # 0..100 — đường kính bong bóng
+//       tag: C4               # nhãn ngắn vẽ trong bong bóng (tuỳ chọn)
+//       select: true          # tô đậm, coi là quy trình được chọn
+//       side: "left"          # ép nhãn sang một phía: "left" | "right"
+//       dx: 4pt               # đẩy nhãn đi, tắt hẳn việc tự chọn phía
+//       dy: -3pt
+//       color: "#c0392b"      # ghi đè màu
+
+#import "bpstep.typ": bp-to-color, bp-contrast
+
+// MARK: Themes
+#let bpf-themes = (
+  // Đen trắng — an toàn khi in
+  bw: (
+    plot: white,
+    grid: luma(88%),
+    axis: luma(25%),
+    zone: luma(94%),
+    zone-line: luma(70%),
+    bubble: luma(80%),
+    bubble-line: luma(30%),
+    pick: luma(35%),
+    pick-line: black,
+    text: black,
+    muted: luma(40%),
+  ),
+  aqua: (
+    plot: white,
+    grid: rgb("#e3edf0"),
+    axis: rgb("#1d7c92"),
+    zone: rgb("#f2f8fa"),
+    zone-line: rgb("#bcd8e0"),
+    bubble: rgb("#cfe3ea"),
+    bubble-line: rgb("#1d7c92"),
+    pick: rgb("#e8a33d"),
+    pick-line: rgb("#9a5c00"),
+    text: black,
+    muted: luma(40%),
+  ),
+  sap: (
+    plot: white,
+    grid: rgb("#f2dbe7"),
+    axis: rgb("#A01050"),
+    zone: rgb("#fdf2f7"),
+    zone-line: rgb("#e7b9d0"),
+    bubble: rgb("#f4d3e3"),
+    bubble-line: rgb("#A01050"),
+    pick: rgb("#A01050"),
+    pick-line: rgb("#5e0a2f"),
+    text: black,
+    muted: luma(40%),
+  ),
+)
+
+// MARK: Helpers
+#let _num(v, default: 0) = {
+  if type(v) == int or type(v) == float { float(v) } else { float(default) }
+}
+
+// YAML không có kiểu độ dài: `size: [12.2cm, 8cm]` về tới đây là hai chuỗi. Đọc
+// tay thay vì `eval` — package không nên chạy chuỗi tuỳ ý từ file dữ liệu.
+#let _units = (("cm", 1cm), ("mm", 1mm), ("in", 1in), ("pt", 1pt), ("em", 1em))
+#let _len(v, default: 0pt) = {
+  if type(v) == length or type(v) == relative or type(v) == ratio { return v }
+  if type(v) == int or type(v) == float { return float(v) * 1pt }
+  if type(v) != str { return default }
+  let s = v.trim()
+  for (suffix, unit) in _units {
+    if s.ends-with(suffix) {
+      let n = float(s.slice(0, s.len() - suffix.len()).trim())
+      return n * unit
+    }
+  }
+  float(s) * 1pt
+}
+
+// Một mục có thể là dict, hoặc mảng (name, importance, health, feasibility).
+#let bpf-normalize(p) = {
+  let d = if type(p) == array {
+    (
+      name: p.at(0, default: ""),
+      importance: p.at(1, default: 50),
+      health: p.at(2, default: 50),
+      feasibility: p.at(3, default: 50),
+    )
+  } else if type(p) == dictionary { p } else { (name: p) }
+
+  let name = {
+    let out = none
+    for k in ("name", "text", "title", "label", "process") {
+      if out == none and k in d { out = d.at(k) }
+    }
+    if out == none { "" } else { out }
+  }
+  (
+    name: name,
+    importance: _num(d.at("importance", default: 50), default: 50),
+    health: _num(d.at("health", default: 50), default: 50),
+    feasibility: _num(d.at("feasibility", default: 50), default: 50),
+    tag: d.at("tag", default: none),
+    select: d.at("select", default: false),
+    side: d.at("side", default: none),
+    dx: d.at("dx", default: none),
+    dy: d.at("dy", default: none),
+    color: d.at("color", default: none),
+    note: d.at("note", default: none),
+  )
+}
+
+// MARK: bpportfolio
+//
+// size          : (rộng, cao) của *vùng vẽ*, chưa tính lề trục
+// zone          : ngưỡng vùng "cải tiến ngay" — (health-max, importance-min)
+// bubble        : (nhỏ nhất, lớn nhất) đường kính bong bóng
+// axis-labels   : nhãn hai trục
+// zone-label    : nhãn vùng chọn; `none` để tắt
+// legend        : hiện chú giải kích thước bong bóng
+// theme         : tên trong `bpf-themes`, hoặc một dict
+#let bpportfolio(
+  processes: (),
+  size: (12cm, 8cm),
+  zone: (50, 60),
+  bubble: (9pt, 30pt),
+  grid-step: 25,
+  labels: "auto",
+  label-width: 3.1cm,
+  label-gap: 11pt,
+  key-columns: 2,
+  axis-labels: ("Health — mức độ lành mạnh của quy trình (%)", "Importance — mức độ quan trọng (%)"),
+  zone-label: [Vùng ưu tiên cải tiến],
+  legend: true,
+  legend-label: [Feasibility — mức độ khả thi],
+  font: none,
+  size-text: 8pt,
+  theme: "bw",
+) = {
+  let th = if type(theme) == str { bpf-themes.at(theme, default: bpf-themes.bw) } else { theme }
+  let items = processes.map(bpf-normalize)
+
+  // Tên quy trình thật thường dài; viết thẳng cạnh bong bóng thì hai nhãn ở hai phía
+  // đối diện vẫn đâm vào nhau, và không có cách sắp xếp nào cứu được. Chế độ "tag"
+  // bỏ hẳn bài toán đó: trong bong bóng chỉ có mã ngắn, tên nằm ở bảng chú giải bên
+  // dưới. "auto" chọn giúp — quá bốn quy trình thì dùng tag.
+  // Khai `tag:` bằng tay là đã nói rõ ý muốn dùng mã; viết cả mã lẫn tên cạnh nhau
+  // là thừa, và làm hai nhãn dài đâm vào nhau ngay.
+  let mode = if labels != "auto" { labels } else if (
+    items.len() > 4 or items.any(p => p.tag != none)
+  ) { "tag" } else { "name" }
+  items = items
+    .enumerate()
+    .map(((i, p)) => if p.tag != none { p } else { p + (tag: if mode == "tag" { "P" + str(i + 1) } else { none }) })
+
+  let (pw, ph) = (_len(size.at(0), default: 12cm), _len(size.at(1), default: 8cm))
+  let (r-min, r-max) = (_len(bubble.at(0), default: 9pt), _len(bubble.at(1), default: 30pt))
+  let label-width = _len(label-width, default: 3.1cm)
+  let label-gap = _len(label-gap, default: 11pt)
+  let pad-left = 1.15cm // chỗ cho nhãn trục tung
+  let pad-bottom = 1.05cm // chỗ cho nhãn trục hoành
+  let pad-right = 0.2cm
+  let pad-top = 0.2cm
+
+  // Chuyển giá trị 0..100 thành toạ độ trong vùng vẽ. Trục tung lật lại: 100% ở trên.
+  let X(v) = pad-left + pw * (v / 100)
+  let Y(v) = pad-top + ph * (1 - v / 100)
+  let R(f) = r-min + (r-max - r-min) * (f / 100)
+
+  let body = {
+    set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
+
+    box(width: pad-left + pw + pad-right, height: pad-top + ph + pad-bottom, {
+      // --- nền vùng vẽ ---
+      place(dx: pad-left, dy: pad-top, rect(width: pw, height: ph, fill: th.plot, stroke: none))
+
+      // --- vùng ưu tiên: health thấp + importance cao ---
+      let (zh, zi) = zone
+      place(
+        dx: X(0),
+        dy: Y(100),
+        rect(
+          width: X(zh) - X(0),
+          height: Y(zi) - Y(100),
+          fill: th.zone,
+          stroke: (paint: th.zone-line, thickness: 0.5pt, dash: "dashed"),
+        ),
+      )
+      if zone-label != none {
+        place(dx: X(0) + 3pt, dy: Y(zi) - 1.05em, text(size: 0.88em, fill: th.muted, style: "italic", zone-label))
+      }
+
+      // --- lưới ---
+      let n = int(100 / grid-step)
+      for i in range(n + 1) {
+        let v = i * grid-step
+        place(dx: X(v), dy: pad-top, line(length: ph, angle: 90deg, stroke: 0.4pt + th.grid))
+        place(dx: pad-left, dy: Y(v), line(length: pw, angle: 0deg, stroke: 0.4pt + th.grid))
+        // vạch chia
+        place(
+          dx: X(v) - 0.5cm,
+          dy: pad-top + ph + 3pt,
+          box(width: 1cm, align(center, text(size: 0.85em, fill: th.muted, [#v]))),
+        )
+        place(
+          dx: 0pt,
+          dy: Y(v) - 0.45em,
+          box(width: pad-left - 4pt, align(right, text(size: 0.85em, fill: th.muted, [#v]))),
+        )
+      }
+
+      // --- khung ---
+      place(
+        dx: pad-left,
+        dy: pad-top,
+        rect(width: pw, height: ph, fill: none, stroke: 0.7pt + th.axis),
+      )
+
+      // --- nhãn trục ---
+      place(
+        dx: pad-left,
+        dy: pad-top + ph + 0.42cm,
+        box(width: pw, align(center, text(size: 0.92em, fill: th.axis, weight: "medium", axis-labels.at(0)))),
+      )
+      // Xoay quanh góc trên-trái: hộp rộng `ph` đổ *lên trên* từ điểm neo, nên điểm
+      // neo là đáy vùng vẽ. Tính theo tâm sẽ đẩy hộp chưa xoay ra ngoài trang và
+      // bị cắt mất — đã dính một lần.
+      place(
+        dx: 0pt,
+        dy: pad-top + ph,
+        rotate(-90deg, origin: top + left, box(
+          width: ph,
+          align(center, text(size: 0.92em, fill: th.axis, weight: "medium", axis-labels.at(1))),
+        )),
+      )
+
+      // --- bong bóng: vẽ cái to trước để cái nhỏ không bị che ---
+      let ordered = items.sorted(key: p => -p.feasibility)
+      for p in ordered {
+        let d = R(p.feasibility)
+        let fill = if p.color != none {
+          bp-to-color(p.color)
+        } else if p.select { th.pick } else { th.bubble }
+        let stroke = if p.select { 1.1pt + th.pick-line } else { 0.7pt + th.bubble-line }
+        place(
+          dx: X(p.health) - d / 2,
+          dy: Y(p.importance) - d / 2,
+          circle(radius: d / 2, fill: fill, stroke: stroke),
+        )
+        if p.tag != none {
+          place(
+            dx: X(p.health) - d / 2,
+            dy: Y(p.importance) - 0.5em,
+            box(width: d, align(center, text(size: 0.8em, weight: "bold", fill: bp-contrast(fill), [#p.tag]))),
+          )
+        }
+      }
+
+      // --- nhãn ---
+      // Mặc định đặt bên phải bong bóng, lật sang trái khi sát mép phải. Hai nhãn
+      // cùng phía mà quá gần nhau thì đẩy xuống theo thứ tự từ trên xuống — và khi
+      // đã đẩy thì kẻ một đường dẫn mảnh, nếu không người đọc gán nhãn nhầm bong bóng.
+      let placed = ()
+      for side in (if mode == "tag" { () } else { ("left", "right") }) {
+        let mine = items
+          .enumerate()
+          .filter(((i, p)) => {
+            let s = if p.side != none { p.side } else if p.health > 68 { "left" } else { "right" }
+            s == side and p.dx == none and p.dy == none
+          })
+          .map(((i, p)) => p)
+          .sorted(key: p => p.importance * -1) // từ trên xuống
+        let prev = -1e9pt
+        for p in mine {
+          let want = Y(p.importance)
+          let y = if want < prev + label-gap { prev + label-gap } else { want }
+          prev = y
+          placed.push((p: p, side: side, y: y, want: want))
+        }
+      }
+      // giữ nguyên vị trí tay khai
+      for p in (if mode == "tag" { () } else { items }) {
+        if p.dx != none or p.dy != none {
+          let side = if p.side != none { p.side } else if p.health > 68 { "left" } else { "right" }
+          placed.push((p: p, side: side, y: Y(p.importance) + p.dy.or(0pt), want: Y(p.importance)))
+        }
+      }
+
+      for e in placed {
+        let p = e.p
+        let d = R(p.feasibility)
+        let w = label-width
+        let manual = p.dx != none or p.dy != none
+        let x = if manual {
+          X(p.health) + p.dx.or(0pt)
+        } else if e.side == "left" { X(p.health) - d / 2 - 5pt - w } else { X(p.health) + d / 2 + 5pt }
+
+        // đường dẫn khi nhãn bị đẩy khỏi tâm bong bóng
+        if not manual and calc.abs((e.y - e.want) / 1pt) > 2 {
+          let x0 = if e.side == "left" { X(p.health) - d / 2 } else { X(p.health) + d / 2 }
+          let x1 = if e.side == "left" { x + w + 2pt } else { x - 2pt }
+          place(dx: x0, dy: e.want, line(end: (x1 - x0, e.y - e.want), stroke: 0.4pt + th.muted))
+        }
+
+        place(
+          dx: x,
+          dy: e.y - 0.62em,
+          box(width: w, align(if e.side == "left" { right } else { left }, {
+            text(size: 0.92em, weight: if p.select { "bold" } else { "regular" }, p.name)
+            if p.note != none {
+              linebreak()
+              text(size: 0.8em, fill: th.muted, p.note)
+            }
+          })),
+        )
+      }
+    })
+  }
+
+  // --- bảng chú giải mã, chỉ ở chế độ tag ---
+  let key-table = if mode != "tag" { none } else {
+    set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
+    // `figure` căn giữa nội dung, mà bảng mã thì phải căn trái mới đọc thành cột.
+    let cell(p) = align(left, box(width: 100%, inset: (y: 1.5pt), stack(
+      dir: ltr,
+      spacing: 5pt,
+      box(
+        width: 1.05cm,
+        text(
+          weight: "bold",
+          fill: if p.select { th.pick-line } else { th.muted },
+          [#p.tag],
+        ),
+      ),
+      {
+        text(weight: if p.select { "bold" } else { "regular" }, p.name)
+        text(size: 0.82em, fill: th.muted, [ · I #calc.round(p.importance) · H #calc.round(p.health) · F #calc.round(p.feasibility)])
+      },
+    )))
+    grid(
+      columns: (1fr,) * key-columns,
+      column-gutter: 10pt,
+      row-gutter: 1pt,
+      ..items.map(cell),
+    )
+  }
+
+  let chart = if key-table == none { body } else {
+    stack(dir: ttb, spacing: 8pt, body, key-table)
+  }
+
+  if not legend { return block(breakable: false, chart) }
+
+  // --- chú giải kích thước: ba mốc, cùng đường kính với hình ---
+  let key = (25, 50, 100)
+  let legend-box = {
+    set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
+    box(height: R(100), {
+      stack(
+        dir: ltr,
+        spacing: 8pt,
+        align(horizon, text(size: 0.85em, fill: th.muted, legend-label + [:])),
+        ..key.map(v => {
+          let d = R(v)
+          align(horizon, stack(
+            dir: ltr,
+            spacing: 3pt,
+            circle(radius: d / 2, fill: th.bubble, stroke: 0.7pt + th.bubble-line),
+            text(size: 0.85em, fill: th.muted, [#v%]),
+          ))
+        }),
+      )
+    })
+  }
+
+  block(breakable: false, stack(
+    dir: ttb,
+    spacing: 6pt,
+    body,
+    align(center, legend-box),
+    ..(if key-table == none { () } else { (key-table,) }),
+  ))
+}
+
+// MARK: Wrapper — dựng từ dữ liệu đã nạp
+// Khoá hiểu được: processes, caption, label, options
+#let bpportfolio-data(data, ..args) = {
+  if type(data) == array { return bpportfolio(processes: data, ..args) }
+
+  let named = data.at("options", default: (:)) + args.named()
+
+  let caption = named.at("caption", default: data.at("caption", default: none))
+  let lbl = named.at("label", default: data.at("label", default: none))
+  for k in ("caption", "label") {
+    if k in named { let _ = named.remove(k) }
+  }
+  for k in ("processes",) {
+    if k in data and k not in named { named.insert(k, data.at(k)) }
+  }
+
+  let out = if caption != none {
+    figure(bpportfolio(..named), caption: caption, kind: image, supplement: "Hình ảnh")
+  } else {
+    bpportfolio(..named)
+  }
+
+  if lbl != none { [#out #label(lbl)] } else { out }
+}

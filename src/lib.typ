@@ -59,3 +59,8 @@
 // as a list in the prose, and as the `notes:` array for a diagram — so the
 // chain never exists as two hand-written copies.
 #import "whywhy.typ": *
+
+// `bpportfolio` answers the question that comes *before* every other diagram
+// here: which process is worth modelling and fixing first. Importance and
+// health are the two axes, feasibility is the bubble diameter.
+#import "bpportfolio.typ": *
