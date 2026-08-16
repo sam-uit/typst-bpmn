@@ -40,11 +40,15 @@
 //          hơn theo cả hai chiều so với khi lật ngang tờ giấy.
 //        · Tệp PDF không còn trộn hai khổ trang. Trang lật ngang làm hỏng thứ tự đọc
 //          khi in hai mặt và làm lệch phần header/footer của tài liệu.
-//      Chú thích quay cùng bản vẽ (kiểu `sidewaysfigure`), nên xoay tờ giấy theo chiều
-//      kim đồng hồ là đọc được cả hình lẫn chú thích.
+//      Chiều xoay là *thuận* kim đồng hồ, ngược với `sidewaysfigure` của LaTeX, và đó
+//      là chỗ duy nhất bộ này đi chệch quy ước cũ. Lý do nằm ở việc nối trang: xoay
+//      thuận thì trục x của mô hình chạy *xuống* trang, nên dòng chảy đi hết trang này
+//      là sang đầu trang sau — đúng chiều lật giấy. Xoay ngược thì dòng chảy đi từ dưới
+//      lên, và trang sau lại bắt đầu ở đáy: đầu trang này nối vào đít trang kia. Chú
+//      thích quay cùng bản vẽ, nên xoay tờ giấy ngược kim đồng hồ là đọc được cả hai.
 //
 // Author: Sam Dinh
-// Version: 0.2.0
+// Version: 0.3.0
 // License: MIT
 //
 // API công khai:
@@ -271,7 +275,8 @@
 // min-font    cỡ chữ nhắm tới; `debug: true` cho biết có đạt không
 // overlap     dải chồng lấn giữa hai cột, tính bằng đơn vị BPMN
 // header      lặp lại dải tên pool/lane ở các cột sau
-// turn        chiều xoay bản vẽ: "ccw" (xoay giấy thuận kim đồng hồ để đọc) hoặc "cw"
+// turn        chiều xoay bản vẽ. "cw" (mặc định) cho trục x chạy xuống trang, để các
+//             trang nối nhau đúng chiều lật giấy; "ccw" theo quy ước sidewaysfigure
 // chrome      giữ header/footer/số trang của tài liệu; `false` để nhường chỗ cho hình
 #let bpmn-sheet(
   src,
@@ -281,7 +286,7 @@
   min-font: 6pt,
   overlap: 30,
   header: true,
-  turn: "ccw",
+  turn: "cw",
   chrome: true,
   margin: (x: 12mm, y: 10mm),
   theme: default-theme,
@@ -422,9 +427,9 @@
         // `rotate`, mà `@nhãn` trỏ vào `rotate` sẽ báo "cannot reference rotate".
         let tagged = if i == 0 and label != none { [#fig#label] } else { fig }
 
-        // Xoay cả cụm hình-và-chú-thích như một khối, kiểu `sidewaysfigure`. Chú thích
-        // để ngang trong khi hình nằm dọc sẽ ăn hai lần vào bề ngang trang: một lần cho
-        // chính nó, một lần cho dải mà phép xoay không dùng tới.
+        // Xoay cả cụm hình-và-chú-thích như một khối. Chú thích để ngang trong khi hình
+        // nằm dọc sẽ ăn hai lần vào bề ngang trang: một lần cho chính nó, một lần cho
+        // dải mà phép xoay không dùng tới.
         let turned = rotate(
           if turn == "cw" { 90deg } else { -90deg },
           reflow: true,
