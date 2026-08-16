@@ -40,3 +40,4 @@ out*/
 *.whl
 *.ttf
 *.otf
+_to_delete/

@@ -7,7 +7,7 @@
 # Needs: typst 0.15+, python3. `just` itself: brew install just
 
 typst := env("TYPST", "typst")
-python := env("PYTHON", "python3")
+python := env("PYTHON", "uv run --project ../bpmn-generator")
 
 # extra font directory, if the fonts are not installed system-wide
 fonts := env("BPMN_FONTS", "")
@@ -29,7 +29,7 @@ convert:
     @for f in {{samples}}/*.bpmn; do \
         [ -e "$f" ] || continue; \
         name=$(basename "$f" .bpmn); \
-        {{python}} {{src}}/tools/bpmn2yaml.py "$f" -o {{models}}/$name.yaml; \
+        {{python}} bpmn2yaml "$f" -o {{models}}/$name.yaml; \
     done
 
 # Convert, failing on any drawable element the converter does not recognise
@@ -38,13 +38,13 @@ convert-strict:
     @for f in {{samples}}/*.bpmn; do \
         [ -e "$f" ] || continue; \
         name=$(basename "$f" .bpmn); \
-        {{python}} {{src}}/tools/bpmn2yaml.py "$f" -o {{models}}/$name.yaml --strict; \
+        {{python}} bpmn2yaml "$f" -o {{models}}/$name.yaml --strict; \
     done
 
 # Convert one file: just one samples/foo.bpmn
 one FILE:
     @mkdir -p {{models}}
-    {{python}} {{src}}/tools/bpmn2yaml.py {{FILE}} \
+    {{python}} bpmn2yaml {{FILE}} \
         -o {{models}}/$(basename {{FILE}} .bpmn).yaml
 
 # ------------------------------------------------------------------ build ---
@@ -86,23 +86,39 @@ all: convert-strict demo conformance
 
 version := `git describe --tags --always --dirty 2>/dev/null || echo "unknown"`
 
-# Copy the components into a report's template, stamped with this version
-vendor DEST:
+# ----------------------------------------------------------------- package ---
+
+typst_pkgs := env("XDG_DATA_HOME", home_directory() / ".local/share") / "typst/packages/local"
+pkg_name := "typst-bpmn"
+
+# Cài package vào kho local: tài liệu dùng `#import "@local/typst-bpmn:<ver>"`
+install-lib: check
     #!/usr/bin/env bash
     set -euo pipefail
-    mkdir -p "{{DEST}}"
-    for f in {{src}}/components/bpmn*.typ; do
-        name=$(basename "$f")
-        {
-          echo "// vendored from typst-bpmn {{version}} — do not edit here."
-          echo "// Change it upstream, run \`just check\`, then re-run \`just vendor\`."
-          echo ""
-          cat "$f"
-        } > "{{DEST}}/$name"
-        echo "  $name"
-    done
-    echo "→ vendored {{version}} into {{DEST}}"
-    echo "   remember tools/bpmn2yaml.py if the report converts its own models"
+    ver=$(grep -m1 '^version' typst.toml | cut -d'"' -f2)
+    dest="{{typst_pkgs}}/{{pkg_name}}/$ver"
+    rm -rf "$dest" && mkdir -p "$dest"
+    cp typst.toml "$dest/" && cp -r src "$dest/"
+    echo "→ đã cài {{pkg_name}}:$ver"
+    echo "   dùng: #import \"@local/{{pkg_name}}:$ver\": *"
+
+# Trỏ kho local vào repo này bằng symlink — sửa là thấy, không phải cài lại
+link-dev:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    ver=$(grep -m1 '^version' typst.toml | cut -d'"' -f2)
+    dest="{{typst_pkgs}}/{{pkg_name}}/$ver"
+    rm -rf "$dest" && mkdir -p "$(dirname "$dest")"
+    ln -s "{{src}}" "$dest"
+    echo "→ {{pkg_name}}:$ver trỏ thẳng vào repo (symlink)"
+    echo "   chạy lại \`just install-lib\` trước khi đóng gói/nộp"
+
+# Gỡ khỏi kho local
+unlink-lib:
+    #!/usr/bin/env bash
+    ver=$(grep -m1 '^version' typst.toml | cut -d'"' -f2)
+    rm -rf "{{typst_pkgs}}/{{pkg_name}}/$ver"
+    echo "→ đã gỡ {{pkg_name}}:$ver"
 
 # ----------------------------------------------------------------- golden ---
 
@@ -138,7 +154,7 @@ check: convert-strict golden
 
 # Typst syntax check without producing output
 lint:
-    @for f in {{src}}/components/*.typ {{src}}/demo.typ {{src}}/tests/*.typ; do \
+    @for f in {{src}}/src/*.typ {{src}}/demo.typ {{src}}/tests/*.typ; do \
         {{typst}} compile --root {{src}} {{font_flag}} -f pdf "$f" /dev/null 2>/dev/null \
             && echo "ok   $(basename $f)" || echo "FAIL $(basename $f)"; \
     done
