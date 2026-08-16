@@ -1,4 +1,4 @@
-// src/annotate.typ
+// /template/components/annotate.typ
 // Chú giải đặt chồng lên sơ đồ dựng bằng lưới (bpflow, bpmap) — tự tìm chỗ.
 //
 // Vì sao cần một component riêng, không dùng lại `bpmn-notes`?
@@ -20,6 +20,7 @@
 //   - annotate(body, group: .., notes: (..), ..) : Bọc một sơ đồ, gắn chú giải lên trên.
 
 #import "noteplace.typ": np-rect, np-union, np-anchor, np-solve, np-defaults
+#import "bptext.typ": bp-text, bp-flatten
 
 // Ghi lại ở cấp module: tham số cùng tên sẽ che mất bản toàn cục.
 #let an-place = place
@@ -70,8 +71,10 @@
   if type(key) == int {
     return items.find(it => it.info.at("index", default: none) == key)
   }
-  let k = lower(str(key)).trim()
-  items.find(it => lower(it.info.at("name", default: "")).trim() == k)
+  // Tên trong dữ liệu là "Tài chính -- Kế toán"; tên đã dựng là "Tài chính – Kế toán".
+  // So chuỗi thô sẽ trượt, nên dựng cả hai rồi mới so.
+  let k = lower(bp-flatten(bp-text(str(key)))).trim()
+  items.find(it => lower(bp-flatten(bp-text(it.info.at("name", default: "")))).trim() == k)
 }
 
 // MARK: Component

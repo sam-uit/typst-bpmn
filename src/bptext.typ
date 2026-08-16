@@ -1,0 +1,70 @@
+// src/bptext.typ
+// Chuỗi trong file dữ liệu -> content của Typst.
+//
+// Vấn đề: `[Chương 2--3]` viết trong tài liệu ra "Chương 2–3", nhưng cùng chuỗi đó
+// nằm trong YAML rồi chèn bằng `#s` thì ra đúng "Chương 2--3" — hai gạch nối, y
+// nguyên. Không phải lỗi: `--` -> en-dash là việc của *bộ phân tích cú pháp* Typst,
+// mà một `str` thì không đi qua bộ phân tích nào cả.
+//
+// Nên tầng dữ liệu phải nói rõ nó gửi cái gì cho engine. Ba chế độ:
+//
+//   "markup"  eval như markup Typst. Được dash, được `$->$`, được `*đậm*`,
+//             `_nghiêng_`, `#link(..)`. Đây là mặc định.
+//   "smart"   chỉ thay ký hiệu typography, không eval. Tuyệt đối an toàn.
+//   "raw"     giữ nguyên chuỗi.
+//
+// Hai cái bẫy của "markup", phải biết trước khi dùng:
+//
+//   1. `#` mở một biểu thức code. "kho #1" ra "kho 1" — dấu thăng *biến mất im
+//      lặng*, không báo lỗi. Muốn dấu thăng thật thì viết `\#`.
+//   2. Trong math, một dãy nhiều chữ cái là *một biến*, không phải chữ. `$CTE$`
+//      làm hỏng build với "unknown variable: CTE". Viết `$"CTE"$` hoặc `$C T E$`.
+//
+// Typst không có try/catch, nên chế độ "markup" không thể tự bắt lỗi rồi lui về
+// chuỗi thô. Đó là lý do "smart" tồn tại: nhãn lấy từ Camunda Modeler là do người
+// khác gõ, cho một công cụ khác, và không ai ở đó nghĩ mình đang viết Typst.
+//
+// Author: Sam Dinh
+// Version: 0.1.0
+// License: MIT
+
+// Thay ký hiệu typography mà không eval. Thứ tự quan trọng: `---` phải xét trước
+// `--`, nếu không em-dash bị cắt thành en-dash cộng một gạch nối.
+#let bp-smart(s) = {
+  if type(s) != str { return s }
+  s
+    .replace("---", "\u{2014}") // em dash
+    .replace("--", "\u{2013}") // en dash
+    .replace("...", "\u{2026}") // ellipsis
+}
+
+/// Chuyển một giá trị của tầng dữ liệu thành content.
+///
+/// Chỉ đụng vào `str`; content, số, `none` đi thẳng qua. Chuỗi rỗng cũng đi thẳng,
+/// vì `eval("")` trả về content rỗng và làm hỏng mọi phép kiểm `== ""` phía sau.
+#let bp-text(v, mode: "markup") = {
+  if type(v) != str or v == "" { return v }
+  if mode == "raw" { return v }
+  if mode == "smart" { return bp-smart(v) }
+  eval(v, mode: "markup")
+}
+
+/// Rút văn bản thuần từ content — dùng để so khớp nhãn sau khi đã dựng.
+///
+/// Cần vì `annotate` và `bpmap` neo theo *tên*, mà tên trong dữ liệu là "Chương 2--3"
+/// còn tên đã dựng là "Chương 2–3". So hai chuỗi thô sẽ trượt; so bản đã dựng của cả
+/// hai thì khớp.
+#let bp-flatten(body) = {
+  if body == none { return "" }
+  if type(body) == str { return body }
+  if type(body) != content { return str(body) }
+  if body.has("text") { return body.text }
+  if body.has("children") { return body.children.map(bp-flatten).join("") }
+  if body.has("body") { return bp-flatten(body.body) }
+  ""
+}
+
+/// So khớp hai nhãn bất kể chúng ở dạng thô hay đã dựng.
+#let bp-same-text(a, b, mode: "markup") = {
+  bp-flatten(bp-text(a, mode: mode)).trim() == bp-flatten(bp-text(b, mode: mode)).trim()
+}

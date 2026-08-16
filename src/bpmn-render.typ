@@ -5,12 +5,18 @@
 // file scale-independent: change `u` and the diagram scales, strokes and all.
 
 #import "bpmn-shapes.typ": *
+#import "bptext.typ": bp-text
 #import "bpmn-palette.typ": camunda-palette, mono-palette, swatch
 
 // ------------------------------------------------------------------ theme ---
 
 #let default-theme = (
   font: "DejaVu Sans",
+  // Nhãn lấy từ mô hình đi qua chế độ nào — xem bptext.typ.
+  //   "smart"  (mặc định) đổi `--`/`---`/`...` thành ký hiệu đúng, không eval
+  //   "markup" eval đầy đủ: được cả `$->$`, nhưng `#` sẽ biến mất im lặng
+  //   "raw"    giữ nguyên
+  markup: "smart",
   // Camunda Modeler's own default stroke is rgb(34, 36, 42), not pure black.
   stroke: rgb("#22242A"),
   fill: rgb("#FFFFFF"),
@@ -50,6 +56,10 @@
 /// Text block placed at absolute DI label bounds.
 #let _label(lb, body, u, theme, paint: none, size: none, align-x: center) = {
   if body == none or body == "" { return none }
+  // Nhãn ở đây do người khác gõ trong Camunda Modeler, cho một công cụ khác. Mặc
+  // định "smart": được en-dash và em-dash, không có `#` biến mất im lặng. Muốn cả
+  // math thì `theme + (markup: "markup")`.
+  let body = bp-text(body, mode: theme.at("markup", default: "smart"))
   let fs = (if size == none { theme.font-size } else { size }) * u
   place(dx: lb.x * u, dy: lb.y * u,
     box(width: lb.w * u,
@@ -61,6 +71,7 @@
 /// Centre a label inside a shape's own bounds.
 #let _inner-label(b, body, u, theme, paint: none, size: none, pad: 6) = {
   if body == none or body == "" { return none }
+  let body = bp-text(body, mode: theme.at("markup", default: "smart"))
   let fs = (if size == none { theme.font-size } else { size }) * u
   place(dx: (b.x + pad) * u, dy: b.y * u,
     box(width: (b.w - 2 * pad) * u, height: b.h * u,

@@ -1,4 +1,4 @@
-// src/orgchart.typ
+// /template/components/orgchart.typ
 // Organization Chart — sơ đồ tổ chức dựng từ YAML, thuần Typst.
 //
 // Không dùng thư viện ngoài (fletcher/cetz): bố cục cây được tính bằng
@@ -22,6 +22,8 @@
 //   - oc-themes                            : Các bộ màu dựng sẵn.
 
 // MARK: Themes
+#import "bptext.typ": bp-text, bp-flatten
+
 #let oc-themes = (
   // Vàng hổ phách, giống sơ đồ mẫu
   classic: (
@@ -238,6 +240,7 @@
   d: 0,
 ) = {
   let styled = body => {
+    let body = bp-text(body)
     set text(
       size: size,
       hyphenate: false,
@@ -569,7 +572,7 @@
     }
     for n in all-nodes {
       place(dx: n.x, dy: n.y, ocnode(
-        n.label,
+        bp-text(n.label),
         kind: n.kind,
         theme: if n.fill == auto { th } else {
           th + (

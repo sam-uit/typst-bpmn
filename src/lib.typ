@@ -49,6 +49,12 @@
 #import "orgchart.typ": *
 #import "bptable.typ": *
 
+// --- Data-layer text -------------------------------------------------------
+// A string from a YAML file is not markup: `--` stays two hyphens unless something
+// hands it to the parser. `bp-text` is that something, and it is applied at every
+// boundary where the data layer turns into content.
+#import "bptext.typ": *
+
 // --- Overlays and analysis -------------------------------------------------
 // `annotate` is the grid-diagram counterpart of `bpmn-notes`: same placement
 // rules, different way of learning where the shapes ended up (see noteplace).

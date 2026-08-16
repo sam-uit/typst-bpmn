@@ -1,4 +1,4 @@
-// src/whywhy.typ
+// /template/components/whywhy.typ
 // Why-Why (5 Whys) — chuỗi truy vấn nguyên nhân gốc rễ, dựng từ một file dữ liệu.
 //
 // Lý do component này tồn tại không phải là phần trình bày — một danh sách lồng nhau
@@ -29,6 +29,8 @@
 //   root: <nguyên nhân gốc rễ>          # tuỳ chọn — bỏ trống thì lấy `because` cuối
 
 // MARK: Nạp dữ liệu
+#import "bptext.typ": bp-text
+
 #let ww-load(path) = {
   let raw = if path.ends-with(".yaml") or path.ends-with(".yml") {
     yaml(path)
@@ -78,13 +80,13 @@
 
   list(
     list.item[
-      #problem-label #data.at("problem", default: "")
+      #problem-label #bp-text(data.at("problem", default: ""))
       #list(
         ..whys
           .enumerate()
           .map(((i, w)) => list.item[
             #emph(ww-label(i + 1, i + 1, word: word) + ":") #w.at("ask", default: "")
-            #list(list.item[#w.at("because", default: "")])
+            #list(list.item[#bp-text(w.at("because", default: ""))])
           ]),
       )
     ],
@@ -146,7 +148,7 @@
   groups.map(g => (
     node: g.node,
     body: [#strong(ww-label(g.from + 1, g.to, word: word) + ":") #{
-      if g.text != none { g.text } else { g.because }
+      bp-text(if g.text != none { g.text } else { g.because })
     }],
   ) + common)
 }

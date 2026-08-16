@@ -225,6 +225,42 @@ less healthy — so a printed page still ranks correctly.
 
 bpmn.io's non-normative colour extensions (`bioc:fill` / `bioc:stroke`, `color:background-color` / `color:border-color`) are carried through and applied to the element's border, fill **and its label**. People use these to mark the happy path and the failure path, so dropping them loses meaning, not just decoration. `honor-colors: false` ignores them for black-and-white printing.
 
+## Data-layer strings are not markup
+
+`[Chương 2--3]` written in a document renders "Chương 2–3". The same characters in a
+YAML file, inserted with `#s`, render "Chương 2--3" — two hyphens, verbatim. That is
+not a bug in either place: turning `--` into an en-dash is the job of Typst's
+*parser*, and a `str` never passes through a parser.
+
+So the data layer has to say what it is sending to the engine. `bptext.typ` offers
+three modes, applied at every boundary where data becomes content:
+
+| Mode | What it does | Where it is the default |
+| --- | --- | --- |
+| `"markup"` | `eval(.., mode: "markup")` — dashes, `$->$`, `*bold*`, `#link(..)` | Everything authored in the document's own YAML: `bpstep`, `bpmap`, `bptable`, `orgchart`, `whywhy`, `bpportfolio` |
+| `"smart"` | Substitutes `---`, `--`, `...` only. Never evaluates. | Labels read out of a `.bpmn` model (`theme.markup`) |
+| `"raw"` | Leaves the string alone | Never; available as an escape |
+
+The split is deliberate. A label in `content/processes/*.yaml` was typed by the person
+writing the report, in a file that only this toolchain reads — full markup is what
+they want. A label inside a `.bpmn` was typed in Camunda Modeler, by someone using a
+different tool, who has no idea Typst exists. Evaluating that is a trap:
+
+- **`#` opens a code expression.** `"kho #1"` renders "kho 1" — the hash *disappears
+  silently*, with no error. Write `\#` for a literal one.
+- **A multi-letter run in math is one variable.** `$CTE$` fails the build with
+  "unknown variable: CTE". Write `$"CTE"$` or `$C T E$`.
+
+Typst has no `try`, so `"markup"` cannot catch a failure and fall back to the raw
+string. That is precisely why `"smart"` exists rather than being an afterthought:
+`--` and `---` are what people actually want out of a modeler label, and they cost
+nothing to give safely. Override per document with `theme + (markup: "markup")`.
+
+One consequence worth remembering: **anything that matches on a label must compare
+rendered text, not raw text.** `annotate` anchors by name, and "Tài chính -- Kế toán"
+in the data no longer equals "Tài chính – Kế toán" on the page. `bp-same-text` and
+`bp-flatten` exist for that comparison.
+
 ## Typography
 
 Labels are set in `theme.font` at `theme.font-size × u` with tight leading. Where the DI provides label bounds those are honoured exactly, which reproduces the modeler's line breaks — with one exception: **group titles ignore their DI label bounds**, because modelers size those to their own font and any other font forces a wrap.

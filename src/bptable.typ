@@ -1,4 +1,4 @@
-// src/bptable.typ
+// /template/components/bptable.typ
 // Business Process Table — Danh mục quy trình nghiệp vụ dưới dạng bảng:
 //   mỗi dòng là một quy trình, các cột là Tên / Tác Nhân / Khách Hàng /
 //   Kết Quả / Mô Tả Các Bước.
@@ -15,6 +15,7 @@
 //   - bptable-file(path, ..)  : Nạp YAML/JSON rồi dựng, một lệnh.
 
 #import "bpstep.typ": load-steps
+#import "bptext.typ": bp-text
 
 // MARK: Helpers — nội dung một ô
 // Giá trị trong YAML có thể là chuỗi hoặc mảng:
@@ -23,7 +24,7 @@
 //   - mảng nhiều     -> danh sách gạch đầu dòng, thụt lề tối thiểu cho vừa ô hẹp
 #let bptable-cell(value, sep: none, indent: 0pt, body-indent: 0.4em) = {
   let items = if type(value) == array { value } else { (value,) }
-  let items = items.filter(it => it != none and it != "")
+  let items = items.filter(it => it != none and it != "").map(bp-text)
   if items.len() == 0 { return [] }
 
   if sep != none {

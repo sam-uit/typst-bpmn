@@ -1,4 +1,4 @@
-// src/bpstep.typ
+// /template/components/bpstep.typ
 // Business Process Step — trực quan hóa chuỗi các bước của một quy trình
 // bằng các khối mũi tên (chevron) vẽ trực tiếp bằng Typst visualize.
 //
@@ -15,6 +15,8 @@
 
 // MARK: Palettes
 // Mỗi palette là một mảng màu, được lặp vòng nếu số bước nhiều hơn số màu.
+#import "bptext.typ": bp-text, bp-smart, bp-flatten, bp-same-text
+
 #let bp-palettes = (
   // Bảng màu mặc định, kiểu Google Slides / Office SmartArt
   pastel: (
@@ -108,7 +110,11 @@
 //   - string / content                        -> chỉ có nhãn
 //   - dict: (text|title|label|name, color|fill, text-color, stroke, note)
 // Trả về dict chuẩn: (body, fill, text-fill, stroke, note)
-#let bp-normalize(step) = {
+//
+// `mode` quyết định chuỗi được gửi tới engine thế nào — xem `bptext.typ`. Mặc định
+// "markup", vì dữ liệu ở đây do chính người viết tài liệu gõ: họ muốn "2--3" ra
+// en-dash và "$->$" ra mũi tên.
+#let bp-normalize(step, mode: "markup") = {
   if type(step) == dictionary {
     let keys = ("text", "title", "label", "name", "step", "body")
     let body = none
@@ -116,19 +122,19 @@
       if body == none and k in step { body = step.at(k) }
     }
     (
-      body: if body == none { [] } else { body },
+      body: if body == none { [] } else { bp-text(body, mode: mode) },
       fill: if "color" in step { step.color } else if "fill" in step { step.fill } else { auto },
       text-fill: if "text-color" in step { step.text-color } else if "text-fill" in step {
         step.text-fill
       } else { auto },
       stroke: if "stroke" in step { step.stroke } else { auto },
-      note: if "note" in step { step.note } else { none },
+      note: if "note" in step { bp-text(step.note, mode: mode) } else { none },
       id: if "id" in step { step.id } else { none },
     )
   } else if type(step) == array {
     // Hàng từ CSV: (nhãn,) hoặc (nhãn, màu)
     (
-      body: step.at(0, default: ""),
+      body: bp-text(step.at(0, default: ""), mode: mode),
       fill: if step.len() > 1 and step.at(1) != "" { step.at(1) } else { auto },
       text-fill: auto,
       stroke: auto,
@@ -136,21 +142,13 @@
       id: none,
     )
   } else {
-    (body: step, fill: auto, text-fill: auto, stroke: auto, note: none, id: none)
+    (body: bp-text(step, mode: mode), fill: auto, text-fill: auto, stroke: auto, note: none, id: none)
   }
 }
 
 // Rút văn bản thuần của một bước, để `annotate` neo được theo tên thay vì theo id.
 // Đi đệ quy qua content (sequence, styled, box...) để lấy được cả nhãn nhiều mảnh.
-#let bp-plain(body) = {
-  if body == none { return "" }
-  if type(body) == str { return body }
-  if type(body) != content { return str(body) }
-  if body.has("text") { return body.text }
-  if body.has("children") { return body.children.map(bp-plain).join("") }
-  if body.has("body") { return bp-plain(body.body) }
-  ""
-}
+#let bp-plain = bp-flatten
 
 // Ép về màu: chấp nhận chuỗi hex ("#cfe2f3") hoặc color.
 #let bp-to-color(c) = if type(c) == str { rgb(c) } else { c }

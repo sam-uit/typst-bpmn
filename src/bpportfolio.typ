@@ -44,6 +44,7 @@
 
 #import "bpstep.typ": bp-to-color, bp-contrast
 #import "bpmn-palette.typ": camunda-palette
+#import "bptext.typ": bp-text
 
 // MARK: Ba kênh mã hoá
 // Ba tiêu chí, ba kênh thị giác độc lập — không cái nào phải chia sẻ kênh với cái nào:
@@ -175,8 +176,9 @@
   if type(v) == int or type(v) == float { float(v) } else { float(default) }
 }
 
-// YAML không có kiểu độ dài: `size: [12.2cm, 8cm]` về tới đây là hai chuỗi. Đọc
-// tay thay vì `eval` — package không nên chạy chuỗi tuỳ ý từ file dữ liệu.
+// YAML không có kiểu độ dài: `size: [12.2cm, 8cm]` về tới đây là hai chuỗi. Đọc tay
+// thay vì `eval`. Khác với `bp-text` — ở đó eval *là* mục đích (người viết muốn dash
+// và math); ở đây eval chỉ là một cách lười để đọc một con số kèm đơn vị.
 #let _units = (("cm", 1cm), ("mm", 1mm), ("in", 1in), ("pt", 1pt), ("em", 1em))
 #let _len(v, default: 0pt) = {
   if type(v) == length or type(v) == relative or type(v) == ratio { return v }
@@ -211,17 +213,17 @@
     if out == none { "" } else { out }
   }
   (
-    name: name,
+    name: bp-text(name),
     importance: _num(d.at("importance", default: 50), default: 50),
     health: _num(d.at("health", default: 50), default: 50),
     feasibility: _num(d.at("feasibility", default: 50), default: 50),
-    tag: d.at("tag", default: none),
+    tag: bp-text(d.at("tag", default: none)),
     select: d.at("select", default: false),
     side: d.at("side", default: none),
     dx: d.at("dx", default: none),
     dy: d.at("dy", default: none),
     color: d.at("color", default: none),
-    note: d.at("note", default: none),
+    note: bp-text(d.at("note", default: none)),
   )
 }
 
@@ -315,7 +317,7 @@
         place(
           dx: X(0) + 4pt,
           dy: Y(zi) - 1.05em,
-          text(size: 0.88em, fill: th.at("zone-text", default: th.muted), style: "italic", zone-label),
+          text(size: 0.88em, fill: th.at("zone-text", default: th.muted), style: "italic", bp-text(zone-label)),
         )
       }
 
@@ -349,7 +351,7 @@
       place(
         dx: pad-left,
         dy: pad-top + ph + 0.42cm,
-        box(width: pw, align(center, text(size: 0.92em, fill: th.axis, weight: "medium", axis-labels.at(0)))),
+        box(width: pw, align(center, text(size: 0.92em, fill: th.axis, weight: "medium", bp-text(axis-labels.at(0))))),
       )
       // Xoay quanh góc trên-trái: hộp rộng `ph` đổ *lên trên* từ điểm neo, nên điểm
       // neo là đáy vùng vẽ. Tính theo tâm sẽ đẩy hộp chưa xoay ra ngoài trang và
@@ -359,7 +361,7 @@
         dy: pad-top + ph,
         rotate(-90deg, origin: top + left, box(
           width: ph,
-          align(center, text(size: 0.92em, fill: th.axis, weight: "medium", axis-labels.at(1))),
+          align(center, text(size: 0.92em, fill: th.axis, weight: "medium", bp-text(axis-labels.at(1)))),
         )),
       )
 
@@ -502,7 +504,7 @@
       stack(
         dir: ltr,
         spacing: 8pt,
-        align(horizon, text(size: 0.85em, fill: th.muted, legend-label + [:])),
+        align(horizon, text(size: 0.85em, fill: th.muted, bp-text(legend-label) + [:])),
         ..key.map(v => {
           let d = R(v)
           align(horizon, stack(
