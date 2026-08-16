@@ -202,6 +202,18 @@
 ///    perpendicular to the arc's tangent exactly where the stroke ends, so the two meet
 ///    square and the notch is gone.
 ///
+/// The construction, in the order you would draw it by hand:
+///
+///   - run the arc round to twelve o'clock and call that point the tip;
+///   - from the tip, step back **along the circle** by the head's length to get the
+///     base point — so both points are on the curve and the head's axis is their chord;
+///   - open the base out to either side along the radius by the head's height.
+///
+/// So the two knobs are the ones you would actually reach for: `head-len` and
+/// `head-half`, both a fraction of the box. The angle is derived, never typed —
+/// `Δ = 2·asin(L / 2r)` — which keeps the head the same *length* if the radius is ever
+/// retuned, instead of silently growing.
+///
 /// Angles run clockwise from twelve o'clock: `P(θ) = (cx + r sinθ, cy − r cosθ)`.
 /// Sweeping to θ = 360° puts the tip at the top, which is what makes it read as ↻
 /// rather than ↺.
@@ -217,8 +229,8 @@
 #let marker-loop(size, paint: black) = {
   let r = 0.36 * size
   let t = 0.10 * size
-  let head = 40deg                // angular length of the head, measured on the circle
-  let hw = 0.095 * size           // half-width at the base, measured along the radius
+  let head-len = 0.25 * size      // tip to base, stepped back along the circle
+  let hw = 0.11 * size            // height either side of the base, along the radius
   let round = 0.03 * size         // corner radius, via a round-join stroke
   // Centre vertically on the *inked* extent, not on the circle: the head reaches past
   // the top of the arc by `hw`, the stroke past the bottom by `t/2`. Solving
@@ -227,7 +239,8 @@
   let cy = (size - t / 2 + hw) / 2
   let sweep = 315deg
   let P(a) = (cx + r * calc.sin(a), cy - r * calc.cos(a))
-  let base-a = 360deg - head
+  // Chord of length `head-len` subtends 2·asin(L / 2r).
+  let base-a = 360deg - 2 * calc.asin(head-len / (2 * r))
   let bc = P(base-a)
   // Outward radial at the base angle. The base edge lies along it, so it is square to
   // the arc where the stroke stops — hence the arc runs to exactly `base-a`, no
