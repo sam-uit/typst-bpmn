@@ -95,13 +95,21 @@ Icons are **redrawn from the BPMN 2.0 spec**, not traced from bpmn-js — see [r
   `(cx, cy) = (0.5 size, 0.5 size)` and place everything relative to it. Where the ink
   is deliberately asymmetric (the loop marker's arrowhead sticks out past the arc),
   solve for the centre of the *inked* extent instead of the geometric one.
-- **Draw arrows on a real tangent.** The loop marker was two hand-fitted cubics with the
-  arrowhead pinned at fixed unit coordinates, so the head did not sit on the curve and
-  read as a wedge parked next to it. A circular arc plus a head built from the tangent
-  vector at the end angle costs the same and is self-correcting when the radius changes.
+- **An arrowhead on a curve belongs *to* the curve, not on its tangent.** Three tries on
+  the loop marker: (1) hand-fitted cubics with the head pinned at fixed coordinates — the
+  head was not on the path at all; (2) a real arc with the head built on the tangent at
+  the tip — geometrically correct and still wrong to look at, because a straight head
+  leaving a curve reads as flying off it, and its square base met the curving stroke at
+  an angle and left a notch; (3) both ends of the head **on the circle**, so it leans
+  with the turn and carries the arc's momentum through the tip, with the base edge along
+  the **radius** at its own angle — by construction perpendicular to the tangent exactly
+  where the stroke ends, so the two meet square and the notch is gone.
   Using the glyph `↻` instead was considered and rejected: it comes out much lighter
   than the neighbouring markers, and it would make a BPMN symbol depend on the host
   document's font.
+- **One sharp point in a set of round caps looks wrong and nobody can say why.** Fills
+  that form a point (arrowheads) get a `join: "round"` stroke in the fill colour so their
+  corners match the strokes around them.
 - **Outline, not fill, at small sizes.** The first service-task gear was a filled disc with filled teeth; below about 40 units it collapsed into a black blob. Strokes throughout survive the scale-down.
 - **Icons are drawn in a unit square and scaled**, so a single definition works at every diagram scale.
 

@@ -186,15 +186,29 @@
     curve.move((0pt, 0.22 * size)), curve.line((0pt, 0.78 * size)))),
 )
 
-/// Loop marker: a real circular arc with the arrowhead on its tangent.
+/// Loop marker: a circular arc whose arrowhead is *part of the arc*.
 ///
-/// It used to be two hand-fitted cubics with the arrowhead pinned at fixed unit
-/// coordinates. The head therefore did not sit on the curve's tangent — it read as a
-/// separate wedge stuck beside the arc — and the whole mark sat off-centre.
+/// Three revisions, each fixing what the previous one still got wrong:
 ///
-/// Angles run clockwise from twelve o'clock, so `P(θ) = (cx + r sinθ, cy − r cosθ)`
-/// and the tangent is `(cosθ, sinθ)`. Sweeping to θ = 360° puts the tip at the top
-/// pointing right, which is the direction that makes it read as ↻ rather than ↺.
+/// 1. Two hand-fitted cubics with the head pinned at fixed unit coordinates. The head
+///    was not on the curve at all — a wedge parked beside it — and the mark was
+///    off-centre.
+/// 2. A real arc with the head built on the *tangent at the tip*. Geometrically correct
+///    and still wrong to look at: a straight head leaving a curve reads as flying off
+///    the path, and its square base met the curving stroke at an angle, leaving a notch.
+/// 3. This one. Both ends of the head sit **on the circle**, so the head leans with the
+///    turn instead of escaping it — the arc's momentum carries through the tip. And the
+///    base edge runs **along the radius** at its own angle, which is by construction
+///    perpendicular to the arc's tangent exactly where the stroke ends, so the two meet
+///    square and the notch is gone.
+///
+/// Angles run clockwise from twelve o'clock: `P(θ) = (cx + r sinθ, cy − r cosθ)`.
+/// Sweeping to θ = 360° puts the tip at the top, which is what makes it read as ↻
+/// rather than ↺.
+///
+/// Corners are rounded with a `join: "round"` stroke in the fill colour. Everything
+/// else in this family is drawn with `cap: "round"`, and a single sharp point is
+/// exactly the kind of detail that looks wrong without anyone being able to say why.
 ///
 /// The obvious alternative — the glyph `↻` — was tried and rejected: it comes out far
 /// lighter than the neighbouring markers (this family is drawn at 0.09–0.13 × size),
@@ -203,29 +217,34 @@
 #let marker-loop(size, paint: black) = {
   let r = 0.36 * size
   let t = 0.10 * size
-  let hl = 0.24 * size            // arrowhead length, along the tangent
-  let hw = 0.096 * size           // arrowhead half-width, across it
-  // Centre vertically on the *inked* extent, not on the circle: the head sticks out
-  // past the top of the arc by `hw`, the stroke past the bottom by `t/2`. Solving
+  let head = 40deg                // angular length of the head, measured on the circle
+  let hw = 0.095 * size           // half-width at the base, measured along the radius
+  let round = 0.03 * size         // corner radius, via a round-join stroke
+  // Centre vertically on the *inked* extent, not on the circle: the head reaches past
+  // the top of the arc by `hw`, the stroke past the bottom by `t/2`. Solving
   // (cy − r − hw) + (cy + r + t/2) = size for cy keeps the two margins equal.
   let cx = 0.5 * size
   let cy = (size - t / 2 + hw) / 2
   let sweep = 315deg
   let P(a) = (cx + r * calc.sin(a), cy - r * calc.cos(a))
-  let tip = P(360deg)
-  let (tx, ty) = (calc.cos(360deg), calc.sin(360deg))
-  let base = (tip.at(0) - hl * tx, tip.at(1) - hl * ty)
-  // Stop the arc short of the tip so the stroke does not poke out of the head.
-  let stop = 360deg - 1rad * (hl * 0.75 / r)
+  let base-a = 360deg - head
+  let bc = P(base-a)
+  // Outward radial at the base angle. The base edge lies along it, so it is square to
+  // the arc where the stroke stops — hence the arc runs to exactly `base-a`, no
+  // overlap and no shortfall.
+  let (rx, ry) = (calc.sin(base-a), -calc.cos(base-a))
   let n = 60
-  let pts = range(n + 1).map(i => P(360deg - sweep + (stop - 360deg + sweep) * i / n))
+  let a0 = 360deg - sweep
+  let pts = range(n + 1).map(i => P(a0 + (base-a - a0) * i / n))
   canvas(size, size,
     place(curve(stroke: (paint: paint, thickness: t, cap: "round"),
       curve.move(pts.first()), ..pts.slice(1).map(p => curve.line(p)))),
-    place(curve(fill: paint,
-      curve.move(tip),
-      curve.line((base.at(0) - hw * ty, base.at(1) + hw * tx)),
-      curve.line((base.at(0) + hw * ty, base.at(1) - hw * tx)),
+    place(curve(
+      fill: paint,
+      stroke: (paint: paint, thickness: round, join: "round", cap: "round"),
+      curve.move(P(360deg)),
+      curve.line((bc.at(0) + hw * rx, bc.at(1) + hw * ry)),
+      curve.line((bc.at(0) - hw * rx, bc.at(1) - hw * ry)),
       curve.close())),
   )
 }
