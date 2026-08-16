@@ -257,10 +257,10 @@
   label-gap: 11pt,
   key-columns: 2,
   key-headers: ("Quy trình", "Imp", "Health", "Feas"),
-  axis-labels: ("Health — mức độ lành mạnh của quy trình (%)", "Importance — mức độ quan trọng (%)"),
+  axis-labels: ("*Health*: mức độ lành mạnh của quy trình (%)", "*Importance*: mức độ quan trọng (%)"),
   zone-label: [Vùng ưu tiên cải tiến],
   legend: true,
-  legend-label: [Feasibility — mức độ khả thi],
+  legend-label: [*Feasibility*: mức độ khả thi],
   font: none,
   size-text: 8pt,
   theme: "camunda",
@@ -540,7 +540,7 @@
         .flatten(),
       row-gutter: 2.5pt,
       ..(head-row * key-columns).flatten(),
-      grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
+      // grid.hline(y: 1, stroke: 0.5pt + th.muted.lighten(58%)),
       ..rows,
     )
   }
