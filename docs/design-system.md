@@ -248,8 +248,16 @@ different tool, who has no idea Typst exists. Evaluating that is a trap:
 
 - **`#` opens a code expression.** `"kho #1"` renders "kho 1" — the hash *disappears
   silently*, with no error. Write `\#` for a literal one.
+- **`~` is a non-breaking space, not a tilde.** `"~70 đơn"` renders " 70 đơn" and the
+  word "approximately" is gone. Write `\~`, or just type `≈`.
+- **Bold is `*one star*`, not `**two**`.** Two stars render the text unbolded with a
+  "no text within stars" warning — a Markdown habit that fails quietly.
 - **A multi-letter run in math is one variable.** `$CTE$` fails the build with
   "unknown variable: CTE". Write `$"CTE"$` or `$C T E$`.
+
+Three of those four fail *silently*. That asymmetry is the whole argument for not
+defaulting every source to `"markup"`: a build that stops is a bug you fix in a
+minute, and a hash that vanishes is one you ship.
 
 Typst has no `try`, so `"markup"` cannot catch a failure and fall back to the raw
 string. That is precisely why `"smart"` exists rather than being an afterthought:
