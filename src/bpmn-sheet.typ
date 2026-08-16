@@ -7,7 +7,7 @@
 // người đọc vẫn cần một chỗ nhìn thấy **toàn bộ** mô hình, và đó là việc của phụ lục.
 //
 // Cách làm: vẽ mô hình *một lần* ở tỉ lệ đọc được, rồi cắt thành từng ô cửa sổ, mỗi ô
-// một trang xoay ngang. Khác hẳn `bpmn-span`:
+// một trang. Khác hẳn `bpmn-span`:
 //
 //   bpmn-span   cắt theo **ngữ nghĩa** — từ id tới id, mô hình được dựng lại cho lát cắt.
 //   bpmn-sheet  cắt theo **hình học** — cùng một bản vẽ, mỗi trang là một khung nhìn.
@@ -31,13 +31,24 @@
 //      cho mọi hàng nghe gọn hơn, nhưng hàng dưới của một mô hình thường chỉ có vài hộp
 //      ở mép trái — dùng chung lưới thì sinh ra một trang gần như trắng. Tỉ lệ vẫn là
 //      một cho cả bản vẽ, nên vẫn so được; chỉ có số cột là khác nhau giữa các hàng.
+//   5. **Xoay bản vẽ, không xoay tờ giấy.** Trang vẫn dọc như mọi trang khác của tài
+//      liệu; mảnh bản vẽ mới là thứ quay một phần tư vòng, đúng cách `bpmn-figure` tự
+//      xoay khi hình quá rộng so với cột chữ. Hai cái lợi, và cái thứ hai mới là cái
+//      chính:
+//        · Chiều dài của mô hình được chiếu lên chiều *cao* trang (277mm ở A4 thay vì
+//          186mm), còn chiều cao mô hình chiếu lên bề ngang — mỗi trang ôm được nhiều
+//          hơn theo cả hai chiều so với khi lật ngang tờ giấy.
+//        · Tệp PDF không còn trộn hai khổ trang. Trang lật ngang làm hỏng thứ tự đọc
+//          khi in hai mặt và làm lệch phần header/footer của tài liệu.
+//      Chú thích quay cùng bản vẽ (kiểu `sidewaysfigure`), nên xoay tờ giấy theo chiều
+//      kim đồng hồ là đọc được cả hình lẫn chú thích.
 //
 // Author: Sam Dinh
-// Version: 0.1.0
+// Version: 0.2.0
 // License: MIT
 //
 // API công khai:
-//   - bpmn-sheet(src, ..)       : phát ra n trang xoay ngang, mỗi trang một figure.
+//   - bpmn-sheet(src, ..)       : phát ra n trang, mỗi trang một figure đã xoay.
 //   - bpmn-sheet-plan(model, ..): chỉ tính toán (lưới, tỉ lệ, cỡ chữ) — không vẽ.
 
 #import "bpmn.typ": bpmn-model
@@ -96,6 +107,10 @@
 // trọn bề ngang của bản vẽ cho hàng đó là in ra một trang trắng có chú thích.
 //
 // Trả `none` khi dải hoàn toàn rỗng — hàng đó không đáng một trang.
+#let _row-has-node(model, y0, y1) = {
+  model.nodes.any(n => n.bounds.y < y1 and n.bounds.y + n.bounds.h > y0)
+}
+
 #let _row-x-span(model, y0, y1) = {
   // Closure không sửa được biến bên ngoài, nên gom hộp trước rồi mới trải thành toạ độ.
   let hit(b) = b.y < y1 and b.y + b.h > y0
@@ -116,15 +131,20 @@
 
 /// Tính kế hoạch trải trang mà không vẽ gì.
 ///
-/// Vì sao phải cắt cả hai chiều: một collaboration L3 cao 1200 đơn vị, mà chiều cao
-/// dùng được của một trang A4 xoay ngang chỉ ~178mm. Muốn nhãn đạt 6pt thì cần
-/// 1200 × 6/11 = 654pt = 231mm — **cao hơn cả tờ giấy**. Thêm bao nhiêu trang ngang
-/// cũng vô ích: ràng buộc nằm ở chiều dọc.
+/// `avail` đo theo **trục của mô hình**, không theo trục tờ giấy: `width` là chỗ dành
+/// cho chiều dài mô hình, `height` cho chiều cao mô hình. Vì bản vẽ được xoay một phần
+/// tư vòng, `width` lấy từ chiều *cao* trang và `height` lấy từ bề *ngang* trang —
+/// người gọi lo việc đổi trục đó, ở đây chỉ có toạ độ BPMN.
 ///
-/// Trả về `(cols, rows, pages, row-bounds, x-starts, u, label-size, header-w, capped)`.
+/// Vì sao phải cắt cả hai chiều: một collaboration L3 cao 1200 đơn vị, mà bề ngang
+/// dùng được của một trang A4 dọc chỉ ~186mm. Muốn nhãn đạt 6pt thì cần
+/// 1200 × 6/11 = 654pt = 231mm — **rộng hơn cả tờ giấy**. Thêm bao nhiêu trang nối
+/// tiếp cũng vô ích: ràng buộc nằm ở chiều cao mô hình.
+///
+/// Trả về `(cols, rows, pages, bands, u, label-size, header-w, capped)`.
 #let bpmn-sheet-plan(
   model,
-  avail: (width: 257mm, height: 178mm),
+  avail: (width: 277mm, height: 186mm),
   max-pages: 4,
   min-font: 6pt,
   overlap: 30,
@@ -161,15 +181,35 @@
     ))
   }
 
-  // Một hàng = một dải ngang, kèm bề ngang của riêng nó. Hàng rỗng bị bỏ hẳn.
+  // Một hàng = một dải ngang, kèm bề ngang của riêng nó.
+  //
+  // Trước khi tính bề ngang, gộp những dải *không có phần tử nào* vào dải liền trên.
+  // Điển hình là băng black box: message flow chạy tới mép pool để lại một waypoint,
+  // đủ để dải đó "có nội dung" theo nghĩa toạ độ, nhưng in ra là một trang chỉ có
+  // khung rỗng và một dòng chú thích. Gộp lên trên thì băng vẫn hiện, đúng chỗ nó
+  // thuộc về — ngay dưới phần đã gửi thông điệp cho nó.
   let pad = 20.0
+  let merge-empty(bounds, maxh) = {
+    let out = (bounds.first(),)
+    for r in range(bounds.len() - 1) {
+      let (y0, y1) = (bounds.at(r), bounds.at(r + 1))
+      let empty = not _row-has-node(model, y0, y1)
+      if empty and out.len() > 1 and y1 - out.at(out.len() - 2) <= maxh {
+        out.at(out.len() - 1) = y1
+      } else {
+        out.push(y1)
+      }
+    }
+    out
+  }
   let layout-for(u) = {
-    let bounds = _pack-rows(cuts, avail.height / u)
+    let maxh = avail.height / u
+    let bounds = merge-empty(_pack-rows(cuts, maxh), maxh)
     let out = ()
     for r in range(bounds.len() - 1) {
       let (y0, y1) = (bounds.at(r), bounds.at(r + 1))
       let sp = _row-x-span(model, y0, y1)
-      if sp == none { continue }
+      if sp == none or not _row-has-node(model, y0, y1) { continue }
       // Mép trái của hàng: hoặc đúng gốc bản vẽ (khung nhìn tự mang dải tên), hoặc hẳn
       // ra ngoài dải tên (khung nhìn được dán dải tên vào). Rơi vào *giữa* dải tên thì
       // trang in ra tên pool hai lần — một lần ở dải dán, một lần trong phần thân.
@@ -190,6 +230,24 @@
     u = u * 0.94
     rows = layout-for(u)
     guard += 1
+  }
+
+  // Rồi nở ngược lại cho *hết* chỗ đang có, miễn không sinh thêm một trang nào.
+  //
+  // `min-font` là mức sàn, không phải mức trần: một mô hình thấp và ngắn dừng ở đúng
+  // 6pt sẽ để trống nửa bề ngang trang, trong khi cùng số trang đó nó có thể vẽ to hơn.
+  // Điều kiện dừng là *số trang không đổi* chứ không phải "còn dưới max-pages" — nếu
+  // không, một mô hình vốn gọn trong 1 trang sẽ tự phình ra thành 4.
+  let target = pages-of(rows)
+  let grow = 0
+  while grow < 40 and u < 1pt {
+    let u2 = calc.min(u * 1.03, 1pt)
+    if u2 * tallest-band > avail.height { break }
+    let r2 = layout-for(u2)
+    if pages-of(r2) > target { break }
+    u = u2
+    rows = r2
+    grow += 1
   }
 
   (
@@ -213,6 +271,8 @@
 // min-font    cỡ chữ nhắm tới; `debug: true` cho biết có đạt không
 // overlap     dải chồng lấn giữa hai cột, tính bằng đơn vị BPMN
 // header      lặp lại dải tên pool/lane ở các cột sau
+// turn        chiều xoay bản vẽ: "ccw" (xoay giấy thuận kim đồng hồ để đọc) hoặc "cw"
+// chrome      giữ header/footer/số trang của tài liệu; `false` để nhường chỗ cho hình
 #let bpmn-sheet(
   src,
   caption: none,
@@ -221,6 +281,8 @@
   min-font: 6pt,
   overlap: 30,
   header: true,
+  turn: "ccw",
+  chrome: true,
   margin: (x: 12mm, y: 10mm),
   theme: default-theme,
   supplement: auto,
@@ -228,11 +290,17 @@
   // (thứ tự, tổng, cột, hàng, số cột, số hàng) — vị trí chỉ nói ra khi lưới chia theo
   // cả hai chiều; "1/4" một mình không cho biết mảnh này nằm ở đâu trong bản vẽ.
   part-format: (i, n, c, r, cols, rows) => {
-    if n <= 1 { [] } else if rows <= 1 or cols <= 1 { [ (#i/#n)] } else {
-      let ngang = if c == 0 { "trái" } else if c + 1 == cols { "phải" } else { "giữa" }
-      let doc = if r == 0 { "trên" } else if r + 1 == rows { "dưới" } else { "giữa" }
-      [ (#i/#n — #doc #ngang)]
-    }
+    if n <= 1 { return [] }
+    // Số cột khác nhau giữa các hàng, nên phải xét riêng từng chiều: một hàng chỉ có
+    // một cột vẫn cần biết nó là hàng trên hay hàng dưới.
+    let ngang = if cols <= 1 { () } else if c == 0 { ("trái",) } else if c + 1 == cols {
+      ("phải",)
+    } else { ("giữa",) }
+    let doc = if rows <= 1 { () } else if r == 0 { ("trên",) } else if r + 1 == rows {
+      ("dưới",)
+    } else { ("giữa",) }
+    let vt = (doc + ngang).join(" ")
+    if vt == none { [ (#i/#n)] } else { [ (#i/#n — #vt)] }
   },
   seam: true,
   debug: false,
@@ -251,13 +319,15 @@
   // trang riêng. `context` đọc khổ giấy rồi phát ra n lệnh `page()` — mỗi lệnh mở
   // đúng một trang, khỏi cần ngắt trang thủ công.
   context {
-    // Trang xoay ngang: bề rộng lấy từ chiều cao khổ gốc và ngược lại.
+    // Đổi trục: bản vẽ xoay một phần tư vòng, nên chiều *dài* mô hình ăn vào chiều cao
+    // trang, còn chiều *cao* mô hình ăn vào bề ngang trang. Chú thích quay cùng hình
+    // nên nó cũng nằm dọc theo bề ngang trang — trừ vào cùng ngân sách đó.
     let (mx, my) = (margin.at("x", default: 12mm), margin.at("y", default: 10mm))
-    let avail-w = page.height - 2 * mx
+    let avail-w = page.height - 2 * my
     let cap-h = if cap == none { 0pt } else {
       measure(box(width: avail-w, cap)).height + 1.6 * text.size
     }
-    let avail = (width: avail-w, height: page.width - 2 * my - cap-h)
+    let avail = (width: avail-w, height: page.width - 2 * mx - cap-h)
 
     let plan = bpmn-sheet-plan(
       model,
@@ -348,11 +418,28 @@
           kind: kind,
           supplement: supplement,
         )
-        // `v(1fr)` hai đầu: một dải ngang thấp hơn khổ giấy thì nằm giữa trang chứ không
-        // treo ở mép trên với một khoảng trắng dài bên dưới chú thích.
-        page(flipped: true, margin: margin, {
+        // Nhãn phải gắn vào chính `figure`, không gắn ngoài: cái ở ngoài cùng là một
+        // `rotate`, mà `@nhãn` trỏ vào `rotate` sẽ báo "cannot reference rotate".
+        let tagged = if i == 0 and label != none { [#fig#label] } else { fig }
+
+        // Xoay cả cụm hình-và-chú-thích như một khối, kiểu `sidewaysfigure`. Chú thích
+        // để ngang trong khi hình nằm dọc sẽ ăn hai lần vào bề ngang trang: một lần cho
+        // chính nó, một lần cho dải mà phép xoay không dùng tới.
+        let turned = rotate(
+          if turn == "cw" { 90deg } else { -90deg },
+          reflow: true,
+          box(width: w, tagged),
+        )
+        // `chrome: false` trả lại chỗ của header/footer cho hình. Số trang cũng tắt
+        // theo — một trang không có header thì số trang mồ côi ở giữa lề trông như lỗi.
+        let bare = if chrome { (:) } else {
+          (header: none, footer: none, numbering: none, background: none, foreground: none)
+        }
+        // `v(1fr)` hai đầu: mảnh ngắn hơn khổ giấy thì nằm giữa trang chứ không treo ở
+        // mép trên với một khoảng trắng dài bên dưới.
+        page(margin: margin, ..bare, {
           v(1fr)
-          if i == 0 and label != none { [#fig#label] } else { fig }
+          align(center, turned)
           v(1fr)
         })
         i += 1
