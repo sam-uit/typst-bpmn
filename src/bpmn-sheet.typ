@@ -166,7 +166,15 @@
   let font-size = 11
   let u-want = min-font / font-size
   let cuts = _band-cuts(model)
-  let hw = if repeat-header { _header-width(model) } else { 0.0 }
+  // Hai con số khác nhau, và lẫn chúng là hỏng.
+  //   `hdr` — bề rộng dải tên mà *bản vẽ vốn đã có* ở mép trái. Luôn tồn tại, không
+  //           phụ thuộc tuỳ chọn nào; nó là một phần của hình.
+  //   `hw`  — bề rộng dải tên mà mình *dán thêm* vào các trang sau. Bằng 0 khi tắt.
+  // Dùng `hw` cho cả hai việc thì tắt `repeat-header` sẽ kéo mép trái của trang đầu
+  // vào tận chỗ có nội dung, xén mất chính dải tên gốc — tắt lặp lại hoá ra xoá luôn
+  // bản chính.
+  let hdr = _header-width(model)
+  let hw = if repeat-header { hdr } else { 0.0 }
 
   // Một dải không chia nhỏ hơn được nữa, nên dải cao nhất đặt trần cứng cho tỉ lệ.
   let tallest-band = calc.max(..range(cuts.len() - 1).map(j => cuts.at(j + 1) - cuts.at(j)))
@@ -226,7 +234,7 @@
       // ra ngoài dải tên (khung nhìn được dán dải tên vào). Rơi vào *giữa* dải tên thì
       // trang in ra tên pool hai lần — một lần ở dải dán, một lần trong phần thân.
       let raw-lo = sp.at(0) - pad
-      let lo = if raw-lo < e.x + hw { e.x } else { raw-lo }
+      let lo = if raw-lo < e.x + hdr { e.x } else { raw-lo }
       let hi = calc.min(e.x + e.w, sp.at(1) + pad)
       out.push((y0: y0, y1: y1, lo: lo, hi: hi, xs: cols-for(u, lo, hi)))
     }
