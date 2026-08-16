@@ -73,10 +73,23 @@
       let lb = l.bounds
       if axis == "x" { ivs.push((lb.x, lb.x + band)) }
     }
-    // a pool must stay tall enough for its rotated title; keep its own extent
-    // on the cross axis out of the compaction entirely
-    if axis == "y" and p.at("horizontal", default: true) and p.at("blackbox", default: false) {
-      ivs.push((b.y, b.y + b.h))
+    // A band whose only content is its own rotated title must keep its height —
+    // squeeze it and the title runs out of the band and over its neighbours.
+    //
+    // The `blackbox` flag alone is not enough to find those: it is set by
+    // `bpmn-slice`, so a model loaded whole (which is what `bpmn-sheet` does) has
+    // no flag at all and its empty partner pools were being crushed — 60 units to
+    // 19 on the promotion model. Ask the geometry instead: a band with no shape
+    // centred inside it is empty, however it was loaded.
+    let has-node(bb) = model.nodes.any(n => {
+      let c = n.bounds.y + n.bounds.h / 2
+      c > bb.y and c < bb.y + bb.h
+    })
+    if axis == "y" and p.at("horizontal", default: true) {
+      if p.at("blackbox", default: false) or not has-node(b) { ivs.push((b.y, b.y + b.h)) }
+      for l in p.at("lanes", default: ()) {
+        if not has-node(l.bounds) { ivs.push((l.bounds.y, l.bounds.y + l.bounds.h)) }
+      }
     }
   }
   _merge(ivs)
