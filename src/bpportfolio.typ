@@ -552,7 +552,7 @@
   if not legend { return block(breakable: false, chart) }
 
   // --- chú giải kích thước: ba mốc, cùng đường kính với hình ---
-  let key = (25, 50, 100)
+  let key = (25, 50, 75, 100)
   let legend-box = {
     set text(size: size-text, fill: th.text, ..(if font != none { (font: font) } else { (:) }))
     box(height: R(100), {
