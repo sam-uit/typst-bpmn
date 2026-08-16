@@ -6,8 +6,9 @@
 //   Health       nó đang chạy tốt tới đâu (thấp = nhiều rối loạn = nhiều chỗ để sửa)
 //   Feasibility  sửa nó dễ tới đâu (nguồn lực, quyền hạn, độ phức tạp)
 //
-// Hai tiêu chí đầu là hai trục; tiêu chí thứ ba là *đường kính* bong bóng. Đọc hình
-// theo đúng một câu: **quy trình đáng chọn nằm ở góc trên bên trái và vẽ to.**
+// Ba tiêu chí, ba kênh thị giác: vị trí ngang (và màu) cho Health, vị trí dọc cho
+// Importance, đường kính cho Feasibility. Đọc hình theo đúng một câu: **quy trình
+// đáng chọn nằm ở góc trên bên trái, màu đỏ, và vẽ to.**
 //
 // Vì sao Health nằm ở trục hoành và tăng dần sang phải, dù "đáng chọn" lại là bên
 // trái: đảo trục cho vùng đáng chọn về góc trên bên phải sẽ khiến trục đọc ngược
@@ -22,7 +23,9 @@
 // API công khai:
 //   - bpportfolio(processes: (..), ..)  : vẽ ma trận.
 //   - bpportfolio-data(data, ..)        : dựng từ dict đã nạp (YAML/JSON).
-//   - bpf-themes                        : các bộ màu dựng sẵn ("bw", "aqua", "sap").
+//   - bpf-themes                        : bộ màu dựng sẵn ("camunda", "bw", "aqua", "sap").
+//   - bpf-ramps                         : thang màu Health dựng sẵn.
+//   - bpf-ramp-at(stops, t)             : lấy màu ở một điểm trên thang.
 //
 // Lược đồ dữ liệu:
 //   caption, label      như mọi component khác
@@ -40,19 +43,82 @@
 //       color: "#c0392b"      # ghi đè màu
 
 #import "bpstep.typ": bp-to-color, bp-contrast
+#import "bpmn-palette.typ": camunda-palette
+
+// MARK: Ba kênh mã hoá
+// Ba tiêu chí, ba kênh thị giác độc lập — không cái nào phải chia sẻ kênh với cái nào:
+//
+//   Importance   -> vị trí dọc   (càng quan trọng càng lên trên)
+//   Feasibility  -> đường kính   (càng khả thi càng to)
+//   Health       -> vị trí ngang *và* màu (càng thấp càng đỏ, càng cao càng xanh)
+//
+// Health chiếm hai kênh là cố ý: mã hoá dư (redundant encoding). Trục trả lời "thấp
+// bao nhiêu", màu trả lời "có đáng lo không" — mắt đọc được câu thứ hai từ xa mà
+// không cần dò trục. Vì màu ở đây chỉ nhắc lại trục đã có nhãn, hình không cần thêm
+// một chú giải màu riêng.
+//
+// Hệ quả với `select`: quy trình được chọn KHÔNG đổi màu nền. Đổi là cướp mất kênh
+// của Health, và cướp đúng lúc nó đang nói điều quan trọng nhất — quy trình được
+// chọn thì gần như luôn là quy trình đỏ nhất. Chọn được thể hiện bằng viền dày và
+// chữ đậm.
+
+// Thang màu Health. Dùng thẳng bảng màu Camunda của thư viện, không chế màu mới:
+// đỏ (failure) -> cam (warning) -> xanh lá (success) là đúng ba nấc ngữ nghĩa mà
+// `semantic-aliases` đã đặt tên.
+// Bảng màu Camunda được chế cho *nền hình chữ nhật to*, nên nó rất nhạt. Bong bóng
+// 10–30pt thì nhạt tới mức đỏ và xanh nhìn gần như nhau, nhất là ở khoảng giữa. Nên
+// tăng bão hoà cho riêng thang này — vẫn đúng hue của bảng màu, chỉ đậm lên đủ để
+// đọc được thứ tự ở kích thước nhỏ.
+#let _sw(name, sat: 45%) = {
+  let c = camunda-palette.at(name)
+  (fill: c.fill.saturate(sat), stroke: c.stroke)
+}
+
+#let bpf-ramps = (
+  signal: (_sw("red"), _sw("orange"), _sw("green")),
+  teal: (
+    _sw("red"),
+    _sw("orange"),
+    (fill: rgb("#cfe3ea").saturate(30%), stroke: rgb("#1d7c92")),
+  ),
+  // Đen trắng: đậm là ốm. In ra vẫn đọc được thứ tự.
+  gray: (
+    (fill: luma(52%), stroke: luma(15%)),
+    (fill: luma(74%), stroke: luma(25%)),
+    (fill: luma(93%), stroke: luma(35%)),
+  ),
+)
 
 // MARK: Themes
 #let bpf-themes = (
+  // Bảng màu của chính typst-bpmn — mặc định
+  camunda: (
+    plot: white,
+    grid: luma(90%),
+    axis: rgb("#22242A"),
+    // "Vùng ưu tiên" là một cảnh báo, nên nó lấy swatch cảnh báo (orange/warning)
+    // pha loãng — đủ để thấy vùng, không đủ để cãi nhau với bong bóng nằm trong.
+    zone: rgb("#FFE0B2").lighten(64%),
+    zone-line: rgb("#6B3C00").lighten(35%),
+    zone-text: rgb("#6B3C00"),
+    ramp: bpf-ramps.signal,
+    bubble: luma(88%), // chỉ dùng cho chú giải kích thước
+    bubble-line: luma(45%),
+    pick-line: rgb("#22242A"),
+    text: black,
+    muted: luma(40%),
+  ),
   // Đen trắng — an toàn khi in
   bw: (
     plot: white,
-    grid: luma(88%),
+    grid: luma(90%),
     axis: luma(25%),
     zone: luma(94%),
     zone-line: luma(70%),
-    bubble: luma(80%),
-    bubble-line: luma(30%),
-    pick: luma(35%),
+    zone-text: luma(40%),
+    ramp: bpf-ramps.gray,
+    bubble: luma(85%),
+    bubble-line: luma(35%),
     pick-line: black,
     text: black,
     muted: luma(40%),
@@ -61,12 +127,13 @@
     plot: white,
     grid: rgb("#e3edf0"),
     axis: rgb("#1d7c92"),
-    zone: rgb("#f2f8fa"),
-    zone-line: rgb("#bcd8e0"),
-    bubble: rgb("#cfe3ea"),
+    zone: rgb("#FFE0B2").lighten(64%),
+    zone-line: rgb("#6B3C00").lighten(35%),
+    zone-text: rgb("#6B3C00"),
+    ramp: bpf-ramps.teal,
+    bubble: rgb("#dfeaee"),
     bubble-line: rgb("#1d7c92"),
-    pick: rgb("#e8a33d"),
-    pick-line: rgb("#9a5c00"),
+    pick-line: rgb("#0e4a58"),
     text: black,
     muted: luma(40%),
   ),
@@ -74,16 +141,34 @@
     plot: white,
     grid: rgb("#f2dbe7"),
     axis: rgb("#A01050"),
-    zone: rgb("#fdf2f7"),
-    zone-line: rgb("#e7b9d0"),
+    zone: rgb("#FFE0B2").lighten(64%),
+    zone-line: rgb("#6B3C00").lighten(35%),
+    zone-text: rgb("#6B3C00"),
+    ramp: bpf-ramps.signal,
     bubble: rgb("#f4d3e3"),
     bubble-line: rgb("#A01050"),
-    pick: rgb("#A01050"),
     pick-line: rgb("#5e0a2f"),
     text: black,
     muted: luma(40%),
   ),
 )
+
+// Lấy màu ở vị trí `t` (0..1) trên thang, nội suy tuyến tính giữa hai nấc kề nhau.
+#let bpf-ramp-at(stops, t) = {
+  let n = stops.len() - 1
+  if n < 1 { return stops.at(0) }
+  let x = calc.max(0.0, calc.min(1.0, t)) * n
+  let i = calc.min(int(x), n - 1)
+  let f = x - i
+  let a = stops.at(i)
+  let b = stops.at(i + 1)
+  // oklab, không phải sRGB: trộn hai pastel trong sRGB cho ra màu bùn ở khoảng giữa
+  // thang, đúng chỗ người đọc cần phân biệt "hơi ốm" với "hơi khoẻ".
+  (
+    fill: color.mix((a.fill, (1 - f) * 100%), (b.fill, f * 100%), space: oklab),
+    stroke: color.mix((a.stroke, (1 - f) * 100%), (b.stroke, f * 100%), space: oklab),
+  )
+}
 
 // MARK: Helpers
 #let _num(v, default: 0) = {
@@ -155,6 +240,7 @@
   zone: (50, 60),
   bubble: (9pt, 30pt),
   grid-step: 25,
+  radius: 2pt,
   labels: "auto",
   label-width: 3.1cm,
   label-gap: 11pt,
@@ -165,9 +251,10 @@
   legend-label: [Feasibility — mức độ khả thi],
   font: none,
   size-text: 8pt,
-  theme: "bw",
+  theme: "camunda",
 ) = {
-  let th = if type(theme) == str { bpf-themes.at(theme, default: bpf-themes.bw) } else { theme }
+  let th = if type(theme) == str { bpf-themes.at(theme, default: bpf-themes.camunda) } else { theme }
+  let radius = _len(radius, default: 2pt)
   let items = processes.map(bpf-normalize)
 
   // Tên quy trình thật thường dài; viết thẳng cạnh bong bóng thì hai nhãn ở hai phía
@@ -202,9 +289,11 @@
 
     box(width: pad-left + pw + pad-right, height: pad-top + ph + pad-bottom, {
       // --- nền vùng vẽ ---
-      place(dx: pad-left, dy: pad-top, rect(width: pw, height: ph, fill: th.plot, stroke: none))
+      place(dx: pad-left, dy: pad-top, rect(width: pw, height: ph, fill: th.plot, stroke: none, radius: radius))
 
       // --- vùng ưu tiên: health thấp + importance cao ---
+      // Bo góc trên-trái theo khung, ba góc còn lại vuông vì chúng cắt vào giữa
+      // vùng vẽ chứ không nằm trên viền.
       let (zh, zi) = zone
       place(
         dx: X(0),
@@ -213,11 +302,21 @@
           width: X(zh) - X(0),
           height: Y(zi) - Y(100),
           fill: th.zone,
-          stroke: (paint: th.zone-line, thickness: 0.5pt, dash: "dashed"),
+          // Chỉ kẻ hai cạnh *bên trong* vùng vẽ. Hai cạnh kia trùng khít với khung,
+          // vẽ thêm chỉ tạo một đường đôi lờ mờ.
+          stroke: (
+            right: (paint: th.zone-line, thickness: 0.5pt, dash: "dashed"),
+            bottom: (paint: th.zone-line, thickness: 0.5pt, dash: "dashed"),
+          ),
+          radius: (top-left: radius),
         ),
       )
       if zone-label != none {
-        place(dx: X(0) + 3pt, dy: Y(zi) - 1.05em, text(size: 0.88em, fill: th.muted, style: "italic", zone-label))
+        place(
+          dx: X(0) + 4pt,
+          dy: Y(zi) - 1.05em,
+          text(size: 0.88em, fill: th.at("zone-text", default: th.muted), style: "italic", zone-label),
+        )
       }
 
       // --- lưới ---
@@ -243,7 +342,7 @@
       place(
         dx: pad-left,
         dy: pad-top,
-        rect(width: pw, height: ph, fill: none, stroke: 0.7pt + th.axis),
+        rect(width: pw, height: ph, fill: none, stroke: 0.7pt + th.axis, radius: radius),
       )
 
       // --- nhãn trục ---
@@ -265,13 +364,18 @@
       )
 
       // --- bong bóng: vẽ cái to trước để cái nhỏ không bị che ---
+      let ramp = th.at("ramp", default: none)
       let ordered = items.sorted(key: p => -p.feasibility)
       for p in ordered {
         let d = R(p.feasibility)
-        let fill = if p.color != none {
-          bp-to-color(p.color)
-        } else if p.select { th.pick } else { th.bubble }
-        let stroke = if p.select { 1.1pt + th.pick-line } else { 0.7pt + th.bubble-line }
+        // Màu đến từ Health. `color:` của người viết vẫn thắng.
+        let sw = if ramp == none {
+          (fill: th.bubble, stroke: th.bubble-line)
+        } else { bpf-ramp-at(ramp, p.health / 100) }
+        let fill = if p.color != none { bp-to-color(p.color) } else { sw.fill }
+        let stroke = if p.select {
+          1.4pt + th.pick-line
+        } else { 0.7pt + sw.stroke }
         place(
           dx: X(p.health) - d / 2,
           dy: Y(p.importance) - d / 2,
@@ -281,7 +385,12 @@
           place(
             dx: X(p.health) - d / 2,
             dy: Y(p.importance) - 0.5em,
-            box(width: d, align(center, text(size: 0.8em, weight: "bold", fill: bp-contrast(fill), [#p.tag]))),
+            box(width: d, align(center, text(
+              size: 0.8em,
+              weight: "bold",
+              fill: bp-contrast(fill),
+              [#p.tag],
+            ))),
           )
         }
       }
@@ -354,14 +463,18 @@
     let cell(p) = align(left, box(width: 100%, inset: (y: 1.5pt), stack(
       dir: ltr,
       spacing: 5pt,
-      box(
-        width: 1.05cm,
-        text(
-          weight: "bold",
-          fill: if p.select { th.pick-line } else { th.muted },
-          [#p.tag],
-        ),
-      ),
+      box(width: 1.05cm, {
+        // Chấm màu trước mã: bảng chú giải và hình nói cùng một thứ tiếng.
+        let sw = if th.at("ramp", default: none) == none {
+          (fill: th.bubble, stroke: th.bubble-line)
+        } else { bpf-ramp-at(th.ramp, p.health / 100) }
+        box(
+          baseline: 1pt,
+          circle(radius: 2.4pt, fill: sw.fill, stroke: 0.5pt + sw.stroke),
+        )
+        h(3.5pt)
+        text(weight: "bold", fill: if p.select { th.pick-line } else { th.muted }, [#p.tag])
+      }),
       {
         text(weight: if p.select { "bold" } else { "regular" }, p.name)
         text(size: 0.82em, fill: th.muted, [ · I #calc.round(p.importance) · H #calc.round(p.health) · F #calc.round(p.feasibility)])

@@ -194,6 +194,33 @@ Alternative palettes: `outline-palette` (same hues, white fill) and `mono-palett
 
 An unknown swatch name falls back to `default` rather than failing the build — a typo in a colour should not stop a report.
 
+### Colour as a scale, not a label
+
+Everywhere else in this library colour is *categorical* — a swatch names a meaning
+(`happy`, `rework`, `external`) and two elements either share it or they don't.
+`bpportfolio` is the one place colour is *ordinal*: health runs continuously from red
+through amber to green, so the reader can rank two bubbles without reading the axis.
+
+Two rules keep that from becoming a third convention nobody remembers:
+
+1. **The scale is built from the same six swatches**, interpolated — `red` → `orange`
+   → `green` is exactly the `failure` → `warning` → `success` ladder the semantic
+   aliases already name. No new hues enter the library.
+2. **The scale is interpolated in `oklab`, not sRGB.** Mixing two pastels in sRGB
+   produces a muddy khaki right in the middle of the range, which is precisely where
+   the reader needs to tell "slightly unhealthy" from "slightly healthy" apart. The
+   fills are also saturated (`+45%`) for this use only: the palette is designed for
+   large rectangles, and at a 10–30pt bubble the stock pastels read as one colour.
+
+A corollary worth stating, because it is easy to get backwards: **a highlighted
+element must not change its fill.** In `bpportfolio` the fill belongs to health, and
+the highlighted process is nearly always the reddest one — repainting it would
+delete the very fact being argued. Highlight with stroke weight and label weight
+instead.
+
+The greyscale ramp (`theme: "bw"`) preserves the ordering as lightness — darker is
+less healthy — so a printed page still ranks correctly.
+
 ### Extension attributes
 
 bpmn.io's non-normative colour extensions (`bioc:fill` / `bioc:stroke`, `color:background-color` / `color:border-color`) are carried through and applied to the element's border, fill **and its label**. People use these to mark the happy path and the failure path, so dropping them loses meaning, not just decoration. `honor-colors: false` ignores them for black-and-white printing.
