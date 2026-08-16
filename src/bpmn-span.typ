@@ -1,4 +1,4 @@
-// /template/components/bpmn-span.typ
+// src/bpmn-span.typ
 // Cắt sơ đồ BPMN theo CHIỀU DỌC — một đoạn quy trình, từ phần tử nào tới phần tử nào.
 //
 // `bpmn-figure` đã cắt được theo chiều đối tượng (`view: (pool:)`, `(lane:)`) — tức là

@@ -1,6 +1,6 @@
 // Public API for BPMN diagrams in Typst.
 //
-//   #import "/components/bpmn.typ": *
+//   #import "/src/bpmn.typ": *
 //
 //   #bpmn-figure(yaml("models/admission.yaml"), caption: [Admission process])
 //   #bpmn-figure(xml("models/admission.bpmn"))                  // no build step

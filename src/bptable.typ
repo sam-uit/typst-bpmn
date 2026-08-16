@@ -1,4 +1,4 @@
-// /template/components/bptable.typ
+// src/bptable.typ
 // Business Process Table — Danh mục quy trình nghiệp vụ dưới dạng bảng:
 //   mỗi dòng là một quy trình, các cột là Tên / Tác Nhân / Khách Hàng /
 //   Kết Quả / Mô Tả Các Bước.

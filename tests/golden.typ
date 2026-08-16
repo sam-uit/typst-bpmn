@@ -16,7 +16,7 @@
 // unchanged if an icon is redrawn. That is what tests/conformance.typ is for —
 // it is a visual check, run by eye.
 
-#import "/components/bpmn.typ": *
+#import "/src/bpmn.typ": *
 
 #let REF-WIDTH = 174mm
 

@@ -1,4 +1,4 @@
-#import "/components/bpmn.typ": *
+#import "/src/bpmn.typ": *
 
 #set page(paper: "a4", margin: 18mm, numbering: "1")
 #set text(font: "Lora", size: 10pt, lang: "vi")

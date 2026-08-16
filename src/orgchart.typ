@@ -1,4 +1,4 @@
-// /template/components/orgchart.typ
+// src/orgchart.typ
 // Organization Chart — sơ đồ tổ chức dựng từ YAML, thuần Typst.
 //
 // Không dùng thư viện ngoài (fletcher/cetz): bố cục cây được tính bằng

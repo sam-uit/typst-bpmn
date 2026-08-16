@@ -1,4 +1,4 @@
-// /template/components/annotate.typ
+// src/annotate.typ
 // Chú giải đặt chồng lên sơ đồ dựng bằng lưới (bpflow, bpmap) — tự tìm chỗ.
 //
 // Vì sao cần một component riêng, không dùng lại `bpmn-notes`?

@@ -1,4 +1,4 @@
-// /template/components/whywhy.typ
+// src/whywhy.typ
 // Why-Why (5 Whys) — chuỗi truy vấn nguyên nhân gốc rễ, dựng từ một file dữ liệu.
 //
 // Lý do component này tồn tại không phải là phần trình bày — một danh sách lồng nhau

@@ -82,17 +82,13 @@ png FILE="demo.typ" PPI="140":
 # Everything
 all: convert-strict demo conformance
 
-# ----------------------------------------------------------------- vendor ---
-
-version := `git describe --tags --always --dirty 2>/dev/null || echo "unknown"`
-
-# ----------------------------------------------------------------- package ---
+# ---------------------------------------------------------------- package ---
 
 typst_pkgs := env("XDG_DATA_HOME", home_directory() / ".local/share") / "typst/packages/local"
 pkg_name := "typst-bpmn"
 
 # Cài package vào kho local: tài liệu dùng `#import "@local/typst-bpmn:<ver>"`
-install-lib: check
+install-lib: lint-src
     #!/usr/bin/env bash
     set -euo pipefail
     ver=$(grep -m1 '^version' typst.toml | cut -d'"' -f2)
@@ -152,12 +148,33 @@ check: convert-strict golden
         {{src}}/tests/agreement.typ {{out}}/agreement.pdf
     @echo "✓ converter strict-clean, parsers agree"
 
-# Typst syntax check without producing output
-lint:
-    @for f in {{src}}/src/*.typ {{src}}/demo.typ {{src}}/tests/*.typ; do \
-        {{typst}} compile --root {{src}} {{font_flag}} -f pdf "$f" /dev/null 2>/dev/null \
-            && echo "ok   $(basename $f)" || echo "FAIL $(basename $f)"; \
+# Gate for `install-lib`: compile every src/ file — no models/, no sibling repo
+lint-src:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    bad=0
+    for f in {{src}}/src/*.typ; do
+        if {{typst}} compile --root {{src}} {{font_flag}} -f pdf "$f" /dev/null 2>/dev/null; then
+            echo "ok   $(basename $f)"
+        else
+            echo "FAIL $(basename $f)"; bad=1
+        fi
     done
+    exit $bad
+
+# Same, plus demo.typ and tests/ — those need models/, so `just convert` first
+lint: lint-src
+    #!/usr/bin/env bash
+    set -uo pipefail
+    bad=0
+    for f in {{src}}/demo.typ {{src}}/tests/*.typ; do
+        if {{typst}} compile --root {{src}} {{font_flag}} -f pdf "$f" /dev/null 2>/dev/null; then
+            echo "ok   $(basename $f)"
+        else
+            echo "FAIL $(basename $f)"; bad=1
+        fi
+    done
+    exit $bad
 
 # ------------------------------------------------------------------ chores ---
 

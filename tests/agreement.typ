@@ -7,7 +7,7 @@
 //
 //   just check
 
-#import "/components/bpmn.typ": *
+#import "/src/bpmn.typ": *
 
 #set page(paper: "a4", margin: 16mm)
 #set text(font: "Lora", size: 10pt)

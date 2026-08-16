@@ -1,4 +1,4 @@
-// /template/components/bpmn-note.typ
+// src/bpmn-note.typ
 // Chú giải đặt chồng lên sơ đồ BPMN, tự tìm chỗ trống.
 //
 // `bpmn-figure` vẽ đúng những gì Camunda Modeler thấy — không có chỗ cho lời bình của

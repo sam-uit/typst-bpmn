@@ -1,4 +1,4 @@
-// /template/components/bpstep.typ
+// src/bpstep.typ
 // Business Process Step — trực quan hóa chuỗi các bước của một quy trình
 // bằng các khối mũi tên (chevron) vẽ trực tiếp bằng Typst visualize.
 //

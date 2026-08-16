@@ -1,4 +1,4 @@
-// /template/components/bpmap.typ
+// src/bpmap.typ
 // Business Process Map — Bản đồ quy trình (Value Chain) theo cách tổ chức của SAP:
 //   Level 1: Management Processes / Core Processes / Support Processes
 //   Level 2: một Process Area được bóc tách thành các quy trình con

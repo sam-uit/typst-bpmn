@@ -6,8 +6,8 @@
 //
 //   just conformance
 
-#import "/components/bpmn-shapes.typ": *
-#import "/components/bpmn-palette.typ": *
+#import "/src/bpmn-shapes.typ": *
+#import "/src/bpmn-palette.typ": *
 
 #set page(paper: "a4", margin: 14mm, numbering: "1")
 #set text(font: "Lora", size: 9pt)
@@ -309,7 +309,7 @@ carries its title down the left and its lanes across, a vertical pool carries it
 title along the top and its lanes down. The fixture below is rendered from
 `tests/fixtures/vertical-pools.bpmn`.
 
-#import "/components/bpmn.typ": bpmn, default-theme
+#import "/src/bpmn.typ": bpmn, default-theme
 
 #let T = default-theme + (font: "Lora")
 

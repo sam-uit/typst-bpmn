@@ -1,4 +1,4 @@
-// /template/components/noteplace.typ
+// src/noteplace.typ
 // Bộ đặt chỗ cho chú giải — luật quần thể kiểu boids, dùng chung cho mọi loại sơ đồ.
 //
 // Bài toán: có một khung hình, một mớ vật cản (shape của sơ đồ), và vài ô chú giải cần
