@@ -12,7 +12,7 @@ just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.6.0": *
+#import "@local/typst-bpmn:0.6.1": *
 ```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution
@@ -88,7 +88,7 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.6.0": *
+#import "@local/typst-bpmn:0.6.1": *
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 
