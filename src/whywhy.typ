@@ -65,8 +65,8 @@
   src,
   // Nhãn của mỗi tầng; đổi khi tài liệu viết bằng ngôn ngữ khác
   word: "Why",
-  problem-label: [*Vấn đề:*],
-  root-label: [*Nguyên nhân gốc rễ:*],
+  problem-label: [*Vấn Đề:*],
+  root-label: [*Nguyên Nhân Gốc Rễ:*],
   // Hiện dòng kết luận cuối. `auto` = hiện nếu dữ liệu khai `root`.
   show-root: auto,
   spacing: 0.5em,
@@ -76,7 +76,7 @@
   let root = data.at("root", default: none)
   let with-root = if show-root == auto { root != none } else { show-root }
 
-  set list(spacing: spacing, marker: ([--], [•]))
+  set list(spacing: spacing, marker: ([•], [#sym.bullet.stroked], [‣]))
 
   list(
     list.item[
@@ -95,7 +95,10 @@
   // `block` chứ không phải nội dung trần: một dòng trần sẽ dính vào đoạn văn ngay sau
   // component, làm kết luận trông như phần mở đầu của đoạn kế tiếp.
   if with-root and root != none {
-    block(above: 0.6em, below: 0.6em)[#root-label #root]
+    block(above: 1em, below: 1em)[
+      - #root-label
+        - #root
+    ]
   }
 }
 
