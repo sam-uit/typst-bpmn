@@ -24,7 +24,15 @@
 
 // `min-gap` and `margin` are ceilings: an empty band is collapsed *down to* them and
 // never grows. `air` is the floor, and it exists because the note engine needs the
-// opposite operation.
+// opposite operation. Setting `air` turns the ceiling off for that axis: asking for
+// room and then capping it away in the same pass is not a thing anyone means.
+//
+// The two axes usually want opposite treatment — squeeze x, make room on y — so any
+// option can be overridden per axis by nesting it under `x:` or `y:`:
+//
+//   compact: (axis: "both", y: (air: 90))
+//
+// reads "compact x as usual; on y compact nothing and guarantee 90 units of air".
 //
 // `bpmn-notes` confines every comment card to the inside of the diagram box (rule 1,
 // containment). A lane drawn tight in the modeler leaves the solver nowhere legal to
@@ -128,8 +136,9 @@
     if a > cursor {
       // an empty band: collapse it, but never below what it already is
       let len = a - cursor
-      let target = calc.min(len, if cursor == lo { o.margin } else { o.min-gap })
-      if o.air > 0 { target = calc.max(target, o.air) }
+      let target = if o.air > 0 { calc.max(len, o.air) } else {
+        calc.min(len, if cursor == lo { o.margin } else { o.min-gap })
+      }
       pieces.push((cursor, a, out, target / len))
       out += target
     }
@@ -139,8 +148,7 @@
   }
   if hi > cursor {
     let len = hi - cursor
-    let target = calc.min(len, o.margin)
-    if o.air > 0 { target = calc.max(target, o.air) }
+    let target = if o.air > 0 { calc.max(len, o.air) } else { calc.min(len, o.margin) }
     pieces.push((cursor, hi, out, target / len))
     out += target
   }
@@ -175,6 +183,13 @@
 
   let m = model
   for ax in axes {
+    // Ghi đè theo trục: `(axis: "both", y: (air: 90))` — nén x như thường, còn y thì
+    // chỉ nong. Không có nó thì hai trục buộc phải dùng chung một bộ số, mà chúng
+    // gần như luôn muốn hai điều ngược nhau.
+    let o = o
+    if type(o.at(ax, default: none)) == dictionary {
+      for (k, v) in o.at(ax) { o.insert(k, v) }
+    }
     let occ = _occupancy(m, ax, o.halo, band)
     let ex = m.meta.extent
     let (lo, hi) = if ax == "x" { (ex.x, ex.x + ex.w) } else { (ex.y, ex.y + ex.h) }

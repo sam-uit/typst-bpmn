@@ -26,6 +26,7 @@
 //       because: <câu trả lời>
 //       node:    <id phần tử BPMN>     # tuỳ chọn — chỉ cần khi muốn có chú giải
 //       note:    <câu rút gọn cho ô chú giải>   # tuỳ chọn — bỏ trống thì lấy `because`
+//       side/dx/dy/color/width:                # tuỳ chọn — ép chỗ đặt của riêng ô này
 //   root: <nguyên nhân gốc rễ>          # tuỳ chọn — bỏ trống thì lấy `because` cuối
 
 // MARK: Nạp dữ liệu
@@ -52,9 +53,17 @@
 #let ww-data(src) = if type(src) == str { ww-load(src) } else { src }
 
 // MARK: Nhãn tầng
-// Một tầng là "Why 3"; nhiều tầng liền nhau gộp lại là "Why 2--3".
+// Một tầng là "Why 3"; nhiều tầng liền nhau gộp lại là "Why 2–3".
+//
+// Gạch nối viết thẳng bằng ký tự en-dash, không phải "--". Chuỗi này do *code* dựng
+// nên nó không bao giờ đi qua bộ phân tích cú pháp của Typst, mà "--" -> en-dash là
+// việc của bộ phân tích. Viết "--" ở đây thì in ra đúng hai dấu gạch — và đó là lỗi
+// im lặng, vì phần thân của ô chú giải (do người viết gõ, có qua `bp-text`) lại ra
+// en-dash thật, nên hai nửa của cùng một ô hiện hai kiểu gạch khác nhau.
 #let ww-label(from, to, word: "Why") = {
-  if from == to { word + " " + str(from) } else { word + " " + str(from) + "--" + str(to) }
+  if from == to { word + " " + str(from) } else {
+    word + " " + str(from) + "\u{2013}" + str(to)
+  }
 }
 
 // MARK: Trình bày — danh sách lồng
@@ -65,8 +74,8 @@
   src,
   // Nhãn của mỗi tầng; đổi khi tài liệu viết bằng ngôn ngữ khác
   word: "Why",
-  problem-label: [*Vấn Đề:*],
-  root-label: [*Nguyên Nhân Gốc Rễ:*],
+  problem-label: [*Vấn đề:*],
+  root-label: [*Nguyên nhân gốc rễ:*],
   // Hiện dòng kết luận cuối. `auto` = hiện nếu dữ liệu khai `root`.
   show-root: auto,
   spacing: 0.5em,
@@ -76,7 +85,7 @@
   let root = data.at("root", default: none)
   let with-root = if show-root == auto { root != none } else { show-root }
 
-  set list(spacing: spacing, marker: ([•], [#sym.bullet.stroked], [‣]))
+  set list(spacing: spacing, marker: ([--], [•]))
 
   list(
     list.item[
@@ -95,10 +104,7 @@
   // `block` chứ không phải nội dung trần: một dòng trần sẽ dính vào đoạn văn ngay sau
   // component, làm kết luận trông như phần mở đầu của đoạn kế tiếp.
   if with-root and root != none {
-    block(above: 1em, below: 1em)[
-      - #root-label
-        - #root
-    ]
+    block(above: 0.6em, below: 0.6em)[#root-label #root]
   }
 }
 
@@ -122,6 +128,19 @@
   let whys = data.at("whys", default: ())
   let common = extra.named()
 
+  // Khoá đặt chỗ được phép khai ngay trong file dữ liệu, cho từng tầng một.
+  //
+  // Vì sao để ở đó chứ không ở chỗ gọi: `..extra` áp cho *mọi* ô, mà thường chỉ một ô
+  // cần ép. Mà ô nào cần ép thì lý do nằm ở chính nội dung nó — "câu này dài, đặt lên
+  // trên kẻo che nhãn của sự kiện hẹn giờ" — nên nó thuộc về file phân tích, cạnh câu
+  // chữ, chứ không phải nằm rải trong chương.
+  let placement = ("side", "dx", "dy", "color", "width")
+  let pick(w) = {
+    let out = (:)
+    for k in placement { if k in w { out.insert(k, w.at(k)) } }
+    out
+  }
+
   // Gom thành các nhóm liền kề cùng node
   let groups = ()
   for (i, w) in whys.enumerate() {
@@ -136,6 +155,7 @@
         to: i + 1,
         text: if g.text != none { g.text } else { text },
         because: g.because,
+        place: g.place,
       )
     } else {
       groups.push((
@@ -144,14 +164,18 @@
         to: i + 1,
         text: text,
         because: w.at("because", default: ""),
+        // Gộp nhiều tầng thì lấy khoá đặt chỗ của tầng đầu — ô là một, chỗ đặt cũng
+        // phải là một.
+        place: pick(w),
       ))
     }
   }
 
+  // `common` trước, `g.place` sau: khoá của từng tầng thắng khoá áp cho cả bộ.
   groups.map(g => (
     node: g.node,
     body: [#strong(ww-label(g.from + 1, g.to, word: word) + ":") #{
       bp-text(if g.text != none { g.text } else { g.because })
     }],
-  ) + common)
+  ) + common + g.place)
 }
