@@ -312,10 +312,21 @@
   // vertical one, with the text turned to match. Lanes follow the same rule: they
   // stack downwards in a horizontal pool and sit side by side in a vertical one,
   // so their bands and their text turn with the pool.
-  let band(bb, label, size, thickness, fill) = {
+  // `rule` — draw the line that closes the band off from the body of the pool.
+  //
+  // A participant has one: the modeler boxes its name off. A lane does not, and adding
+  // it is not a small liberty — it reads as a table header row, which invites the eye
+  // to look for columns that are not there. The name already sits turned on its side
+  // against the frame; nothing more is needed to tell it apart from the shapes. This
+  // matches what bpmn-js draws, which is the whole promise of the renderer.
+  let band(bb, label, size, thickness, fill, rule: true) = {
     let (bw, bh) = if horiz { (_band * u, bb.h * u) } else { (bb.w * u, _band * u) }
-    place(dx: bb.x * u, dy: bb.y * u,
-      rect(width: bw, height: bh, fill: fill, stroke: thickness * u + stroke))
+    if rule or fill != none {
+      place(dx: bb.x * u, dy: bb.y * u, rect(
+        width: bw, height: bh, fill: fill,
+        stroke: if rule { thickness * u + stroke } else { none },
+      ))
+    }
     if label == "" { return }
     let inner = box(width: if horiz { bb.h * u } else { bb.w * u },
       align(center, text(size: size * u, fill: theme.label, label)))
@@ -330,7 +341,7 @@
     let lb = l.bounds
     place(dx: lb.x * u, dy: lb.y * u,
       rect(width: lb.w * u, height: lb.h * u, fill: none, stroke: 1.2 * u + stroke))
-    band(lb, l.at("name", default: ""), theme.font-size * 0.95, 1.2, none)
+    band(lb, l.at("name", default: ""), theme.font-size * 0.95, 1.2, none, rule: false)
   }
 }
 

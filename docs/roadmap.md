@@ -162,6 +162,28 @@ the default until it clearly wins.
 
 ---
 
+## Making room for notes — beyond `air:`
+
+`compact(.., air: N)` is shipped: it guarantees at least N units of empty band on an
+axis, which is what `bpmn-notes` needs, since every comment card is confined to the
+inside of the diagram box. It is deliberately blunt — it grows *every* gap, including
+the ones no card will ever use. Two sharper things, in the order they are worth doing:
+
+1. **Reserve per anchor.** Grow only the gap on the `side:` a note asks for, by the
+   height the card actually measures. Needs two passes: measure the cards, build the
+   y-map from those measurements, re-render. Precise, and it stops a diagram from
+   doubling in height to fit one card. This is the one to build next.
+2. **Comment gutter.** Do not touch the lanes at all — widen `meta.extent` on one side
+   and let the solver put every card in that band, with leader lines back to the
+   shapes. Cheapest of the three, and for a figure that is mostly commentary it reads
+   better than cards scattered through the diagram. Worth having as a *mode*, not as a
+   replacement: a card next to the step it discusses beats a card in a margin whenever
+   there is room for it.
+
+Both compose with `air:` rather than replacing it.
+
+---
+
 ## Cross-cutting
 
 - **Testing.** Golden-image regression per phase; a schema validator for

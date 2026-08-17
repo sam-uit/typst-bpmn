@@ -18,7 +18,25 @@
   halo: 7,          // protected margin around a routing line, so parallel
                     // corridors stay visually distinct
   margin: 14,       // air kept at the outer edges
+  air: 0,           // FLOOR for an empty band — the one option that makes the
+                    // diagram bigger. See below.
 )
+
+// `min-gap` and `margin` are ceilings: an empty band is collapsed *down to* them and
+// never grows. `air` is the floor, and it exists because the note engine needs the
+// opposite operation.
+//
+// `bpmn-notes` confines every comment card to the inside of the diagram box (rule 1,
+// containment). A lane drawn tight in the modeler leaves the solver nowhere legal to
+// put a card, so cards land badly or overlap. `air: 60` guarantees at least 60 units
+// of empty band everywhere, which is room the solver can use — and it costs nothing in
+// fidelity, because this is the same monotonic piecewise-linear map as compaction:
+// shapes, labels and text keep their exact size, only the emptiness between them
+// changes.
+//
+// Two limits worth knowing. `air` only resizes gaps that already exist — where two
+// shapes touch, no space is invented. And where `air` and `min-gap` disagree, the
+// floor wins, so `(min-gap: 20, air: 60)` means "collapse generous gaps to 60, not 20".
 
 // --------------------------------------------------------------- intervals ---
 
@@ -111,6 +129,7 @@
       // an empty band: collapse it, but never below what it already is
       let len = a - cursor
       let target = calc.min(len, if cursor == lo { o.margin } else { o.min-gap })
+      if o.air > 0 { target = calc.max(target, o.air) }
       pieces.push((cursor, a, out, target / len))
       out += target
     }
@@ -121,6 +140,7 @@
   if hi > cursor {
     let len = hi - cursor
     let target = calc.min(len, o.margin)
+    if o.air > 0 { target = calc.max(target, o.air) }
     pieces.push((cursor, hi, out, target / len))
     out += target
   }
@@ -140,7 +160,10 @@
 
 // ------------------------------------------------------------------- entry ---
 
-/// Collapse the empty bands of `model`. Options: axis, min-gap, halo, margin.
+/// Resize the empty bands of `model`. Options: axis, min-gap, halo, margin, air.
+///
+/// Named `compact` because collapsing is what it is normally asked to do, but with
+/// `air:` it runs the other way and makes room. Same map either way.
 #let compact(model, opts: (:)) = {
   let o = compact-defaults
   for (k, v) in opts { o.insert(k, v) }
