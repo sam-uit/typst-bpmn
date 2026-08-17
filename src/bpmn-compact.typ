@@ -146,6 +146,9 @@
     out += b - a
     cursor = b
   }
+  // Dải ngoài cùng cũng chịu `air`, và điều đó là cố ý dù thoạt trông giống lãng phí.
+  // Khung mà ô chú giải được phép dùng là *cả* extent, nên dải sát mép trên và mép dưới
+  // là chỗ đặt thật — thử cắt nó đi thì ô dồn hết vào giữa và đè lên hình.
   if hi > cursor {
     let len = hi - cursor
     let target = if o.air > 0 { calc.max(len, o.air) } else { calc.min(len, o.margin) }

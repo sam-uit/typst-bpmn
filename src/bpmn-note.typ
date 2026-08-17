@@ -1,4 +1,4 @@
-// src/bpmn-note.typ
+// /template/components/bpmn-note.typ
 // Chú giải đặt chồng lên sơ đồ BPMN, tự tìm chỗ trống.
 //
 // `bpmn-figure` vẽ đúng những gì Camunda Modeler thấy — không có chỗ cho lời bình của
@@ -17,6 +17,10 @@
 //   4. Cohesion    — trong các chỗ hợp lệ, chọn chỗ gần node được chú giải nhất.
 //   5. Alignment   — khi điểm số ngang nhau thì ưu tiên cùng một phía (dưới → trên →
 //      phải → trái) để cả trang trông có nhịp.
+//   6. Distinctness — đường dẫn tránh nằm đúng phương ngang hoặc dọc. Cung BPMN chạy
+//      vuông góc; một đường dẫn dọc kẻ ngay dưới node sẽ biến mất vào chính cái cung
+//      đi ra từ node đó. Vì luật này mà bốn *góc* cũng là chỗ đặt hợp lệ, không chỉ
+//      bốn phía. Tắt bằng `diagonal: false`.
 //
 // Hệ quả tự nhiên: node sát mép dưới thì ô chú giải nhảy lên trên, node sát mép phải thì
 // ô nhảy sang trái — không cần khai báo gì thêm.
@@ -76,6 +80,9 @@
   // `out` cố tình lớn hơn hẳn phần còn lại: ra khỏi khung là điều kiện loại, không phải
   // một khoản trừ điểm có thể bù bằng ưu điểm khác.
   weights: np-defaults,
+  // Cho ô chú giải đặt được ở bốn góc của vật neo, và phạt đường dẫn nằm đúng phương
+  // ngang/dọc. Xem luật 6 trong noteplace.typ. Tắt thì quay về đúng bốn phía.
+  diagonal: true,
   breakable: false,
   debug: false,
 ) = {
@@ -168,7 +175,10 @@
       ))
     }
 
-    let rects = np-solve(canvas, hard, soft, specs, gap: gap.pt(), weights: weights)
+    let rects = np-solve(
+      canvas, hard, soft, specs,
+      gap: gap.pt(), weights: weights, diagonal: diagonal,
+    )
 
     block(width: cw, height: ch, {
       bn-place(top + left, bpmn-at(m, cw, theme: theme))

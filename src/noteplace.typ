@@ -1,4 +1,4 @@
-// src/noteplace.typ
+// /template/components/noteplace.typ
 // Bộ đặt chỗ cho chú giải — luật quần thể kiểu boids, dùng chung cho mọi loại sơ đồ.
 //
 // Bài toán: có một khung hình, một mớ vật cản (shape của sơ đồ), và vài ô chú giải cần
@@ -70,9 +70,21 @@
   near: 0.016,
   side: 0.6,
   detach: 4.0,
+  // Luật 6 — Distinctness. Phạt đường dẫn nằm đúng phương ngang hoặc phương dọc.
+  //
+  // Cung BPMN chạy vuông góc, chỉ ngang và dọc. Ô chú giải đặt thẳng dưới một node thì
+  // đường dẫn của nó cũng dọc, và nó biến mất vào đúng cái cung đi ra từ node đó —
+  // người đọc không còn biết ô đang nói về ai. Đường chéo không trùng phương với thứ gì
+  // trong bản vẽ, nên nó luôn đọc được. Đặt 0 để tắt.
+  skew: 9.0,
 )
 
 #let np-sides = ("bottom", "top", "right", "left")
+
+// Bốn góc. Cùng khoảng hở như bốn phía, nhưng lệch cả hai trục nên đường dẫn ra chừng
+// 45 độ. Xếp sau bốn phía trong thứ tự ưu tiên: sát cạnh vẫn dễ đọc hơn nếu chỗ đó
+// trống và đường dẫn không đụng cung nào.
+#let np-diagonals = ("bottom-right", "bottom-left", "top-right", "top-left")
 
 // Toạ độ góc trên-trái của ô, theo phía + độ lệch dọc theo cạnh + khoảng hở.
 #let np-corner(a, nw, nh, side, off, g) = {
@@ -84,8 +96,14 @@
     (cx + off - nw / 2, a.y - g - nh)
   } else if side == "right" {
     (a.x + a.w + g, cy + off - nh / 2)
-  } else {
+  } else if side == "left" {
     (a.x - g - nw, cy + off - nh / 2)
+  } else {
+    // Bốn góc: `off` trượt dọc theo chính đường chéo, chia đều cho hai trục.
+    let d = off * 0.7
+    let dx = if side.ends-with("right") { a.x + a.w + g + d } else { a.x - g - nw - d }
+    let dy = if side.starts-with("bottom") { a.y + a.h + g + d } else { a.y - g - nh - d }
+    (dx, dy)
   }
 }
 
@@ -103,7 +121,18 @@
 ///
 /// Trả về mảng chữ nhật, cùng thứ tự với `items`. Ô đặt trước trở thành vật cản của ô sau,
 /// nên thứ tự khai báo có ý nghĩa: khai ô quan trọng trước.
-#let np-solve(canvas, hard, soft, items, gap: 8.0, weights: np-defaults, grid: (11, 8)) = {
+#let np-solve(
+  canvas,
+  hard,
+  soft,
+  items,
+  gap: 8.0,
+  weights: np-defaults,
+  grid: (11, 8),
+  // Cho phép đặt ô ở bốn góc của vật neo, và phạt đường dẫn thẳng phương. Tắt thì quay
+  // về đúng bốn phía như trước.
+  diagonal: true,
+) = {
   let placed = ()
   let out = ()
   for it in items {
@@ -120,15 +149,19 @@
       continue
     }
 
-    let try-sides = if side == auto { np-sides } else { (side,) }
+    let try-sides = if side != auto { (side,) } else if diagonal {
+      np-sides + np-diagonals
+    } else { np-sides }
 
     // Ứng viên hạng nhất: các ô sát ngay vật neo, theo từng phía.
     let cands = ()
     for (rank, s) in try-sides.enumerate() {
       let along = if s in ("bottom", "top") {
         (0.0, -nw * 0.55, nw * 0.55, -nw * 1.15, nw * 1.15)
-      } else {
+      } else if s in ("right", "left") {
         (0.0, -nh * 0.75, nh * 0.75)
+      } else {
+        (0.0, nh * 0.5, nh * 1.1)
       }
       for off in along {
         for gm in (1.0, 2.0, 3.6) {
@@ -170,6 +203,19 @@
       let dcy = r.y + nh / 2 - acy
       s += weights.near * calc.sqrt(dcx * dcx + dcy * dcy) // 4. Cohesion
       s += c.bias //                                          5. Alignment
+
+      // 6. Distinctness — đo trên chính đoạn thẳng sẽ được vẽ, không phải trên tâm hai
+      // hình, vì đường dẫn nối *cạnh gần nhau nhất*. `ortho` bằng 1 khi đoạn nằm đúng
+      // phương ngang hoặc dọc, bằng 0 khi đúng 45 độ.
+      let sk = weights.at("skew", default: 0.0)
+      if sk > 0 {
+        let (lax, lay) = np-anchor(a, r.x + nw / 2, r.y + nh / 2)
+        let (lbx, lby) = np-anchor(r, acx, acy)
+        let (ex, ey) = (calc.abs(lbx - lax), calc.abs(lby - lay))
+        if ex + ey > 0.5 {
+          s += sk * calc.abs(ex - ey) / (ex + ey)
+        }
+      }
       if best == none or s < best-score {
         best = r
         best-score = s
