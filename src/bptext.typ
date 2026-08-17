@@ -50,11 +50,21 @@
 ///
 /// Chỉ đụng vào `str`; content, số, `none` đi thẳng qua. Chuỗi rỗng cũng đi thẳng,
 /// vì `eval("")` trả về content rỗng và làm hỏng mọi phép kiểm `== ""` phía sau.
-#let bp-text(v, mode: "markup") = {
+///
+/// `scope` là các tên mà chuỗi được phép gọi. `eval` mặc định chạy trong phạm vi
+/// **rỗng**: chỉ có sẵn thứ dựng trong Typst, không có một định nghĩa nào của tài liệu.
+/// Nên `#impact(level: 1)[High]` viết trong YAML sẽ báo "unknown variable: impact" cho
+/// tới khi chỗ gọi truyền `scope: (impact: impact)`.
+///
+/// Mở phạm vi có nghĩa là tầng dữ liệu gọi được code của tài liệu, và đó là điều muốn:
+/// một ô bảng nói "mức tác động cao" thì nên nói bằng đúng component vẽ nhãn mức tác
+/// động, chứ không phải bằng một chữ "(High)" gõ tay. Nhưng nó cũng có nghĩa là chỉ nên
+/// mở đúng những tên cần mở — đừng đổ cả module vào.
+#let bp-text(v, mode: "markup", scope: (:)) = {
   if type(v) != str or v == "" { return v }
   if mode == "raw" { return v }
   if mode == "smart" { return bp-smart(v) }
-  eval(v, mode: "markup")
+  eval(v, mode: "markup", scope: scope)
 }
 
 /// Rút văn bản thuần từ content — dùng để so khớp nhãn sau khi đã dựng.
@@ -73,6 +83,7 @@
 }
 
 /// So khớp hai nhãn bất kể chúng ở dạng thô hay đã dựng.
-#let bp-same-text(a, b, mode: "markup") = {
-  bp-flatten(bp-text(a, mode: mode)).trim() == bp-flatten(bp-text(b, mode: mode)).trim()
+#let bp-same-text(a, b, mode: "markup", scope: (:)) = {
+  let f(v) = bp-flatten(bp-text(v, mode: mode, scope: scope)).trim()
+  f(a) == f(b)
 }
