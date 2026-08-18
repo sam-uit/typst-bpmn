@@ -407,7 +407,7 @@
       ("dưới",)
     } else { ("giữa",) }
     let vt = (doc + ngang).join(" ")
-    if vt == none { [ (#i/#n)] } else { [ (#i/#n — #vt)] }
+    if vt == none { [ (#i/#n)] } else { [ (#i/#n -- #vt)] }
   },
   seam: true,
   debug: false,
