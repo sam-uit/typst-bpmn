@@ -68,14 +68,17 @@
           par(leading: theme.label-leading * fs, justify: false, body)))))
 }
 
-/// Centre a label inside a shape's own bounds.
-#let _inner-label(b, body, u, theme, paint: none, size: none, pad: 6) = {
+/// Place a label inside a shape's own bounds. Centred by default; `anchor:` moves
+/// it, which is how an expanded sub-process gets its name at the top of the frame
+/// instead of across the middle of its own children.
+#let _inner-label(b, body, u, theme, paint: none, size: none, pad: 6, pad-y: 0,
+                  anchor: center + horizon) = {
   if body == none or body == "" { return none }
   let body = bp-text(body, mode: theme.at("markup", default: "smart"))
   let fs = (if size == none { theme.font-size } else { size }) * u
-  place(dx: (b.x + pad) * u, dy: b.y * u,
-    box(width: (b.w - 2 * pad) * u, height: b.h * u,
-      align(center + horizon,
+  place(dx: (b.x + pad) * u, dy: (b.y + pad-y) * u,
+    box(width: (b.w - 2 * pad) * u, height: (b.h - 2 * pad-y) * u,
+      align(anchor,
         text(size: fs, fill: if paint == none { theme.label } else { paint },
           par(leading: theme.label-leading * fs, justify: false, body)))))
 }
@@ -237,14 +240,15 @@
       fill: c.fill, stroke: c.stroke)
   } else if kind == "task" {
     shape-task(b.w * u, b.h * u, kind: n.at("task", default: "none"),
-      markers: n.at("markers", default: ()), fill: c.fill, stroke: c.stroke)
+      markers: n.at("markers", default: ()), fill: c.fill, stroke: c.stroke,
+      unit: u)
   } else if kind == "subprocess" {
     shape-subprocess(b.w * u, b.h * u,
       expanded: n.at("expanded", default: false),
       event-sub: n.at("triggered-by-event", default: false),
       transaction: n.at("transaction", default: false),
       markers: n.at("markers", default: ()),
-      fill: c.fill, stroke: c.stroke)
+      fill: c.fill, stroke: c.stroke, unit: u)
   } else if kind == "gateway" {
     shape-gateway(b.w * u, b.h * u, kind: n.at("gateway", default: "exclusive"),
       marker: n.at("marker", default: true),
@@ -264,7 +268,15 @@
   let name = n.at("name", default: "")
   if name != "" {
     if kind in ("task", "subprocess") {
-      _inner-label(b, name, u, theme, paint: c.stroke)
+      // An expanded sub-process's body belongs to its children, so its own name
+      // goes at the top of the frame (bpmn-js: `center-top`). A collapsed one is
+      // read as a single activity, so it keeps the task's centred name.
+      if kind == "subprocess" and n.at("expanded", default: false) {
+        _inner-label(b, name, u, theme, paint: c.stroke,
+          pad-y: 5, anchor: center + top)
+      } else {
+        _inner-label(b, name, u, theme, paint: c.stroke)
+      }
     } else if "label" in n {
       _label(n.label, name, u, theme, paint: c.stroke)
     } else {

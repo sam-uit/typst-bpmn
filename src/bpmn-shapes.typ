@@ -8,6 +8,16 @@
 
 // ---------------------------------------------------------------- helpers ---
 
+/// One BPMN unit as a length.
+///
+/// Shapes are handed pre-scaled lengths (`b.w * u`), not the model's numbers, so
+/// they cannot see the scale directly. The old trick was to divide by 100 and
+/// assume the caller had drawn an activity — true for a task, which BPMN fixes at
+/// 100x80, and badly wrong for an expanded sub-process at 350 wide, whose border
+/// then came out three and a half times too thick. Callers that know the scale
+/// pass `unit:`; the division stays as the fallback so a hand call still works.
+#let _scale(w, unit) = if unit == none { w / 100 } else { unit }
+
 #let canvas(w, h, ..body) = box(width: w, height: h, {
   for b in body.pos() { b }
 })
@@ -298,10 +308,14 @@
 }
 
 /// Lay a row of markers along the bottom edge of a (w, h) activity.
-#let marker-row(w, h, markers, paint: black) = {
+#let marker-row(w, h, markers, paint: black, unit: none) = {
   let ms = markers.filter(m => m != none and m != "")
   if ms.len() == 0 { return none }
+  // 0.16 of the short side is right for a 100x80 activity, but an *expanded*
+  // sub-process is a container, not a bigger task: its markers stay the size
+  // bpmn-js draws them (14 units) instead of growing with the frame.
   let s = calc.min(w, h) * 0.16
+  if unit != none { s = calc.min(s, 13 * unit) }
   let gap = s * 0.35
   let total = ms.len() * s + (ms.len() - 1) * gap
   ms.enumerate().map(((i, m)) => {
@@ -356,25 +370,35 @@
 
 /// Activity: rounded rectangle, type marker top-left, behaviour markers bottom-centre.
 /// A call activity gets the spec's thick border.
-#let shape-task(w, h, kind: "none", markers: (), fill: white, stroke: black, radius: 10) = {
+#let shape-task(w, h, kind: "none", markers: (), fill: white, stroke: black,
+                radius: 10, unit: none) = {
   let m = calc.min(w, h) * 0.18
   let ic = task-icon(kind, m, paint: stroke)
-  let t = 1.6pt * (w / 100pt) * (if kind == "call" { 2.8 } else { 1 })
+  let sc = _scale(w, unit)
+  let t = 1.6 * sc * (if kind == "call" { 2.8 } else { 1 })
   canvas(w, h,
     place(rect(width: w, height: h, fill: fill, stroke: t + stroke,
-      radius: radius * (w / 100))),
+      radius: radius * sc)),
     if ic != none { place(dx: 0.06 * w, dy: 0.06 * w, ic) },
-    marker-row(w, h, markers, paint: stroke))
+    marker-row(w, h, markers, paint: stroke, unit: unit))
 }
 
 /// Sub-process: a task frame plus the collapsed [+] and any behaviour markers.
 /// `transaction` draws the spec's double border, `event-sub` the dashed one.
+///
+/// An *expanded* sub-process is the one shape in the vocabulary that is routinely
+/// several hundred units wide, so `unit:` matters here more than anywhere else:
+/// without it the frame's stroke, corner radius and markers all grow with the
+/// frame and the container ends up drawn heavier than the tasks inside it. BPMN
+/// gives a sub-process the *same* border as a task — it is a container, not an
+/// emphasis.
 #let shape-subprocess(w, h, expanded: false, event-sub: false, transaction: false,
-                      markers: (), fill: white, stroke: black) = {
-  let t = 1.6pt * (w / 100pt)
-  let r = 10 * (w / 100)
+                      markers: (), fill: white, stroke: black, unit: none) = {
+  let sc = _scale(w, unit)
+  let t = 1.6 * sc
+  let r = 10 * sc
   let inner = if transaction {
-    let d = 0.04 * calc.min(w, h)
+    let d = 3 * sc
     (place(dx: d, dy: d, rect(width: w - 2 * d, height: h - 2 * d,
       stroke: t + stroke, radius: r * 0.8)),)
   } else { () }
@@ -384,7 +408,7 @@
       stroke: (paint: stroke, thickness: t,
                dash: if event-sub { "dashed" } else { none }))),
     ..inner,
-    marker-row(w, h, ms, paint: stroke))
+    marker-row(w, h, ms, paint: stroke, unit: unit))
 }
 
 /// Gateway: diamond with the symbol for its kind.
