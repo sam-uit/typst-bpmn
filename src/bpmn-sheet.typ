@@ -129,6 +129,27 @@
   model.nodes.any(n => n.bounds.y < y1 and n.bounds.y + n.bounds.h > y0)
 }
 
+// Hàng này có đáng một trang không? Khác `_row-has-node` ở đúng một chỗ, và chỗ đó
+// từng làm mất hẳn hai participant khỏi bản vẽ.
+//
+// Một pool hộp đen *không chứa node nào* — đó là định nghĩa của nó, ta cố tình không
+// mô tả bên trong. Nên phép thử "có node không" trả về sai cho mọi băng hộp đen, và
+// băng đó bị `layout-for` bỏ qua. Không có cảnh báo nào: hình vẫn ra hình, chỉ là
+// "Khách Hàng" và "Công Ty Tài Chính" biến mất, còn những message flow chạy tới chúng
+// thì kết thúc giữa không trung.
+//
+// `_row-has-node` vẫn giữ nguyên nghĩa hẹp của nó, vì `merge-empty` cần đúng nghĩa đó:
+// "băng này mỏng và không có gì bên trong, gộp lên hàng trên cho đỡ tốn một trang".
+#let _row-has-content(model, y0, y1) = {
+  if _row-has-node(model, y0, y1) { return true }
+  model.pools.any(p => (
+    p.at("blackbox", default: false)
+      and "bounds" in p
+      and p.bounds.y < y1
+      and p.bounds.y + p.bounds.h > y0
+  ))
+}
+
 #let _row-x-span(model, y0, y1) = {
   // Closure không sửa được biến bên ngoài, nên gom hộp trước rồi mới trải thành toạ độ.
   let hit(b) = b.y < y1 and b.y + b.h > y0
@@ -235,7 +256,7 @@
     for r in range(bounds.len() - 1) {
       let (y0, y1) = (bounds.at(r), bounds.at(r + 1))
       let sp = _row-x-span(model, y0, y1)
-      if sp == none or not _row-has-node(model, y0, y1) { continue }
+      if sp == none or not _row-has-content(model, y0, y1) { continue }
       // Mép trái của hàng: hoặc đúng gốc bản vẽ (khung nhìn tự mang dải tên), hoặc hẳn
       // ra ngoài dải tên (khung nhìn được dán dải tên vào). Rơi vào *giữa* dải tên thì
       // trang in ra tên pool hai lần — một lần ở dải dán, một lần trong phần thân.
@@ -407,7 +428,7 @@
       ("dưới",)
     } else { ("giữa",) }
     let vt = (doc + ngang).join(" ")
-    if vt == none { [ (#i/#n)] } else { [ (#i/#n -- #vt)] }
+    if vt == none { [ (#i/#n)] } else { [ (#i/#n — #vt)] }
   },
   seam: true,
   debug: false,
