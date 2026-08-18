@@ -396,11 +396,35 @@
     m
   }
 
+  // Z-order, bottom to top. Typst has no z-index, so the draw order *is* the
+  // stacking, and it has to be stated once here rather than emerging from the
+  // order the parser happened to return things in.
+  //
+  //   1  pools and lanes            the sheet everything else sits on
+  //   2  expanded sub-processes     containers: opaque, and wide enough to hide
+  //                                 anything crossing them, so they go early
+  //   3  sequence flows             they live inside one pool, with its nodes
+  //   4  activities, events, gateways
+  //   5  data objects, annotations, groups
+  //   6  message and (data) association flows
+  //
+  // The two that matter, and that the old order got wrong: a message flow is a
+  // *conversation between pools*, so it has to stay legible wherever it passes —
+  // it was being buried under sub-process frames. And a sub-process is scenery
+  // for its own children, so it belongs below them, not above the flows.
+  let is-frame(n) = n.kind == "subprocess" and n.at("expanded", default: false)
+  let is-over(n) = n.kind in ("group", "annotation", "data")
+  let over-flow(f) = f.at("kind", default: "sequence") in ("message", "association", "data")
+
   set text(font: theme.font, hyphenate: false)
   block(width: e.w * u, height: e.h * u, breakable: false, {
-    for n in model.nodes.filter(n => n.kind == "group") { draw-node(shift-node(n), u, theme) }
     for p in model.pools { draw-pool(shift-pool(p), u, theme) }
-    for f in model.flows { draw-flow(shift-flow(f), u, theme) }
-    for n in model.nodes.filter(n => n.kind != "group") { draw-node(shift-node(n), u, theme) }
+    for n in model.nodes.filter(is-frame) { draw-node(shift-node(n), u, theme) }
+    for f in model.flows.filter(f => not over-flow(f)) { draw-flow(shift-flow(f), u, theme) }
+    for n in model.nodes.filter(n => not is-frame(n) and not is-over(n)) {
+      draw-node(shift-node(n), u, theme)
+    }
+    for n in model.nodes.filter(is-over) { draw-node(shift-node(n), u, theme) }
+    for f in model.flows.filter(over-flow) { draw-flow(shift-flow(f), u, theme) }
   })
 }
