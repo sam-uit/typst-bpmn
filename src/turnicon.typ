@@ -56,10 +56,14 @@
   let ccw = turn != "ccw"
 
   let r = 0.42
-  // Cắt ngắn cung một đoạn đúng bằng đầu mũi tên, nếu không nét vẽ chọc ra khỏi đỉnh.
-  let trim = 18deg
   let head-len = 0.13
   let head-half = 0.062
+  // Cắt ngắn cung đúng bằng chiều dài đầu mũi tên, nếu không nét vẽ chọc ra khỏi đỉnh.
+  // Suy ra từ `head-len`, không gõ thẳng số đo: dây cung dài L trên đường tròn bán kính
+  // r chắn một góc 2·asin(L / 2r). Gõ thẳng "18deg" cũng ra đúng con số này hôm nay,
+  // nhưng sau này chỉnh `r` hay `head-len` thì phần cắt lệch đi mà không có gì báo —
+  // cùng một lý do `marker-loop` suy góc thay vì gõ. Xem docs/curved-arrows.md.
+  let trim = 2 * calc.asin(head-len / (2 * r))
 
   let arc(a0, a1) = {
     let n = 14
