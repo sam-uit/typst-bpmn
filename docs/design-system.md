@@ -146,6 +146,26 @@ BPMN tells the three renderings apart by `eventGatewayType` and `instantiate`, n
 
 Ring radii follow bpmn-js: outer circle inset 0.20 × height from the shape, inner 0.26, so a 50-unit gateway gets r = 15 and r = 12.
 
+## Black-box participants
+
+A participant the model does not open up. BPMN draws it as a plain filled rectangle with the name **centred inside** — no title band, no lanes — because there is no body for a band to be the header of.
+
+The parser decides, and it uses the two markers the spec gives it:
+
+- **no `processRef`** — there is no process, so there is nothing to expand;
+- **`isExpanded="false"`** on the DI shape — the author collapsed it in the modeler.
+
+Both used to slip through, and an empty participant came out as an ordinary pool: a turned title band down its left side and a body with nothing in it. Wrong statement — the band promises lanes and content the partner does not have — and unreadable besides, since a black box is drawn around 60 units tall and a 30-unit band takes half of that before the name starts.
+
+`bpmn-slice` sets the same flag on partners *it* collapses when a view keeps only one pool, so a black box drawn from a slice and one drawn from the source file are the same shape.
+
+### On a fold-out
+
+`bpmn-sheet` has to handle a black box twice over, and both cases come from the same fact — that a black box holds no nodes.
+
+- **It is worth a page.** The row planner asked "does this row contain a node?", which is false for every black-box band by definition, so those rows were dropped: the participants vanished and the message flows to them ended in mid-air. The test is now "node **or** black-box band".
+- **Its name repeats.** The name sits at the centre of the box, so on a fold-out the centre falls on exactly one page and every other page gets an untitled grey strip. The sheet strips the name out of the shared drawing and re-centres it per page, in the part of the box that page actually shows — the same idea as repeating the pool/lane band at the left edge, moved to the middle because that is where a black box keeps its name.
+
 ## Pool orientation
 
 A pool's title band and its lanes both follow the pool's own axis:
@@ -300,6 +320,7 @@ in the data no longer equals "Tài chính – Kế toán" on the page. `bp-same-
 | **Expanded sub-process** | **top-centre**, 5 units below the frame's edge |
 | Event, gateway, data | DI label bounds, else parked under the shape |
 | Pool / lane | in the title band, rotated for a horizontal pool |
+| **Black-box participant** | **centred in the box**, no title band; turned if the box is taller than wide |
 
 The expanded sub-process is the case worth stating: its frame's interior belongs to its *children*, so a centred name lands on top of them. BPMN puts it at the top of the frame (bpmn-js calls this `center-top`), which is also the only placement that survives the frame being resized. A collapsed sub-process is read as one activity, so it keeps the task's centred name.
 

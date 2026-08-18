@@ -469,8 +469,25 @@
       repeat-header: repeat-header,
     )
 
+    // Hộp đen không có dải tên — BPMN đặt tên nó ở *giữa hộp*. Trên một tờ gấp thì
+    // cái "giữa" đó rơi đúng vào một trang, và mọi trang khác nhận một dải xám không
+    // tên; người đọc trang 3 không có cách nào biết dải đó là ai. Nên bản vẽ chung bỏ
+    // tên hộp đen đi, rồi từng trang tự viết lại tên vào giữa phần hộp đen *mà nó nhìn
+    // thấy*. Cùng một ý với việc lặp lại dải tên pool/lane ở mép trái, chỉ khác chỗ
+    // đặt: dải tên lặp lại vì nó nằm ở mép, tên hộp đen lặp lại vì nó nằm ở giữa.
+    let bb = model.pools.filter(p => (
+      p.at("blackbox", default: false) and "bounds" in p and p.at("name", default: "") != ""
+    ))
+    let sheet-model = if bb.len() == 0 { model } else {
+      let m = model
+      m.pools = model.pools.map(p => {
+        if p.at("blackbox", default: false) { let q = p; q.name = ""; q } else { p }
+      })
+      m
+    }
+
     // Vẽ MỘT lần ở tỉ lệ đã chốt; mỗi trang chỉ là một khung nhìn lên bản vẽ đó.
-    let sheet = draw-canvas(model, plan.u, theme)
+    let sheet = draw-canvas(sheet-model, plan.u, theme)
     let seam-stroke = (
       paint: theme.at("label", default: black).lighten(50%),
       thickness: 0.5pt,
@@ -525,6 +542,32 @@
           }
         }
 
+        // Tên hộp đen, viết lại vào giữa phần trang này nhìn thấy. Cắt theo hàng
+        // trước khi căn giữa: một hộp đen bị hàng cắt ngang thì "giữa" của nó là giữa
+        // *mảnh còn lại*, không phải giữa cái hộp gốc nằm đâu đó ngoài trang.
+        let bb-names = {
+          for p in bb {
+            let pb = p.bounds
+            let top = calc.max(pb.y, y0)
+            let bot = calc.min(pb.y + pb.h, y0 + h-u)
+            if bot - top > 1 {
+              // Cùng quy tắc với `draw-pool`: hộp cao hơn rộng thì tên phải quay.
+              let turned = pb.h > pb.w
+              let inner = box(
+                width: (if turned { bot - top } else { strip-w + body-w }) * plan.u,
+                align(center, text(
+                  size: theme.at("font-size", default: 11) * 1.05 * plan.u,
+                  fill: theme.at("label", default: black),
+                  p.name,
+                )),
+              )
+              place(dy: (top - y0) * plan.u, box(width: w, height: (bot - top) * plan.u,
+                align(center + horizon,
+                  if turned { rotate(-90deg, reflow: false, inner) } else { inner })))
+            }
+          }
+        }
+
         let note = if debug {
           align(right, text(size: 6pt, fill: rgb("#b00"), [
             #(i + 1)/#plan.pages · hàng #(ri + 1)/#plan.rows, cột #(c + 1)/#ncols ·
@@ -544,6 +587,7 @@
             if strip != none { place(dx: 0pt, dy: 0pt, strip) }
             place(dx: x-body, dy: 0pt, content)
             marks
+            bb-names
           })) + note,
           caption: c-txt,
           kind: kind,
