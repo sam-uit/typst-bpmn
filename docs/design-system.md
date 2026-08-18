@@ -24,12 +24,14 @@ Relative to the shape, so they scale with `u`:
 | Start event ring | 0.055 × diameter |
 | Intermediate / boundary event ring | 0.042 × diameter, **both** rings |
 | End event ring | 0.13 × diameter |
-| Activity / gateway border | 1.6 units at nominal size |
+| Activity / gateway border | 1.6 units |
 | Sequence flow | 1.6 units |
 | Message / association flow | 1.3 units |
 | Pool border | 1.6 units · lane border 1.2 |
 
 Non-interrupting boundary events and event sub-processes use `dash: "dashed"`; groups use `"loosely-dashed"`; message flows `"dashed"`; associations `"dotted"`.
+
+A weight in units is a weight in units *whatever the shape's size* — a 350-wide expanded sub-process gets the same 1.6 as a 100-wide task. That sounds obvious and was wrong for a long time: shape functions are handed pre-scaled lengths, so they recovered the scale by dividing the width by 100, which is only the truth for a shape that happens to be 100 units wide. Everything derived that way — border, corner radius, marker size — came out 3.5× too big on a wide sub-process, and the container was drawn heavier than the tasks it contained. Renderers now pass `unit:` down to the shape functions; the division survives only as a fallback for a hand call.
 
 ## Event ring grammar
 
@@ -72,7 +74,7 @@ Drawn at 0.18 × min(w, h), inset 0.06 × w from the top-left corner: user, serv
 
 ## Activity behaviour markers
 
-A row centred on the bottom edge, each 0.16 × min(w, h) with a 0.35 gap:
+A row centred on the bottom edge, each 0.16 × min(w, h) — capped at 13 units — with a 0.35 gap:
 
 | Marker | Drawn as | From |
 | --- | --- | --- |
@@ -270,6 +272,19 @@ in the data no longer equals "Tài chính – Kế toán" on the page. `bp-same-
 `bp-flatten` exist for that comparison.
 
 ## Typography
+
+### Where a label sits
+
+| Element | Placement |
+| --- | --- |
+| Task, collapsed sub-process, call activity | centred in the shape |
+| **Expanded sub-process** | **top-centre**, 5 units below the frame's edge |
+| Event, gateway, data | DI label bounds, else parked under the shape |
+| Pool / lane | in the title band, rotated for a horizontal pool |
+
+The expanded sub-process is the case worth stating: its frame's interior belongs to its *children*, so a centred name lands on top of them. BPMN puts it at the top of the frame (bpmn-js calls this `center-top`), which is also the only placement that survives the frame being resized. A collapsed sub-process is read as one activity, so it keeps the task's centred name.
+
+### Type
 
 Labels are set in `theme.font` at `theme.font-size × u` with tight leading. Where the DI provides label bounds those are honoured exactly, which reproduces the modeler's line breaks — with one exception: **group titles ignore their DI label bounds**, because modelers size those to their own font and any other font forces a wrap.
 
