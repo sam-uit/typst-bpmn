@@ -37,6 +37,8 @@ better at layout than a few hundred lines of Typst will ever be.
 
 - [docs/architecture.md](docs/architecture.md) — pipeline, coordinate model, invariants
 - [docs/design-system.md](docs/design-system.md) — geometry, shape grammar, theme tokens
+- [docs/curved-arrows.md](docs/curved-arrows.md) — how to draw an arc with a head
+  in pure Typst: sampling, the derived base angle, where the stroke has to stop
 - [docs/schema.md](docs/schema.md) — YAML field reference, both dialects
 - [docs/integration.md](docs/integration.md) — installing the package into a document,
   the file-access constraint, path conventions

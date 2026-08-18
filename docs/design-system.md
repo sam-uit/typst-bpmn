@@ -134,6 +134,8 @@ Icons are **redrawn from the BPMN 2.0 spec**, not traced from bpmn-js — see [r
 - **Outline, not fill, at small sizes.** The first service-task gear was a filled disc with filled teeth; below about 40 units it collapsed into a black blob. Strokes throughout survive the scale-down.
 - **Icons are drawn in a unit square and scaled**, so a single definition works at every diagram scale.
 
+The loop marker is the one drawn from scratch rather than assembled from bars and boxes — an arc with an arrowhead that has to sit *on* the arc. The method, and the two revisions it took to get there, are in [curved-arrows.md](curved-arrows.md).
+
 ## Event-based gateway variants
 
 BPMN tells the three renderings apart by `eventGatewayType` and `instantiate`, not by element name:
