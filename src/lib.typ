@@ -45,6 +45,9 @@
 // down to what a paragraph needs, it keeps the model whole and cuts the *page*.
 // For the appendix, where the reader wants the thing entire.
 #import "bpmn-sheet.typ": bpmn-sheet, bpmn-sheet-plan, bpmn-sheet-info
+// `sheet-turn-icon` là phần hướng dẫn đọc của tờ gấp: một trang gấp in ra vẫn là A4
+// dọc, và người đọc cần biết phải xoay nó về phía nào.
+#import "turnicon.typ": sheet-turn-icon
 
 // --- Step flows, process maps, org charts ----------------------------------
 // Levels 1–2 of APQC PCF, where a process is still a chain rather than a graph.

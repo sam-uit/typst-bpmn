@@ -58,6 +58,7 @@ src/
   bpmn-note.typ           analysis callouts anchored to nodes
   bpmn-span.typ           slice a flow between two element ids
   bpmn-sheet.typ          the whole model, folded across landscape pages
+  turnicon.typ            "turn the page" glyph for a fold-out's reading note
   noteplace.typ           the placement solver the callouts run on
   annotate.typ            free-form overlay on any figure
   bpstep.typ / bpmap.typ  step flows and process maps
@@ -167,20 +168,48 @@ everything as occupied.
 
 ## Black-box participants
 
-Slicing to one pool used to drop the message flows to everyone else, which quietly
-throws away half the collaboration. Now a participant that the slice removed but
-that still exchanges messages with what remains is kept as a **black box**: a
-collapsed band with its name and nothing inside, placed above or below according
-to where it sat originally, with its message flows re-routed to the band edge.
-That is the BPMN idiom for "this partner exists, its internals are not your
-concern".
+A **black box** is the BPMN idiom for "this partner exists, its internals are not
+your concern": a collapsed band with its name centred inside and nothing else.
+Two things produce one.
+
+**The source file.** A participant with no `processRef`, or with
+`isExpanded="false"` on its DI shape, is collapsed by the author's own choice and
+is read as a black box.
+
+**A slice.** Slicing to one pool used to drop the message flows to everyone else,
+which quietly throws away half the collaboration. Now a participant the slice
+removed but that still exchanges messages with what remains is kept as a black
+box, placed above or below according to where it sat originally, with its message
+flows re-routed to the band edge.
 
 ```typ
 #bpmn-figure(M, view: (pool: "Thí Sinh"))                      // 2 pools, 17 flows
 #bpmn-figure(M, view: (pool: "Thí Sinh", blackbox: false))     // 1 pool,  12 flows
 ```
 
-On by default. `blackbox-height` (56) and `blackbox-gap` (46) tune the band.
+On by default for the slice. `blackbox-height` (56) and `blackbox-gap` (46) tune
+the band the slice creates; one that came from the file keeps its own bounds.
+
+A black box holds no nodes — that is what it means — so anything that asks "does
+this region contain a node?" must be taught about it separately. `bpmn-sheet` has
+two such places, both covered in
+[docs/design-system.md](docs/design-system.md#black-box-participants).
+
+## Telling the reader to turn the page
+
+A fold-out prints as an ordinary portrait A4 with the drawing lying sideways on
+it. `sheet-turn-icon` is the glyph for that: a portrait sheet with two arcs around
+it, the same picture a phone shows when a video wants landscape.
+
+```typ
+#sheet-turn-icon()                                   // 1.6em, follows text.fill
+#sheet-turn-icon(size: 34pt, paper: rgb("#eceff1"))  // beside a reading note
+```
+
+`turn:` takes **the same value you passed to `bpmn-sheet`** — the direction the
+*drawing* was turned, not the direction the reader turns the paper. Those are
+opposites, and asking for the second is asking to be given the first by mistake;
+an arrow pointing the wrong way is worse than no arrow.
 
 ## Captions
 
