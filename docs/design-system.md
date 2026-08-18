@@ -29,9 +29,28 @@ Relative to the shape, so they scale with `u`:
 | Message / association flow | 1.3 units |
 | Pool border | 1.6 units · lane border 1.2 |
 
-Non-interrupting boundary events and event sub-processes use `dash: "dashed"`; groups use `"loosely-dashed"`; message flows `"dashed"`; associations `"dotted"`.
+Non-interrupting boundary events and event sub-processes use `dash: "dashed"`; message flows `"dashed"`; associations `"dotted"`.
+
+A **group** is the exception that needs its own pattern rather than a preset: BPMN specifies dash-**dot**, and bpmn-js writes it `10,6,0,6` — a 10-long dash, a gap, a *zero-length* dash, a gap. The zero-length dash is a dot only under a round cap, so `cap: "round"` is load-bearing; with the default butt cap it disappears and the frame reads as a plain dashed line, which in BPMN means something else. Weight is 1.5 units, corner radius 10 — the same radius as a task.
 
 A weight in units is a weight in units *whatever the shape's size* — a 350-wide expanded sub-process gets the same 1.6 as a 100-wide task. That sounds obvious and was wrong for a long time: shape functions are handed pre-scaled lengths, so they recovered the scale by dividing the width by 100, which is only the truth for a shape that happens to be 100 units wide. Everything derived that way — border, corner radius, marker size — came out 3.5× too big on a wide sub-process, and the container was drawn heavier than the tasks it contained. Renderers now pass `unit:` down to the shape functions; the division survives only as a fallback for a hand call.
+
+## Z-order
+
+Typst has no z-index: the draw order *is* the stacking order. `draw-canvas` therefore states it once, explicitly, instead of letting it fall out of whatever order the parser returned things in. Bottom to top:
+
+| | Layer | Why there |
+| --- | --- | --- |
+| 1 | Pools and lanes | the sheet everything else sits on |
+| 2 | Expanded sub-processes | containers: opaque and wide, so they hide anything they are drawn over |
+| 3 | Sequence flows | they live inside one pool, alongside its nodes |
+| 4 | Activities, events, gateways | a flow passing beneath an activity should be hidden by it |
+| 5 | Data objects, annotations, groups | commentary on the diagram rather than part of its flow |
+| 6 | Message and data-association flows | a conversation between pools has to stay legible wherever it passes |
+
+Two of these are worth stating as rules rather than as a table row. A **message flow** crosses pool boundaries by definition, so it will cross whatever lies between them; burying it under a sub-process frame loses the one thing the reader was following. And a **sub-process** is scenery for its own children — it belongs below them, not above the flows that enter it.
+
+Groups sit at layer 5 rather than at the bottom because a group's fill is `none`: it hides nothing, and putting its frame on top means the frame is never clipped by a shape that happens to straddle its edge.
 
 ## Event ring grammar
 
