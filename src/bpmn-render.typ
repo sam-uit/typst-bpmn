@@ -210,13 +210,22 @@
   let kind = n.kind
 
   if kind == "group" {
-    place(dx: b.x * u, dy: b.y * u, shape-group(b.w * u, b.h * u, stroke: theme.group-stroke))
+    // A group is grey *unless the author coloured it*. Everywhere else the theme
+    // is the fallback and the model wins; a group had the theme hard-wired, so a
+    // deliberate colour chosen in the modeler was silently thrown away — and a
+    // group is one of the few elements whose only job is to say "these belong
+    // together", which is exactly what people reach for colour to say.
+    let painted = (n.at("stroke", default: none) != none
+      or n.at("color", default: none) != none)
+    let gs = if theme.honor-colors and painted { c.stroke } else { theme.group-stroke }
+    place(dx: b.x * u, dy: b.y * u,
+      shape-group(b.w * u, b.h * u, stroke: gs, unit: u))
     if n.at("name", default: "") != "" {
       // Ignore the DI label bounds here: modelers size them to the rendered
       // string, which forces a wrap as soon as the font differs. A group title
       // has the whole width of the group to sit in.
       let y = if "label" in n { n.label.y } else { b.y + 6 }
-      _label((x: b.x, y: y, w: b.w, h: 20), n.name, u, theme, paint: theme.label)
+      _label((x: b.x, y: y, w: b.w, h: 20), n.name, u, theme, paint: gs)
     }
     return
   }

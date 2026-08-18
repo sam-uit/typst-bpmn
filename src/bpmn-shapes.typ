@@ -16,7 +16,7 @@
 /// 100x80, and badly wrong for an expanded sub-process at 350 wide, whose border
 /// then came out three and a half times too thick. Callers that know the scale
 /// pass `unit:`; the division stays as the fallback so a hand call still works.
-#let _scale(w, unit) = if unit == none { w / 100 } else { unit }
+#let _scale(w, unit, nominal: 100) = if unit == none { w / nominal } else { unit }
 
 #let canvas(w, h, ..body) = box(width: w, height: h, {
   for b in body.pos() { b }
@@ -508,9 +508,20 @@
 }
 
 /// Group: dashed rounded rectangle (no semantics, purely visual grouping).
-#let shape-group(w, h, stroke: rgb("#666666")) = place(rect(width: w, height: h,
-  stroke: (paint: stroke, thickness: 1.2pt * (w / 400pt), dash: "loosely-dashed"),
-  radius: 6pt))
+/// Group: the spec's dash-**dot** frame. Fill is `none` — a group marks a region,
+/// it does not own it, so whatever it encloses stays visible through it.
+///
+/// The dash pattern is bpmn-js's `10,6,0,6` verbatim: a 10-long dash, a gap, a
+/// *zero-length* dash, a gap. A zero-length dash under a round cap is a dot, which
+/// is why `cap: "round"` is not cosmetic here — with a butt cap the dot vanishes
+/// and the frame degrades to a plain dashed line, which in BPMN is the notation
+/// for something else entirely.
+#let shape-group(w, h, stroke: rgb("#666666"), unit: none) = {
+  let sc = _scale(w, unit, nominal: 400)
+  place(rect(width: w, height: h, radius: 10 * sc,
+    stroke: (paint: stroke, thickness: 1.5 * sc, cap: "round",
+             dash: (array: (10 * sc, 6 * sc, 0pt, 6 * sc), phase: 0pt))))
+}
 
 /// Text annotation: the open left bracket only.
 #let shape-annotation(w, h, stroke: black) = {
