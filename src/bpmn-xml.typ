@@ -168,6 +168,22 @@
       entry.insert("lanes", lanes.sorted(
         key: l => if entry.horizontal { (l.bounds.y, l.bounds.x) } else { (l.bounds.x, l.bounds.y) }))
     }
+
+    // A **black-box** participant: BPMN's way of saying "this partner exists and we
+    // exchange messages, but this model does not describe what happens inside". The
+    // spec's own marker is that there is nothing to describe — no `processRef` at
+    // all — or that the DI says the shape is collapsed.
+    //
+    // Both were slipping through, so an empty participant came out as an ordinary
+    // pool: a turned title band down its left side and a body with nothing in it.
+    // That is the wrong statement (the band promises lanes and content the partner
+    // does not have) and it is also unreadable, because a black box is drawn about
+    // 60 units tall and a 30-unit band eats half of that before the name starts.
+    // `bpmn-slice` has always set this flag on the partners *it* collapses; the
+    // parser now sets it on the ones the author collapsed in the modeler.
+    if pr == "" or _attr(shape, "isExpanded", default: "true") == "false" {
+      entry.insert("blackbox", true)
+    }
     pools.push(entry)
   }
   pools = pools.sorted(key: p => (p.bounds.y, p.bounds.x))
