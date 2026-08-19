@@ -198,6 +198,13 @@ black boxes and 27 message flows** once that lookup learned about participants.
 
 On by default for the slice. `blackbox-height` (56) and `blackbox-gap` (46) tune
 the band the slice creates; one that came from the file keeps its own bounds.
+`blackbox-gap` is used twice: between the content and the first band, and between
+one band and the next, so two partners on the same side stay two pools instead of
+fusing into one block.
+
+The re-routed flow drops from the **centre** of the node's edge. It moves off
+centre only when another flow wants the same coordinate on the same side, and
+then both move, symmetrically, by a step that keeps them on the node's own edge.
 
 A black box holds no nodes — that is what it means — so anything that asks "does
 this region contain a node?" must be taught about it separately. `bpmn-sheet` has

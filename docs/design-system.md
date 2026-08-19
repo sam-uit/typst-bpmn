@@ -161,6 +161,32 @@ Both used to slip through, and an empty participant came out as an ordinary pool
 
 `bpmn-slice` sets the same flag on partners *it* collapses when a view keeps only one pool, so a black box drawn from a slice and one drawn from the source file are the same shape.
 
+### Stacking bands, and where a message flow drops
+
+Two things about the bands a *slice* creates, both of which read as "the drawing
+is subtly wrong" rather than as an outright bug.
+
+**Bands are pools, so they need air between them.** Consecutive bands were laid
+end to end at `blackbox-height` intervals, so two partners on the same side came
+out as one grey block split by a single line — the reader sees a two-lane pool,
+not two participants. Bands are now pitched at `blackbox-height + blackbox-gap`,
+the same gap that separates the first band from the content, and the order of the
+bands follows the partners' original positions rather than the order their
+message flows happened to be met in.
+
+**A drop stays on the node's centre unless it genuinely collides.** The re-routed
+message flow leaves the middle of the node's edge and runs straight to the band.
+When two flows want the same coordinate on the same side — a task that both sends
+and receives, or two nodes stacked at the same x — they would print as one line,
+so they have to be spread. The first attempt spread them by the flow's *index*
+(`(fi mod 3 - 1) × 7`), which pushed two out of every three flows off centre
+whether or not anything was there, and changed which ones whenever the set of
+crossing flows changed. What looks unpredictable on the page usually is: the rule
+had no geometry in it. Now the drops are grouped by `(coordinate, side)` and only
+a group with more than one member is spread, symmetrically about the shared
+coordinate, with the step capped so the fan stays on the node's own edge:
+`min(14, extent / (n + 1))`. A lone flow gets exactly zero.
+
 ### On a fold-out
 
 `bpmn-sheet` has to handle a black box twice over, and both cases come from the same fact — that a black box holds no nodes.
