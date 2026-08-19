@@ -49,12 +49,30 @@ place:
 // turnicon.typ — maths convention with y flipped: θ increases counter-clockwise on the page
 #let _ring(cx, cy, r, a) = (cx + r * calc.cos(a), cy - r * calc.sin(a))
 
-// bpmn-shapes.typ, marker-loop — 0° at twelve o'clock, θ increases clockwise
-let P(a) = (cx + r * calc.sin(a), cy - r * calc.cos(a))
+// bpmn-shapes.typ, marker-loop — 0° at six o'clock, θ increases anticlockwise
+let P(a) = (r * calc.sin(a + phase), r * calc.cos(a + phase))
 ```
 
 Pick whichever makes the *shape's own* description read naturally. `marker-loop` sweeps
-"round to twelve o'clock", so twelve o'clock is 0°.
+"round from the gap at the bottom", so the bottom is 0°.
+
+### Turning it round
+
+`marker-loop` first ran **clockwise with the gap at the top**, which is the same figure
+BPMN draws mirrored about the horizontal axis. Two things fix that, and it is worth
+separating them because they are independent:
+
+- **Handedness.** Measure y *downwards* from the centre instead of upwards. Mirroring
+  reverses handedness, so ↻ becomes ↺ with the sweep untouched — no reversed loop, no
+  negated angle, no second convention to keep in your head.
+- **Where the gap sits.** Mirroring alone leaves the gap on the axis it was already on.
+  A `phase` added inside `P` rolls the finished figure round the circle: at `phase = 0`
+  the tail is at half past four and the head at six o'clock, and `−30°` moves both on by
+  an hour, to the 5:30 and 7:00 the spec asks for.
+
+Every point has to see the same `phase` — the arc samples, the tip, **and the radial the
+head's base opens along**. Miss the radial and the head shears, which at 6 units of icon
+reads as "the arrow looks a bit off" rather than as an obvious bug.
 
 ## The head is the hard part
 
@@ -138,12 +156,30 @@ fraction of one `size` and multiply exactly once, at the point of placement.
 
 A curved arrow with a head is **asymmetric**: the head reaches past the circle by
 `head-half`, the stroke past it by `t/2`. Centring on the circle puts the mark visibly
-high or low. `marker-loop` solves for the inked extent instead:
+high or low. `marker-loop` used to solve that by hand:
 
 ```typ
 // (cy − r − hw) + (cy + r + t/2) = size
 let cy = (size - t / 2 + hw) / 2
 ```
+
+That closed form is only right while the gap sits on an axis, because it assumes the head
+is the extreme point in one direction and the bare stroke in the other. The moment a
+`phase` rolls the gap off the axis, both assumptions fail and the icon sits quietly
+off-centre. So build the figure **around the origin**, measure it, then translate:
+
+```typ
+let spread(ps, pad, i) = ps.map(p => p.at(i) - pad) + ps.map(p => p.at(i) + pad)
+let axis(i) = {
+  let vs = spread(arc, t / 2, i) + spread(head, round / 2, i)
+  0.5 * size - (calc.min(..vs) + calc.max(..vs)) / 2
+}
+```
+
+Two padding values, not one: the arc grows by half its stroke, the solid head only by
+half its round join. The conformance sheet's crosshair page is what catches this — the
+ink has to straddle the cross, and a hand-fitted centre that has drifted shows up there
+before it shows up anywhere else.
 
 ## Do not reach for the glyph
 
