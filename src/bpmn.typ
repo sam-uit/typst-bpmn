@@ -255,28 +255,50 @@
   // surviving node and the edge of its partner's band
   let by-id = (:)
   for n in nodes { by-id.insert(n.id, n) }
-  let bb-flows = crossing.enumerate().map(((fi, f)) => {
+  //
+  // Chỗ rơi *tự nhiên* của mỗi flow: đúng tâm cạnh của node, chưa tách gì cả.
+  // `side` phân biệt dải nằm phía trên hay phía dưới (trái hay phải, nếu pool dọc):
+  // hai flow cùng toạ độ nhưng đi ngược hướng thì không hề đè lên nhau.
+  let drops = crossing.map(f => {
     let src-kept = ids.contains(f.source)
-    let node = by-id.at(if src-kept { f.source } else { f.target })
+    let nid = if src-kept { f.source } else { f.target }
+    if nid not in by-id { return none }
+    let node = by-id.at(nid)
     let pid = pool-of.at(if src-kept { f.target } else { f.source }, default: "")
     if not bands.keys().contains(pid) { return none }
     let bb = bands.at(pid)
-    // Nudge each drop off its neighbours: two nodes at the same coordinate would
-    // otherwise put their message flows on exactly the same line and read as one.
-    let nudge = (calc.rem(fi, 3) - 1) * 7
+    let c = if vertical { node.bounds.y + node.bounds.h / 2 }
+            else { node.bounds.x + node.bounds.w / 2 }
+    let side = if vertical { bb.x < node.bounds.x } else { bb.y < node.bounds.y }
+    (flow: f, node: node, bb: bb, src-kept: src-kept, c: c,
+     key: str(calc.round(c)) + (if side { "|up" } else { "|down" }))
+  })
+
+  // Tách khỏi nhau *chỉ khi thật sự trùng chỗ*. Bản trước tính lệch theo chỉ số của
+  // flow trong mảng (`calc.rem(fi, 3) - 1`), nên hai phần ba số message flow bị đẩy
+  // khỏi tâm dù chẳng đụng ai, và lệch bao nhiêu thì đổi mỗi khi tập flow đổi: đó là
+  // cái "lúc bị lúc không" nhìn thấy trên hình.
+  let bb-flows = drops.enumerate().map(((di, d)) => {
+    if d == none { return none }
+    let (node, bb) = (d.node, d.bb)
+    let peers = drops.filter(e => e != none and e.key == d.key).len()
+    let rank = drops.slice(0, di).filter(e => e != none and e.key == d.key).len()
+    let extent = if vertical { node.bounds.h } else { node.bounds.w }
+    let step = calc.min(14, extent / (peers + 1))
+    let nudge = if peers <= 1 { 0 } else { (rank - (peers - 1) / 2) * step }
     let (at-node, at-band) = if vertical {
-      let ny = node.bounds.y + node.bounds.h / 2 + nudge
+      let ny = d.c + nudge
       let leftwards = bb.x < node.bounds.x
       ((if leftwards { node.bounds.x } else { node.bounds.x + node.bounds.w }, ny),
        (if leftwards { bb.x + bb.w } else { bb.x }, ny))
     } else {
-      let nx = node.bounds.x + node.bounds.w / 2 + nudge
+      let nx = d.c + nudge
       let up = bb.y < node.bounds.y
       ((nx, if up { node.bounds.y } else { node.bounds.y + node.bounds.h }),
        (nx, if up { bb.y + bb.h } else { bb.y }))
     }
-    let q = f
-    q.waypoints = if src-kept { (at-node, at-band) } else { (at-band, at-node) }
+    let q = d.flow
+    q.waypoints = if d.src-kept { (at-node, at-band) } else { (at-band, at-node) }
     q.remove("label", default: none)
     q
   }).filter(f => f != none)
