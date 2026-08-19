@@ -167,6 +167,45 @@
       "gateway": 1
     }
   },
+  "twobb / full": {
+    "pools": 3,
+    "lanes": 0,
+    "nodes": 4,
+    "flows": 6,
+    "w": 620.0,
+    "h": 500.0,
+    "label-pt": 8.75,
+    "by-kind": {
+      "task": 1,
+      "event": 3
+    }
+  },
+  "twobb / compact-x": {
+    "pools": 3,
+    "lanes": 0,
+    "nodes": 4,
+    "flows": 6,
+    "w": 428.0,
+    "h": 500.0,
+    "label-pt": 12.68,
+    "by-kind": {
+      "task": 1,
+      "event": 3
+    }
+  },
+  "twobb / compact-both": {
+    "pools": 3,
+    "lanes": 0,
+    "nodes": 4,
+    "flows": 6,
+    "w": 428.0,
+    "h": 312.0,
+    "label-pt": 12.68,
+    "by-kind": {
+      "task": 1,
+      "event": 3
+    }
+  },
   "b04 / pool-ts": {
     "pools": 2,
     "lanes": 0,
@@ -221,6 +260,19 @@
     "label-pt": 12.42,
     "by-kind": {
       "task": 2
+    }
+  },
+  "twobb / pool-noi-bo": {
+    "pools": 3,
+    "lanes": 0,
+    "nodes": 4,
+    "flows": 6,
+    "w": 640.0,
+    "h": 534.0,
+    "label-pt": 8.48,
+    "by-kind": {
+      "task": 1,
+      "event": 3
     }
   }
 }

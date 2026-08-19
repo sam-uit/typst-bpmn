@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture: hai đối tác hộp đen cùng một phía, và hai message flow cùng neo vào
+     một node. Giữ hai tật đã sửa ở v0.16.1 không quay lại:
+       1. hai dải hộp đen liền kề phải có khoảng trắng giữa chúng;
+       2. message flow chỉ lệch khỏi tâm khi thật sự trùng chỗ với flow khác. -->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_twobb" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="participant-noi-bo" name="Nội Bộ" processRef="Process_1" />
+    <bpmn:participant id="participant-doi-tac-a" name="Đối Tác A" />
+    <bpmn:participant id="participant-doi-tac-b" name="Đối Tác B" />
+    <bpmn:messageFlow id="MF_1" sourceRef="task-gui" targetRef="participant-doi-tac-a" />
+    <bpmn:messageFlow id="MF_2" sourceRef="participant-doi-tac-a" targetRef="task-gui" />
+    <bpmn:messageFlow id="MF_3" sourceRef="participant-doi-tac-b" targetRef="event-cho" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="event-bat-dau" name="Bắt đầu">
+      <bpmn:outgoing>SF_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="task-gui" name="Gửi yêu cầu">
+      <bpmn:incoming>SF_1</bpmn:incoming>
+      <bpmn:outgoing>SF_2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="event-cho" name="Chờ phản hồi">
+      <bpmn:incoming>SF_2</bpmn:incoming>
+      <bpmn:outgoing>SF_3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MED_1" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="event-ket-thuc" name="Kết thúc">
+      <bpmn:incoming>SF_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SF_1" sourceRef="event-bat-dau" targetRef="task-gui" />
+    <bpmn:sequenceFlow id="SF_2" sourceRef="task-gui" targetRef="event-cho" />
+    <bpmn:sequenceFlow id="SF_3" sourceRef="event-cho" targetRef="event-ket-thuc" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Shape_p1" bpmnElement="participant-noi-bo" isHorizontal="true">
+        <dc:Bounds x="160" y="100" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_pa" bpmnElement="participant-doi-tac-a" isHorizontal="true">
+        <dc:Bounds x="160" y="420" width="600" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_pb" bpmnElement="participant-doi-tac-b" isHorizontal="true">
+        <dc:Bounds x="160" y="520" width="600" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_e1" bpmnElement="event-bat-dau">
+        <dc:Bounds x="212" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_t1" bpmnElement="task-gui">
+        <dc:Bounds x="300" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_e2" bpmnElement="event-cho">
+        <dc:Bounds x="460" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_e3" bpmnElement="event-ket-thuc">
+        <dc:Bounds x="580" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_1" bpmnElement="SF_1">
+        <di:waypoint x="248" y="210" />
+        <di:waypoint x="300" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_2" bpmnElement="SF_2">
+        <di:waypoint x="400" y="210" />
+        <di:waypoint x="460" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_3" bpmnElement="SF_3">
+        <di:waypoint x="496" y="210" />
+        <di:waypoint x="580" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_1" bpmnElement="MF_1">
+        <di:waypoint x="350" y="250" />
+        <di:waypoint x="350" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_2" bpmnElement="MF_2">
+        <di:waypoint x="350" y="420" />
+        <di:waypoint x="350" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_3" bpmnElement="MF_3">
+        <di:waypoint x="478" y="520" />
+        <di:waypoint x="478" y="228" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

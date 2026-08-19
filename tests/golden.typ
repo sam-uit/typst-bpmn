@@ -26,6 +26,7 @@
   ("vertical", yaml("/models/vertical-pools.yaml")),
   ("no-pool", yaml("/models/leading-comment.yaml")),
   ("grid", yaml("/examples/leave-request.yaml")),
+  ("twobb", xml("/tests/fixtures/two-blackboxes.bpmn")),
 )
 
 // (label, view, compact)
@@ -41,6 +42,8 @@
   ("b04", "pool-ts-nobb", (pool: "Thí Sinh", blackbox: false), true),
   ("b04", "lane-hdht", (lane: "Hội Đồng Học Thuật"), true),
   ("vertical", "pool-bank", (pool: "Ngân hàng"), true),
+  // Hai dải hộp đen cùng một phía: chiều cao extent bắt được khoảng trắng giữa chúng.
+  ("twobb", "pool-noi-bo", (pool: "Nội Bộ"), false),
 )
 
 #let snap(src, vw, cp) = {
