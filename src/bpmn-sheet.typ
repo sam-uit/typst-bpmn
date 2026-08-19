@@ -450,15 +450,28 @@
   // trang riêng. `context` đọc khổ giấy rồi phát ra n lệnh `page()` — mỗi lệnh mở
   // đúng một trang, khỏi cần ngắt trang thủ công.
   context {
-    // Đổi trục: bản vẽ xoay một phần tư vòng, nên chiều *dài* mô hình ăn vào chiều cao
-    // trang, còn chiều *cao* mô hình ăn vào bề ngang trang. Chú thích quay cùng hình
-    // nên nó cũng nằm dọc theo bề ngang trang — trừ vào cùng ngân sách đó.
+    // Đổi trục, hoặc không đổi.
+    //
+    // Khi bản vẽ được xoay một phần tư vòng thì chiều *dài* mô hình ăn vào chiều cao
+    // trang, còn chiều *cao* mô hình ăn vào bề ngang trang; chú thích quay cùng hình nên
+    // nó cũng trừ vào bề ngang. Khi `turn: none` thì không có phép xoay nào, hai trục
+    // giữ nguyên: dài ăn bề ngang, cao ăn chiều cao.
+    //
+    // `turn: none` sinh ra vì khổ giấy nằm ngang. Xoay là cách xử lý một mô hình *rộng*
+    // trên một trang *dọc*; với slide 16:9 thì trang đã nằm ngang sẵn, xoay đi là làm
+    // hỏng đúng cái nó định sửa. Cắt thành nhiều cửa sổ ngang mới là việc cần làm, và đó
+    // vốn đã là phần lõi của component này, phép xoay chỉ là lớp ngoài.
     let (mx, my) = (margin.at("x", default: 12mm), margin.at("y", default: 10mm))
-    let avail-w = page.height - 2 * my
+    let flat = turn == none or turn == "none" or turn == false
+    let avail-w = if flat { page.width - 2 * mx } else { page.height - 2 * my }
     let cap-h = if cap == none { 0pt } else {
       measure(box(width: avail-w, cap)).height + 1.6 * text.size
     }
-    let avail = (width: avail-w, height: page.width - 2 * mx - cap-h)
+    let avail = if flat {
+      (width: avail-w, height: page.height - 2 * my - cap-h)
+    } else {
+      (width: avail-w, height: page.width - 2 * mx - cap-h)
+    }
 
     let plan = bpmn-sheet-plan(
       model,
@@ -599,12 +612,14 @@
 
         // Xoay cả cụm hình-và-chú-thích như một khối. Chú thích để ngang trong khi hình
         // nằm dọc sẽ ăn hai lần vào bề ngang trang: một lần cho chính nó, một lần cho
-        // dải mà phép xoay không dùng tới.
-        let turned = rotate(
-          if turn == "cw" { 90deg } else { -90deg },
-          reflow: true,
-          box(width: w, tagged),
-        )
+        // dải mà phép xoay không dùng tới. `turn: none` thì không xoay gì cả.
+        let turned = if flat { box(width: w, tagged) } else {
+          rotate(
+            if turn == "cw" { 90deg } else { -90deg },
+            reflow: true,
+            box(width: w, tagged),
+          )
+        }
         // `chrome: false` trả lại chỗ của header/footer cho hình. Số trang cũng tắt
         // theo — một trang không có header thì số trang mồ côi ở giữa lề trông như lỗi.
         let bare = if chrome { (:) } else {
