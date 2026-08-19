@@ -134,6 +134,16 @@
   let dropped = model.nodes.filter(n => not ids.contains(n.id))
   let pool-of = (:)
   for n in model.nodes { pool-of.insert(n.id, n.at("pool", default: "")) }
+  // Một message flow có thể neo thẳng vào *participant* chứ không vào node nào bên
+  // trong, và đó chính là hình dạng của một đối tác hộp đen: nó không có process nên
+  // không có node để neo vào. Tra `pool-of` bằng id participant thì không thấy, trả về
+  // "" rồi bị lọc bỏ ngay dòng dưới, nên cả đối tác lẫn message flow biến mất khỏi lát
+  // cắt mà không có gì báo. Ánh xạ mỗi participant về chính nó là đủ.
+  //
+  // Đây là mảnh còn sót của việc nhận diện hộp đen ở v0.13.0: parser đã biết một
+  // participant không `processRef` là hộp đen, phần cắt lát thì vẫn giả định mọi đầu
+  // của message flow là một node.
+  for p in model.pools { if p.id not in pool-of { pool-of.insert(p.id, p.id) } }
   let orig-pool = (:)
   for p in model.pools { orig-pool.insert(p.id, p) }
 
