@@ -104,7 +104,50 @@
     if want-pools.len() > 0 { return pool-ids.contains(np) }
     true
   }
-  let nodes = model.nodes.filter(keep-node)
+  let core = model.nodes.filter(keep-node)
+  let core-ids = core.map(n => n.id)
+
+  // Lượt hai: nhặt những gì *gắn vào* phần vừa giữ.
+  //
+  // Chỉ chạy khi cắt theo `nodes`, vì đó là lối cắt duy nhất nhận vào một danh sách id
+  // đóng. Cắt theo pool/lane thì data object và comment đã thuộc pool nào đó nên đã
+  // được giữ theo; còn `nodes` thì đúng những gì có trong danh sách mới sống.
+  //
+  // Vì sao danh sách đó luôn thiếu: `bpmn-span` tính tập id bằng cách đi theo **sequence
+  // flow**, và đó là định nghĩa đúng của "đoạn từ A tới B". Nhưng data object, comment
+  // và group không nằm *trên* dòng chảy, chúng *gắn vào* dòng chảy, nên không bao giờ
+  // xuất hiện trong tập đó. Kết quả là lát cắt đúng về đồ thị mà mất sạch bối cảnh: nó
+  // thôi là bản phóng to của cùng một hình.
+  //
+  // Hợp đồng sau khi sửa: **sequence flow quyết định biên, mọi thứ gắn vào phần trong
+  // biên thì đi theo.**
+  let attached = if want-nodes.len() == 0 { () } else {
+    // Comment và data object nối vào dòng chảy bằng association (hoặc data association).
+    let links = model.flows.filter(f => (
+      f.at("kind", default: "sequence") in ("association", "data")
+    ))
+    let touched = (:)
+    for f in links {
+      if core-ids.contains(f.source) { touched.insert(f.target, true) }
+      if core-ids.contains(f.target) { touched.insert(f.source, true) }
+    }
+    let inside(b, c) = {
+      // Lấy *tâm* hộp chứ không lấy giao hai hình: một group thường chờm lên hàng xóm
+      // vài đơn vị, xét theo giao thì nó kéo theo cả những node nó chỉ chạm mép.
+      let cx = c.bounds.x + c.bounds.w / 2
+      let cy = c.bounds.y + c.bounds.h / 2
+      cx > b.x and cx < b.x + b.w and cy > b.y and cy < b.y + b.h
+    }
+    model.nodes.filter(n => {
+      if core-ids.contains(n.id) { return false }
+      if drop.len() > 0 and _matches(n, drop) { return false }
+      // Group đi theo khi nó bao trùm ít nhất một phần tử đã giữ.
+      if n.kind == "group" { return core.any(c => inside(n.bounds, c)) }
+      n.kind in ("data", "annotation") and touched.at(n.id, default: false)
+    })
+  }
+
+  let nodes = core + attached
   let ids = nodes.map(n => n.id)
   // a connection survives only if both of its ends did
   let flows = model.flows.filter(f => ids.contains(f.source) and ids.contains(f.target))
