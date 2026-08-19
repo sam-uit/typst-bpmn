@@ -210,8 +210,10 @@
   let kept-near = if pools.len() == 0 { if vertical { ce.x } else { ce.y } } else {
     calc.min(..pools.map(p => if vertical { p.bounds.x } else { p.bounds.y }))
   }
-  let before = partner-ids.filter(p => near(p) < kept-near)
-  let after = partner-ids.filter(p => near(p) >= kept-near)
+  // Xếp theo vị trí gốc để thứ tự các dải giữ đúng thứ tự người vẽ đã đặt, không
+  // phụ thuộc vào thứ tự message flow gặp được.
+  let before = partner-ids.filter(p => near(p) < kept-near).sorted(key: near)
+  let after = partner-ids.filter(p => near(p) >= kept-near).sorted(key: near)
 
   // the band spans the content on the other axis
   let span-lo = if pools.len() == 0 { if vertical { ce.y } else { ce.x } } else {
@@ -230,12 +232,17 @@
   let content-lo = if vertical { ce.x } else { ce.y }
   let content-hi = if vertical { ce.x + ce.w } else { ce.y + ce.h }
 
+  // Hai pool cạnh nhau trong BPMN luôn có khoảng trắng giữa chúng; các dải hộp đen
+  // cũng vậy. Trước đây chúng được xếp sát nhau nên hai hộp đen liền kề dính thành
+  // một khối và chỉ còn một đường kẻ phân cách.
+  let pitch = bb-height + bb-gap
   let bands = (:)
   for (i, pid) in before.enumerate() {
-    bands.insert(pid, band-at(content-lo - bb-gap - (before.len() - i) * bb-height))
+    let k = before.len() - 1 - i          // khoảng cách tính từ phần nội dung
+    bands.insert(pid, band-at(content-lo - bb-gap - bb-height - k * pitch))
   }
   for (i, pid) in after.enumerate() {
-    bands.insert(pid, band-at(content-hi + bb-gap + i * bb-height))
+    bands.insert(pid, band-at(content-hi + bb-gap + i * pitch))
   }
 
   let bb-pools = partner-ids.map(pid => (
