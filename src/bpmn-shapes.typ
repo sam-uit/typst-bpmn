@@ -214,7 +214,7 @@
 ///
 /// The construction, in the order you would draw it by hand:
 ///
-///   - run the arc round to twelve o'clock and call that point the tip;
+///   - run the arc round to the far end of the sweep and call that point the tip;
 ///   - from the tip, step back **along the circle** by the head's length to get the
 ///     base point — so both points are on the curve and the head's axis is their chord;
 ///   - open the base out to either side along the radius by the head's height.
@@ -224,9 +224,26 @@
 /// `Δ = 2·asin(L / 2r)` — which keeps the head the same *length* if the radius is ever
 /// retuned, instead of silently growing.
 ///
-/// Angles run clockwise from twelve o'clock: `P(θ) = (cx + r sinθ, cy − r cosθ)`.
-/// Sweeping to θ = 360° puts the tip at the top, which is what makes it read as ↻
-/// rather than ↺.
+/// ## Which way round, and where the gap sits
+///
+/// BPMN 2.0 draws this marker **anticlockwise with the gap at the bottom**: the tail
+/// starts around half past five, the arc runs the long way round, and the head stops
+/// around seven. The first version here ran clockwise with the gap at the top, which is
+/// the same picture flipped about the horizontal axis — right shape, wrong statement.
+///
+/// Two lines carry that. `P` measures y **downwards** from the centre instead of
+/// upwards, which mirrors the whole construction and, because mirroring reverses
+/// handedness, turns ↻ into ↺ without touching the sweep. `phase` then rolls the
+/// finished figure round the circle by a fixed angle to put the gap where the spec
+/// wants it: at `phase = 0` the tail sits at half past four and the head at six
+/// o'clock, and −30° moves both on by an hour to 5:30 and 7:00.
+///
+/// ## Centring
+///
+/// The figure is built around the origin and moved to the middle afterwards, from the
+/// **inked** extent: the arc widened by half the stroke, plus the three corners of the
+/// solid head. Solving that by hand only works while the gap sits on an axis — the
+/// moment `phase` moves it, a hand-fitted centre is silently wrong on one side.
 ///
 /// Corners are rounded with a `join: "round"` stroke in the fill colour. Everything
 /// else in this family is drawn with `cap: "round"`, and a single sharp point is
@@ -236,38 +253,50 @@
 /// lighter than the neighbouring markers (this family is drawn at 0.09–0.13 × size),
 /// and it would make a BPMN symbol depend on whichever font the host document happens
 /// to set. The same symbol has to look the same in every report.
-#let marker-loop(size, paint: black) = {
+#let marker-loop(size, paint: black, phase: -30deg) = {
   let r = 0.36 * size
   let t = 0.10 * size
   let head-len = 0.25 * size      // tip to base, stepped back along the circle
   let hw = 0.11 * size            // height either side of the base, along the radius
   let round = 0.03 * size         // corner radius, via a round-join stroke
-  // Centre vertically on the *inked* extent, not on the circle: the head reaches past
-  // the top of the arc by `hw`, the stroke past the bottom by `t/2`. Solving
-  // (cy − r − hw) + (cy + r + t/2) = size for cy keeps the two margins equal.
-  let cx = 0.5 * size
-  let cy = (size - t / 2 + hw) / 2
   let sweep = 315deg
-  let P(a) = (cx + r * calc.sin(a), cy - r * calc.cos(a))
+  // Anticlockwise: y measured *down* from the centre. `phase` rolls the whole figure
+  // round the circle, so the gap lands at the bottom where BPMN puts it.
+  let P(a) = (r * calc.sin(a + phase), r * calc.cos(a + phase))
   // Chord of length `head-len` subtends 2·asin(L / 2r).
   let base-a = 360deg - 2 * calc.asin(head-len / (2 * r))
   let bc = P(base-a)
   // Outward radial at the base angle. The base edge lies along it, so it is square to
   // the arc where the stroke stops — hence the arc runs to exactly `base-a`, no
   // overlap and no shortfall.
-  let (rx, ry) = (calc.sin(base-a), -calc.cos(base-a))
+  let (rx, ry) = (calc.sin(base-a + phase), calc.cos(base-a + phase))
   let n = 60
   let a0 = 360deg - sweep
-  let pts = range(n + 1).map(i => P(a0 + (base-a - a0) * i / n))
+  let arc = range(n + 1).map(i => P(a0 + (base-a - a0) * i / n))
+  let head = (
+    P(360deg),
+    (bc.at(0) + hw * rx, bc.at(1) + hw * ry),
+    (bc.at(0) - hw * rx, bc.at(1) - hw * ry),
+  )
+  // Inked extent: the arc grows by half the stroke on every side, the head by half its
+  // own round join. Centre on that, not on the circle.
+  let pad-arc = t / 2
+  let pad-head = round / 2
+  let spread(ps, pad, i) = ps.map(p => p.at(i) - pad) + ps.map(p => p.at(i) + pad)
+  let axis(i) = {
+    let vs = spread(arc, pad-arc, i) + spread(head, pad-head, i)
+    0.5 * size - (calc.min(..vs) + calc.max(..vs)) / 2
+  }
+  let (dx, dy) = (axis(0), axis(1))
+  let T(p) = (p.at(0) + dx, p.at(1) + dy)
   canvas(size, size,
     place(curve(stroke: (paint: paint, thickness: t, cap: "round"),
-      curve.move(pts.first()), ..pts.slice(1).map(p => curve.line(p)))),
+      curve.move(T(arc.first())), ..arc.slice(1).map(p => curve.line(T(p))))),
     place(curve(
       fill: paint,
       stroke: (paint: paint, thickness: round, join: "round", cap: "round"),
-      curve.move(P(360deg)),
-      curve.line((bc.at(0) + hw * rx, bc.at(1) + hw * ry)),
-      curve.line((bc.at(0) - hw * rx, bc.at(1) - hw * ry)),
+      curve.move(T(head.first())),
+      ..head.slice(1).map(p => curve.line(T(p))),
       curve.close())),
   )
 }
