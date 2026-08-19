@@ -60,7 +60,7 @@
 //                                 trang ở mỗi cỡ chữ, và phải cắt bớt bao nhiêu đơn
 //                                 vị bề rộng để tròn n trang. Không vẽ gì.
 
-#import "bpmn.typ": bpmn-model
+#import "bpmn.typ": bpmn-model, bpmn-slice
 // Đổi tên khi nạp: `compact` cũng là tên tham số của `bpmn-sheet`, và trong thân hàm
 // thì tham số che mất hàm.
 #import "bpmn-compact.typ": compact as compact-model
@@ -336,8 +336,12 @@
   overlap: 30,
   repeat-header: true,
   compact: none,
+  view: none,
 ) = {
+  // `view:` phải giống hệt cái sẽ truyền cho `bpmn-sheet`, nếu không thì con số ngân
+  // sách trang báo về không phải của cái hình sắp vẽ.
   let model = bpmn-model(src)
+  if view != none { model = bpmn-slice(model, view) }
   if compact != none and compact != false {
     model = compact-model(model, opts: if type(compact) == dictionary { compact } else { (:) })
   }
@@ -409,6 +413,7 @@
   overlap: 30,
   repeat-header: true,
   compact: none,
+  view: none,
   turn: "cw",
   chrome: true,
   margin: (x: 12mm, y: 10mm),
@@ -433,7 +438,15 @@
   seam: true,
   debug: false,
 ) = {
+  // `view:` cắt trước khi trải trang, cùng nghĩa với `bpmn-figure(view: ..)`.
+  //
+  // Vì sao một tờ gấp lại cần cắt: hai phép cắt này trực giao. `view` bỏ *phần tử*, tờ
+  // gấp cắt *trang*. Trên khổ ngang như slide thì thường phải làm cả hai: giữ một pool
+  // cho bớt chiều cao (nhờ đó nhãn to lên), rồi vẫn trải chiều dài qua vài slide.
+  // Trước đây phải tự gọi `bpmn-slice(bpmn-model(src), ..)` rồi truyền model vào; cách
+  // đó vẫn chạy, tham số này chỉ là lối đi ngắn và khớp tên với các component khác.
   let model = bpmn-model(src)
+  if view != none { model = bpmn-slice(model, view) }
   if compact != none and compact != false {
     model = compact-model(model, opts: if type(compact) == dictionary { compact } else { (:) })
   }

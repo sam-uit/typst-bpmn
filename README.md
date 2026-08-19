@@ -197,6 +197,39 @@ this region contain a node?" must be taught about it separately. `bpmn-sheet` ha
 two such places, both covered in
 [docs/design-system.md](docs/design-system.md#black-box-participants).
 
+## Fold-outs on a landscape page
+
+`bpmn-sheet` was written for A4 portrait: the model is wide, the page is tall, so it
+turns the drawing a quarter turn and cuts it into windows that run down the page.
+
+On a **landscape** page, a 16:9 slide for instance, turning is exactly the wrong move.
+The page already runs the same way the model does; what is needed is only the cutting.
+`turn: none` does that: no rotation, axes not swapped, windows laid out across the
+slide.
+
+```typ
+#bpmn-sheet(M, turn: none, view: (pool: "Hồng Hà"), compact: (axis: "both"),
+            max-pages: 6, min-font: 12pt)
+```
+
+`view:` cuts *elements* before the sheet cuts *pages*. The two are orthogonal and on a
+slide you usually want both: keep one pool so the model gets shorter and the labels
+grow, then still run its length across a few slides. `bpmn-sheet-info(.., view: ..)`
+takes the same argument, so the page budget you read is the one you will get.
+
+Measured on the campaign model at 16:9 with `compact: (axis: "both")`:
+
+| slides | grid | label |
+| --- | --- | --- |
+| 3 | 1 × 3 | 6.0pt |
+| 4 | 2 × 3 | 7.3pt |
+| 6 | 2 × 4 | 10.3pt |
+| 7 | 2 × 5 | 12.0pt |
+
+Two rows buys a lot of label size, but the second row is whatever was at the bottom of
+the model, often a near-empty lane and a black-box band. Slicing to one pool first, or
+staying at one row and accepting ~7pt, is usually the better trade.
+
 ## Telling the reader to turn the page
 
 A fold-out prints as an ordinary portrait A4 with the drawing lying sideways on
