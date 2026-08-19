@@ -1,4 +1,4 @@
-// src/bpmn-span.typ
+// /template/components/bpmn-span.typ
 // Cắt sơ đồ BPMN theo CHIỀU DỌC — một đoạn quy trình, từ phần tử nào tới phần tử nào.
 //
 // `bpmn-figure` đã cắt được theo chiều đối tượng (`view: (pool:)`, `(lane:)`) — tức là
@@ -7,9 +7,23 @@
 //   #bpmn-span(M, from: "StartEvent_NhuCau", to: "Gateway_KetQuaDamPhan")
 //
 // Cách làm: **không** vẽ lại và **không** phóng to canvas. Chỉ tính ra tập phần tử nằm
-// giữa hai mốc rồi giao cho `bpmn-slice` của typst-bpmn — thứ vốn đã giữ nguyên DI, giữ
+// giữa hai mốc rồi giao cho `bpmn-slice` của typst-bpmn, thứ vốn đã giữ nguyên DI, giữ
 // khung pool/lane, giữ black box của các bên còn trao đổi thông điệp, và có sẵn `pad`.
 // Nhờ đi qua cùng một cửa, mọi thứ khác (`compact`, `fit`, `bpmn-notes`) chạy y như cũ.
+//
+// HỢP ĐỒNG, phát biểu rõ vì đã từng ngầm hiểu sai:
+//
+//   **Sequence flow quyết định BIÊN của đoạn. Mọi thứ gắn vào phần nằm trong biên thì
+//   đi theo.**
+//
+// "Đi theo" gồm: message flow, đối tác ở đầu kia của message flow (dưới dạng hộp đen),
+// data object, comment, association, và group nào bao trùm phần đã giữ.
+//
+// Vì sao phải nói ra: tập id ở đây tính bằng cách đi theo *sequence flow*, và đó là định
+// nghĩa đúng của "đoạn từ A tới B". Nhưng nếu lát cắt chỉ gồm đúng tập đó thì nó đúng về
+// đồ thị mà mất sạch bối cảnh: người đọc thấy một chuỗi task trôi lơ lửng, không còn đối
+// tác nào, không còn ghi chú nào. Nó thôi là bản phóng to của cùng một hình. Phần "đi
+// theo" được `bpmn-slice` lo, xem lượt hai trong đó.
 //
 // Vì sao "giữa hai mốc" là giao của hai tập, chứ không phải đường đi ngắn nhất: một quy
 // trình thật có nhiều nhánh song hành: đường ngắn nhất chỉ lấy được một nhánh và bỏ mất

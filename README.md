@@ -184,6 +184,13 @@ removed but that still exchanges messages with what remains is kept as a black
 box, placed above or below according to where it sat originally, with its message
 flows re-routed to the band edge.
 
+That promise was in this README long before it was true. A message flow can anchor
+on the **participant itself** rather than on a node inside it, and that is exactly
+the shape a black-box partner has: no process, so no node to anchor on. The lookup
+that finds the partner went by node id, missed, and dropped both the partner and
+the flow. Across the six L3 models in the report, slicing by pool restored **10
+black boxes and 27 message flows** once that lookup learned about participants.
+
 ```typ
 #bpmn-figure(M, view: (pool: "Thí Sinh"))                      // 2 pools, 17 flows
 #bpmn-figure(M, view: (pool: "Thí Sinh", blackbox: false))     // 1 pool,  12 flows
@@ -229,6 +236,25 @@ Measured on the campaign model at 16:9 with `compact: (axis: "both")`:
 Two rows buys a lot of label size, but the second row is whatever was at the bottom of
 the model, often a near-empty lane and a black-box band. Slicing to one pool first, or
 staying at one row and accepting ~7pt, is usually the better trade.
+
+## What a span carries with it
+
+`bpmn-span(from:, to:)` cuts along the **sequence flow**, and the contract is worth
+stating because it used to be left implicit:
+
+> Sequence flow decides the **boundary** of the span. Everything attached to what
+> falls inside the boundary comes along.
+
+"Comes along" means message flows, the partner at the far end of one (as a black
+box), data objects, annotations, associations, and any group that encloses part of
+what was kept.
+
+The reason this needs saying: the id set is computed by walking sequence flows,
+which is the right definition of "the stretch from A to B". But a slice containing
+only that set is correct as a graph and useless as a picture: a chain of tasks
+floating with no partners and no commentary. It stops being a zoom of the same
+diagram. `bpmn-slice` does the picking-up, in a second pass that runs only for
+`view: (nodes: ..)`.
 
 ## Telling the reader to turn the page
 
