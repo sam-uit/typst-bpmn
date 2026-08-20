@@ -1,6 +1,6 @@
 # Roadmap
 
-Phase 0 is the groundwork that makes everything else credible, Phase 1 is the one that had to work, Phase 2 is the ambitious one that has barely started. Alongside them sits a fourth thing that was never planned as a phase and is now most of the package: the process-drawing family that is not BPMN.
+Phase 0 is the groundwork that makes everything else credible, Phase 1 is the one that had to work, and Phase 2 is the ambitious one that has now been retired rather than finished, because another repository answered its question better. Alongside them sits a fourth thing that was never planned as a phase and is now most of the package: the process-drawing family that is not BPMN.
 
 What shipped when is in [changelogs.md](changelogs.md). This file is about what is left.
 
@@ -9,7 +9,7 @@ What shipped when is in [changelogs.md](changelogs.md). This file is about what 
 | Phase 0, shape vocabulary | closed | v0.3.0 |
 | Phase 1, modeler-first | closed | v0.6.0 |
 | The process-drawing family | in use, smoke-tested | v0.6.0, smoke from v0.17.0 |
-| Phase 2, hand-authored BPMN | started, far from done | |
+| Phase 2, hand-authored BPMN | retired as a goal, v0.17.4 | the layout side moved to bpmn-generator |
 
 ---
 
@@ -42,7 +42,7 @@ Out of scope, deliberately: choreography and conversation diagrams.
 
 **Deliverable: done.** `tests/conformance.typ` renders every symbol at three scales (100 / 55 / 34%) plus both pool orientations, for side-by-side comparison with Camunda Modeler: `just conformance`. `docs/design-system.md` is kept in step.
 
-**Known limitation carried forward.** When a slice collapses a partner to a black box, the re-routed message flows take a straight line to the band. If the flow starts on the far side of the pool it will pass over the shapes in between. Real routing around obstacles is Phase 2 work (edge bundling / corridor assignment).
+**Known limitation carried forward.** When a slice collapses a partner to a black box, the re-routed message flows take a straight line to the band. If the flow starts on the far side of the pool it will pass over the shapes in between. Routing around obstacles is not planned: it belongs to a layout engine, and layout is bpmn-generator's side of the boundary. Until then the fix is to move the node.
 
 ### A note on borrowing from bpmn-js
 
@@ -87,7 +87,7 @@ Since the project is not being published or monetised the practical risk is low 
 
 **Still open on this side.**
 
-1. **Message flows to a black box take a straight line.** One that starts on the far side of the pool passes over whatever lies between. Routing around obstacles is Phase 2 machinery; until then the fix is to move the node.
+1. **Message flows to a black box take a straight line.** One that starts on the far side of the pool passes over whatever lies between. This is the one place where obstacle-aware routing would genuinely help on the DI path, and it is narrow enough to be worth doing on its own terms rather than as part of a layout engine. It is in [`TODO.md`](TODO.md); until then the fix is to move the node.
 2. **Sub-processes have no drill-down.** An expanded sub-process draws its children in place; a collapsed one is a box. There is no way to render the child plane as its own figure.
 3. **Group titles ignore their DI label bounds.** Deliberate for now, because modelers put them where a Typst layout cannot follow, but it is a documented divergence rather than a decision.
 4. **No `.bpmn` writer.** The pipeline is one-way. Anything the renderer learns about a diagram cannot be pushed back into the file. [bpmn-generator](https://github.com/sam-uit/bpmn-generator) owns that direction.
@@ -119,31 +119,30 @@ Nine components arrived together in v0.6.0, lifted out of the report that grew t
 
 ---
 
-## Phase 2: hand-authored BPMN
+## Phase 2: hand-authored BPMN, retired
 
-**Goal.** Write the process in YAML; the renderer does everything else. No modeler in the loop.
+**The goal was.** Write the process in YAML; the renderer does everything else. No modeler in the loop.
 
-**Done so far.**
+**Retired in v0.17.4, because that goal is met, elsewhere, and better.** [bpmn-generator](https://github.com/sam-uit/bpmn-generator)'s `bpmn-brief` takes coordinate-free YAML and produces a laid-out diagram: layering along the longest path, back-edge detection, row inheritance, orthogonal routing, structural repair, and since its v0.6.0 a native vertical layout. It reaches the same destination by a better road, because what it emits is a real `.bpmn` with real BPMNDI. That file opens in Camunda Modeler, converts back through `bpmn2yaml`, and survives a round trip unchanged. A grid layout inside this package produces a rendered figure and nothing else, so the author who wants to adjust one edge has nowhere to do it.
+
+**What was built, and stays.** `bpmn-grid.typ` is not withdrawn. It renders coordinate-free YAML with no Python anywhere in the loop, which is worth keeping for exactly that reason:
 
 - `row`/`col` grid layout with pool and lane frames derived from content.
 - Port allocation: each flow attached to a node gets its own side, so gateway branches leave from different vertices.
 - Orthogonal routing between allocated ports (straight / L / Z).
 - External labels placed on a side no flow is using.
 - Flow labels anchored near the source, the way a modeler labels a branch.
-- Pools and lanes carry an `id`, so nodes reference `pool: p_mgr` rather than repeating a display name, and renaming a pool does not break the model.
+- Pools and lanes carry an `id`, so nodes reference `pool: p_mgr` rather than repeating a display name.
 
-**Not done.**
+**Its ceiling, stated rather than discovered.** About a dozen nodes and two pools, which is what `examples/leave-request.yaml` and the `grid` case in the golden manifest exercise. Past that, write a brief and run it through `bpmn-brief`. The README says the same thing at the top, and it is now a decision rather than an apology.
 
-1. **Crossing minimisation.** Edges cross whenever the author's `row`/`col` ordering says they should. A layered-layout pass (Sugiyama-style, ordering within columns) would fix most of it.
-2. **Label collision avoidance.** Labels are placed by rule, not by measurement; two long labels in the same neighbourhood can still overlap.
-3. **Edge bundling / corridor assignment.** Parallel edges in the same corridor share a line; they should be offset.
-4. **Boundary events.** The grid layout does not place them on their host's edge.
-5. **Automatic `row`/`col`.** Infer position from flow topology so the author only writes nodes and flows. This is the real prize and the hardest item.
-6. **Lane inference.** Assign lanes from a node's `lane:` key instead of relying on row order within a pool.
+**Three of the six open items are dropped**, not deferred. Crossing minimisation, edge bundling and automatic `row`/`col` are a layout engine. Building a second one here means two engines that have to agree, and unlike the two *parsers*, which `tests/agreement.typ` compares mechanically on every push, two layout engines can only be compared by eye. That is the drift problem in its worst form: expensive to build, impossible to police, and the second engine would be the weaker of the two on the day it shipped.
 
-**Design principle.** Everything above must degrade gracefully: an author who provides explicit `row`/`col`/`waypoints` always wins over the algorithm. Layout help should never be layout tyranny.
+**Two of them were never phase work.** A boundary event drawn away from its host and a `lane:` key that the grid ignores are defects, not ambitions, and they moved to [`TODO.md`](TODO.md) where they can be fixed in an afternoon each.
 
-**Honest assessment.** Items 1–4 are a few days each and worth doing. Item 5 is where hand-authored BPMN either becomes genuinely pleasant or stays a toy, and it is also where a naive implementation will look worse than the modeler for a long time. Sequence it last, behind a flag, and keep the explicit-coordinate path as the default until it clearly wins.
+**One is marginal.** Label collision avoidance applies only to the grid path, since labels on the DI path come from the modeler. It stays listed in `TODO.md` at low priority.
+
+**What replaces it as the boundary between the two repositories:** *bpmn-generator owns layout, typst-bpmn owns rendering.* `bpmn-grid` is the exception that predates the split, and it is scoped rather than grown. The direction of travel is already documented in [integration.md](integration.md).
 
 ---
 

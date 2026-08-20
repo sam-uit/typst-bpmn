@@ -10,7 +10,7 @@ The switch is `meta.layout`: `di` means the bounds are authoritative; anything e
 meta:
   id: Definitions_0sd3whz        # from the BPMN file, informational
   source: b04-btvn01.bpmn
-  title: IE203 - Bài Tập 01      # from the BPMN group label, if any
+  title: IE203 - Assignment 01   # from the BPMN group label, if any
   caption: ...                   # optional; API `caption:` overrides it
   layout: di                     # di | grid
   extent: { x, y, w, h }         # bounding box; recomputed on slice/compact
@@ -24,15 +24,15 @@ Caption resolution: API `caption:` → `meta.caption` → `meta.title` → none.
 ```yaml
 pools:
   - id: p_mgr                    # referenced by nodes as `pool: p_mgr`
-    name: Quản lý
+    name: Management
     horizontal: true
     bounds: { x, y, w, h }       # DI form only
     blackbox: false              # set by the slicer, not by hand
     lanes:
-      - { id: l_hr, name: Nhân sự, bounds: { x, y, w, h } }
+      - { id: l_hr, name: HR, bounds: { x, y, w, h } }
 ```
 
-In grid form `bounds` is omitted and lanes may be bare strings: `lanes: [Trưởng nhóm, Nhân sự]`. Giving them ids is better: a node can then say `lane: l_hr` and renaming the lane will not break anything.
+In grid form `bounds` is omitted and lanes may be bare strings: `lanes: [Team Lead, HR]`. Giving them ids is better: a node can then say `lane: l_hr` and renaming the lane will not break anything.
 
 Within a pool, `row` maps to lane order: row 1 lands in the first lane.
 
@@ -43,7 +43,7 @@ Common fields:
 ```yaml
 - id: Event_1                    # required, unique
   kind: event                    # event|task|subprocess|gateway|data|annotation|group
-  name: Nhu Cầu Đăng Ký Học
+  name: A need to enrol arises
   bounds: { x, y, w, h }         # DI form
   row: 1                         # grid form
   col: 3                         # grid form
@@ -88,7 +88,7 @@ flows:
     kind: sequence               # sequence | message | association | data
     source: Event_1
     target: Task_1
-    name: "Có"
+    name: "Yes"
     waypoints: [[x, y], [x, y]]  # DI form; grid form routes automatically
     label: { x, y, w, h }
     default: true                # draws the slash near the source
@@ -106,20 +106,20 @@ Note that `dataInputAssociation` and `dataOutputAssociation` in BPMN XML name th
 
 ```yaml
 meta:
-  caption: Quy trình duyệt đơn
+  caption: The approval process
 
 pools:
-  - { id: p_emp, name: Nhân viên }
+  - { id: p_emp, name: Employee }
   - id: p_mgr
-    name: Quản lý
+    name: Management
     lanes:
-      - { id: l_lead, name: Trưởng nhóm }
-      - { id: l_hr,   name: Nhân sự }
+      - { id: l_lead, name: Team Lead }
+      - { id: l_hr,   name: HR }
 
 nodes:
-  - { id: s1, kind: event,   event: start,       name: Cần nghỉ phép, pool: p_emp, row: 1, col: 1 }
-  - { id: t1, kind: task,    task: user,         name: Nộp đơn,       pool: p_emp, row: 1, col: 2 }
-  - { id: g1, kind: gateway, gateway: exclusive, name: "Duyệt?",      pool: p_mgr, row: 1, col: 3 }
+  - { id: s1, kind: event,   event: start,       name: Leave needed,  pool: p_emp, row: 1, col: 1 }
+  - { id: t1, kind: task,    task: user,         name: Submit request, pool: p_emp, row: 1, col: 2 }
+  - { id: g1, kind: gateway, gateway: exclusive, name: "Approved?",   pool: p_mgr, row: 1, col: 3 }
 
 flows:
   - { source: s1, target: t1 }

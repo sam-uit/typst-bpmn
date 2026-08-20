@@ -9,7 +9,7 @@ just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.3": *
+#import "@local/typst-bpmn:0.17.4": *
 ```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution semantics: the converter drops `extensionElements`, `zeebe:*`, `camunda:*`, `isExecutable`, expressions, listeners and IO mappings. What survives is what you can see on the canvas.
@@ -28,6 +28,7 @@ Hand-written YAML with no coordinates falls back to a `row`/`col` grid with orth
 - [docs/schema.md](docs/schema.md): YAML field reference, both dialects
 - [docs/integration.md](docs/integration.md): installing the package into a document, the file-access constraint, path conventions
 - [docs/roadmap.md](docs/roadmap.md): what is closed, what is open, and what is missing from the process-drawing family
+- [docs/TODO.md](docs/TODO.md): the short list of things that are wrong or missing right now, each with a reproducer
 - [docs/changelogs.md](docs/changelogs.md): every tagged version, what it changed and why
 - [CONTRIBUTING.md](CONTRIBUTING.md): the conventions this repository follows, and why each one is a rule
 
@@ -81,7 +82,7 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.3": *
+#import "@local/typst-bpmn:0.17.4": *
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 

@@ -235,7 +235,7 @@ bpmn.io's non-normative colour extensions (`bioc:fill` / `bioc:stroke`, `color:b
 
 ## Data-layer strings are not markup
 
-`[Chương 2--3]` written in a document renders "Chương 2–3". The same characters in a YAML file, inserted with `#s`, render "Chương 2--3", two hyphens, verbatim. That is not a bug in either place: turning `--` into an en-dash is the job of Typst's *parser*, and a `str` never passes through a parser.
+`[Chapter 2--3]` written in a document renders "Chapter 2–3". The same characters in a YAML file, inserted with `#s`, render "Chapter 2--3", two hyphens, verbatim. That is not a bug in either place: turning `--` into an en-dash is the job of Typst's *parser*, and a `str` never passes through a parser.
 
 So the data layer has to say what it is sending to the engine. `bptext.typ` offers three modes, applied at every boundary where data becomes content:
 
@@ -248,7 +248,7 @@ So the data layer has to say what it is sending to the engine. `bptext.typ` offe
 The split is deliberate. A label in `content/processes/*.yaml` was typed by the person writing the report, in a file that only this toolchain reads, full markup is what they want. A label inside a `.bpmn` was typed in Camunda Modeler, by someone using a different tool, who has no idea Typst exists. Evaluating that is a trap:
 
 - **`#` opens a code expression.** `"kho #1"` renders "kho 1": the hash *disappears silently*, with no error. Write `\#` for a literal one.
-- **`~` is a non-breaking space, not a tilde.** `"~70 đơn"` renders " 70 đơn" and the word "approximately" is gone. Write `\~`, or just type `≈`.
+- **`~` is a non-breaking space, not a tilde.** `"~70 orders"` renders " 70 orders" and the word "approximately" is gone. Write `\~`, or just type `≈`.
 - **Bold is `*one star*`, not `**two**`.** Two stars render the text unbolded with a "no text within stars" warning, a Markdown habit that fails quietly.
 - **A multi-letter run in math is one variable.** `$CTE$` fails the build with "unknown variable: CTE". Write `$"CTE"$` or `$C T E$`.
 
@@ -256,7 +256,7 @@ Three of those four fail *silently*. That asymmetry is the whole argument for no
 
 Typst has no `try`, so `"markup"` cannot catch a failure and fall back to the raw string. That is precisely why `"smart"` exists rather than being an afterthought: `--` and `---` are what people actually want out of a modeler label, and they cost nothing to give safely. Override per document with `theme + (markup: "markup")`.
 
-One consequence worth remembering: **anything that matches on a label must compare rendered text, not raw text.** `annotate` anchors by name, and "Tài chính -- Kế toán" in the data no longer equals "Tài chính – Kế toán" on the page. `bp-same-text` and `bp-flatten` exist for that comparison.
+One consequence worth remembering: **anything that matches on a label must compare rendered text, not raw text.** `annotate` anchors by name, and "Finance -- Accounting" in the data no longer equals "Finance – Accounting" on the page. `bp-same-text` and `bp-flatten` exist for that comparison.
 
 ## Typography
 
