@@ -4,6 +4,14 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.17.2
+
+**The English-only rule covers commit messages, said out loud**
+
+`CONTRIBUTING.md` already listed commit messages among the things written in English, and that was still the part being missed. A commit message is not in any file anybody reopens, so nothing brings it back into view the way a stale comment does. It is documentation that outlives the diff it describes, and it now says so in the rule rather than only appearing in a list.
+
+No code changed. The version moves because the repository logs every change, and because `just version-check` requires `typst.toml` and the documentation to agree whatever the reason for the bump.
+
 ## v0.17.1
 
 **CONTRIBUTING.md, and English as a rule**

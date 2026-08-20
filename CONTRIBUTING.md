@@ -6,6 +6,8 @@ Rules this repository follows. They are rules rather than preferences: if someth
 
 **English only.** Documentation, code comments, docstrings, strings printed to the user, `panic` messages, commit messages, changelog entries, `just` recipe descriptions. All of it.
 
+Commit messages are included in that list and are the easiest part of it to forget, because a commit message is not in any file you reopen later. It is documentation that outlives the diff it describes, so it follows the same rule the documentation does.
+
 This rule was adopted on 2026-08-20. The repository grew out of a Vietnamese-language report project, so a large amount of Vietnamese prose is still in `src/` and `docs/`. That backlog is scheduled for one planned translation pass and is deliberately **not** fixed piecemeal while doing other work, because a half-translated file is harder to read than a consistently Vietnamese one. Anything **newly written** is English from the start.
 
 ## Naming and description
