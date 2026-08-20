@@ -4,6 +4,20 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.17.1
+
+**CONTRIBUTING.md, and English as a rule**
+
+The conventions this repository follows were, until now, held in one person's head and in a memory file outside the repository. A clone did not carry them, so the first thing a second reader would do is guess, and guess differently in each file. [`CONTRIBUTING.md`](../CONTRIBUTING.md) writes them down: language, naming, punctuation, Markdown source, changelog, dependencies, and what to run before committing.
+
+Each rule carries the reason it is a rule. That is deliberate. A convention with no stated reason reads as taste, and taste is negotiable at three in the morning when something needs to ship; a convention whose cost is written next to it is not.
+
+**English only**, from 2026-08-20, for documentation, comments, docstrings, panic messages, `just` recipe descriptions and commit messages. This library started inside a Vietnamese-language report and most of its prose is still Vietnamese, so the rule as written applies to everything **newly** written, and the existing backlog is scheduled for one planned pass. Translating a file here and a file there while doing other work was considered and rejected: a half-translated file costs the reader more than a consistently Vietnamese one, and a translation pass mixed into a behaviour change makes the behaviour change unreviewable.
+
+**Dependencies must be stated** is the rule with real teeth. `bpmn2yaml` comes from another repository, the version number has to agree in three places across two repositories, and neither fact is visible from inside a single file. `just version-check` already guards the part a machine can guard; the document covers the rest.
+
+Version bumped to 0.17.1 in `typst.toml`, `README.md` and `docs/integration.md` together, which is exactly what `just version-check` exists to enforce. That recipe now scans `CONTRIBUTING.md` as well: it is a document that teaches the import line, so it is a document that can state the wrong version.
+
 ## v0.17.0
 
 **LICENSE, CI, và lớp kiểm đầu tiên cho họ component**

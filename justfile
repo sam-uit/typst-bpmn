@@ -192,7 +192,7 @@ golden-update: convert
 # của nó. Không loại thì recipe này báo lỗi ngay ở bản đầu tiên nó được thêm vào.
 version-check:
     @ver=$(grep '^version' typst.toml | cut -d'"' -f2); \
-    files=$(ls README.md docs/*.md | grep -v 'changelogs.md'); \
+    files=$(ls README.md CONTRIBUTING.md docs/*.md | grep -v 'changelogs.md'); \
     bad=$(grep -n "@local/typst-bpmn:[0-9]" $files | grep -v "typst-bpmn:$ver" || true); \
     if [ -n "$bad" ]; then \
         echo "version lệch: typst.toml là $ver, còn tài liệu ghi:"; \
