@@ -201,7 +201,14 @@ version-check:
     fi; \
     echo "✓ version khớp ($ver)"
 
-check: convert-strict golden version-check
+# Smoke test cho họ component vẽ quy trình. Không cần `models/`, nên chạy được ngay
+# trên một bản clone sạch. Xem chú thích đầu tests/smoke.typ cho phạm vi của nó.
+smoke:
+    @mkdir -p {{out}}
+    @{{typst}} compile --root {{src}} {{font_flag}} {{src}}/tests/smoke.typ {{out}}/smoke.pdf
+    @echo "✓ smoke: mọi component dựng được trên mọi hình dạng dữ liệu thử"
+
+check: convert-strict golden version-check smoke
     @mkdir -p {{out}}
     {{typst}} compile --root {{src}} {{font_flag}} \
         {{src}}/tests/agreement.typ {{out}}/agreement.pdf

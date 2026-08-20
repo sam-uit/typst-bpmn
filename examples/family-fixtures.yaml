@@ -1,0 +1,112 @@
+# Dữ liệu thử cho `tests/smoke.typ`.
+#
+# Một file cho cả sáu component, vì cái đang được kiểm không phải nội dung mà là
+# **hình dạng dữ liệu**: rỗng, một phần tử, nhiều phần tử, nhãn dài, thiếu khoá tuỳ
+# chọn. Sáu component này được migrate từ repo báo cáo sang, nơi mỗi cái chỉ từng
+# nhìn thấy đúng một file dữ liệu thật, nên đó chính là chỗ chúng chưa từng bị thử.
+#
+# Nhãn cố tình có `--`, `#`, và một dòng dài, để đường `bp-text` cũng được đi qua.
+
+bpstep:
+  empty:
+    steps: []
+  one:
+    steps: ["Tiếp nhận"]
+  many:
+    title: "Quy trình bảo hành"
+    steps:
+      - text: "Tiếp nhận yêu cầu"
+        color: "#cfe2f3"
+      - text: "Chẩn đoán lỗi"
+        note: "Kỹ thuật viên"
+      - "Báo giá"
+      - text: "Sửa chữa hoặc thay thế linh kiện, tuỳ mức độ hỏng hóc của thiết bị"
+      - "Bàn giao"
+  csv-rows:
+    steps:
+      - ["Nhận hàng", "#ffe0b2"]
+      - ["Kiểm đếm"]
+  dashes:
+    steps: ["Giai đoạn 2--3", "Kho \\#1"]
+
+bpmap:
+  minimal:
+    core: ["Bán hàng"]
+  full:
+    management: ["Hoạch định", "Kiểm soát chất lượng"]
+    core:
+      - title: "Trước bán"
+        items: ["Tiếp thị", "Tư vấn"]
+      - title: "Sau bán"
+        items: ["Bảo hành", "Chăm sóc khách hàng"]
+    support: ["Nhân sự", "Tài chính", "Công nghệ thông tin"]
+    left: "Nhu cầu khách hàng"
+    right: "Sự hài lòng khách hàng"
+  only-core:
+    core: ["Một nhóm duy nhất"]
+    only: "core"
+
+orgchart:
+  leaf:
+    tree:
+      o: "Công Ty"
+  three-levels:
+    tree:
+      o: "Công Ty CPTM Hồng Hà"
+      children:
+        - r: "Ban Giám Đốc"
+          children:
+            - p: "Tổng Giám Đốc"
+        - o: "Khối Kinh Doanh"
+          children:
+            - r: "Trưởng Phòng Kinh Doanh"
+            - r: "Nhân Viên Kinh Doanh"
+        - o: "Khối Hỗ Trợ"
+
+bptable:
+  empty:
+    processes: []
+  two:
+    processes:
+      - name: "Bán hàng trực tiếp"
+        actors: ["Nhân viên bán hàng", "Thu ngân"]
+        customers: "Khách lẻ"
+        outcomes: "Hoá đơn"
+        steps: ["Tiếp đón", "Tư vấn", "Thanh toán", "Giao hàng"]
+      - name: "Bảo hành"
+        actors: "Kỹ thuật viên"
+        steps: ["Tiếp nhận"]
+
+bpportfolio:
+  one:
+    processes:
+      - { name: "Bảo hành", importance: 80, health: 30, feasibility: 60 }
+  spread:
+    processes:
+      - { name: "Bảo hành", tag: "P1", importance: 90, health: 20, feasibility: 70, select: true }
+      - { name: "Kho vận", tag: "P2", importance: 60, health: 55, feasibility: 40 }
+      - { name: "Tuyển dụng", tag: "P3", importance: 30, health: 85, feasibility: 90 }
+      - ["Dạng mảng", 50, 50, 50]
+  defaults:
+    processes:
+      - { name: "Thiếu hết mọi số" }
+
+whywhy:
+  one-level:
+    problem: "Thời gian bảo hành kéo dài"
+    whys:
+      - ask: "Tại sao thời gian bảo hành kéo dài?"
+        because: "Chờ linh kiện"
+  chain:
+    problem: "Thời gian bảo hành kéo dài"
+    whys:
+      - ask: "Tại sao kéo dài?"
+        because: "Chờ linh kiện từ hãng"
+        node: "task-send-dat-mua-linh-kien"
+        note: "Chờ hãng"
+      - ask: "Tại sao phải chờ hãng?"
+        because: "Không có tồn kho an toàn"
+        node: "task-user-kiem-ton-kho"
+      - ask: "Tại sao không có tồn kho an toàn?"
+        because: "Chưa có định mức tồn kho cho linh kiện hay hỏng"
+    root: "Thiếu định mức tồn kho"

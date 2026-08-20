@@ -13,8 +13,8 @@
 // API công khai:
 //   - whywhy(data, ..)        : Dựng phần trình bày từ dict đã nạp.
 //   - whywhy-file(path, ..)   : Nạp YAML/JSON rồi dựng, một lệnh.
-//   - whywhy-notes(data, ..)  : Trả về mảng `notes:` để đưa cho `bpmn-lane`/`bpmn-part`/
-//                               `bpmn-span` (hoặc `bpmn-notes`). Gộp các tầng liền nhau
+//   - whywhy-notes(data, ..)  : Trả về mảng `notes:` để đưa cho `bpmn-span` hoặc
+//                               `bpmn-notes`. Gộp các tầng liền nhau
 //                               cùng `node` thành một ô.
 //   - ww-load(path)           : Chỉ nạp dữ liệu, không dựng.
 //
