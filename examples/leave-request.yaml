@@ -2,36 +2,36 @@
 # `row`/`col` drive the grid layout; pools carry an `id` so nodes can reference
 # them without repeating the display name.
 meta:
-  caption: Quy trình xử lý đơn nghỉ phép (viết tay, không có toạ độ)
+  caption: The leave request process (hand-authored, no coordinates)
 
 pools:
   - id: p_emp
-    name: Nhân viên
+    name: Employee
   - id: p_mgr
-    name: Quản lý
+    name: Management
     lanes:
-      - { id: l_lead, name: Trưởng nhóm }
-      - { id: l_hr,   name: Nhân sự }
+      - { id: l_lead, name: Team Lead }
+      - { id: l_hr,   name: HR }
 
 nodes:
-  - { id: s1, kind: event, event: start, name: Cần nghỉ phép,      pool: p_emp, row: 1, col: 1 }
-  - { id: t1, kind: task,  task: user,   name: Nộp đơn nghỉ phép,  pool: p_emp, row: 1, col: 2 }
-  - { id: e1, kind: event, event: end,   name: Đã nhận kết quả,    pool: p_emp, row: 1, col: 6 }
+  - { id: s1, kind: event, event: start, name: Leave needed,       pool: p_emp, row: 1, col: 1 }
+  - { id: t1, kind: task,  task: user,   name: Submit the request, pool: p_emp, row: 1, col: 2 }
+  - { id: e1, kind: event, event: end,   name: Outcome received,   pool: p_emp, row: 1, col: 6 }
 
-  - { id: t2, kind: task,    task: user,        name: Xem xét đơn,       pool: p_mgr, row: 1, col: 2 }
-  - { id: g1, kind: gateway, gateway: exclusive, name: "Duyệt?",         pool: p_mgr, row: 1, col: 3 }
+  - { id: t2, kind: task,    task: user,        name: Review the request, pool: p_mgr, row: 1, col: 2 }
+  - { id: g1, kind: gateway, gateway: exclusive, name: "Approved?",      pool: p_mgr, row: 1, col: 3 }
   # `color:` names a Camunda swatch: green/red/orange/blue/purple, or a
   # semantic alias like success/failure. Beats repeating hex.
-  - { id: t3, kind: task, task: send, name: Gửi chấp thuận, pool: p_mgr, row: 1, col: 4, color: success }
-  - { id: t4, kind: task, task: send, name: Gửi từ chối,    pool: p_mgr, row: 2, col: 4, color: failure }
-  - { id: t5, kind: task,    task: service,     name: Cập nhật hệ thống, pool: p_mgr, row: 2, col: 2 }
+  - { id: t3, kind: task, task: send, name: Send approval,  pool: p_mgr, row: 1, col: 4, color: success }
+  - { id: t4, kind: task, task: send, name: Send refusal,   pool: p_mgr, row: 2, col: 4, color: failure }
+  - { id: t5, kind: task,    task: service,     name: Update the system, pool: p_mgr, row: 2, col: 2 }
 
 flows:
   - { source: s1, target: t1 }
   - { source: t1, target: e1 }
   - { source: t2, target: g1 }
-  - { source: g1, target: t3, name: "Có" }
-  - { source: g1, target: t4, name: "Không" }
+  - { source: g1, target: t3, name: "Yes" }
+  - { source: g1, target: t4, name: "No" }
   - { source: t4, target: t5 }
   - { source: t1, target: t2, kind: message }
   - { source: t3, target: e1, kind: message }

@@ -4,6 +4,18 @@ Every tagged version gets an entry here, newest first. Entries explain rather th
 
 Numbering: **minor** for a new component or a new capability, **patch** for a fix or an extension to something that exists. The version has to agree in three places: `typst.toml`, the `#import` line in this library's own documentation, and `template/pkg.typ` on the report's side.
 
+## v0.17.5
+
+**The examples in English too**
+
+v0.17.4 translated the prose and left the sample data. That is a half-measure: a reader meeting Vietnamese labels inside an English document has to work out which parts are the convention and which are the domain, which is exactly the cost the language rule exists to avoid.
+
+So `examples/leave-request.yaml`, the hand-authored grid model, is now in English, and the two places that quote it, `docs/schema.md` and the README's grid-form example, were re-checked against it word for word rather than translated separately. `demo.typ`'s prose and captions follow.
+
+**What stays Vietnamese, and why it has to.** Every `view:` selector naming a pool or a lane of `samples/b04-btvn01.bpmn`. `view:` matches on the display name, and that model is the one shipped with this repository, the one every measured number in the README was taken from, and the one the report's chapters reference. Translating those lines would give examples that look right and select nothing. The README now says so at the point where a reader first meets them.
+
+The golden manifest should not move: `bpmn-grid.typ` never measures text, so a node's name cannot change the layout, and the manifest records counts, extents and the label size those imply. `just golden` is the check, and it is the reason for saying "should" rather than "will".
+
 ## v0.17.4
 
 **Phase 2 retired, a TODO of its own, and `docs/` in English**

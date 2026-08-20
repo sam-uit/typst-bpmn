@@ -25,7 +25,7 @@ cd <typst-bpmn> && just install-lib
 Then add one import line to the document's central template file (`template/lib.typ` or equivalent), so every chapter can use it without declaring it again:
 
 ```typ
-#import "@local/typst-bpmn:0.17.4": *
+#import "@local/typst-bpmn:0.17.5": *
 ```
 
 **The version is pinned in the import line.** Raising the library's version means editing this line. That is deliberate: a submitted document has to rebuild identically.

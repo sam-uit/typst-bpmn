@@ -9,7 +9,7 @@ just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.4": *
+#import "@local/typst-bpmn:0.17.5": *
 ```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution semantics: the converter drops `extensionElements`, `zeebe:*`, `camunda:*`, `isExecutable`, expressions, listeners and IO mappings. What survives is what you can see on the canvas.
@@ -82,18 +82,20 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.4": *
+#import "@local/typst-bpmn:0.17.5": *
 
-#bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
+#bpmn-figure(yaml("/models/model.yaml"), caption: [The admission process])
 
 // no build step, parse the XML in Typst
 #bpmn-figure(xml("/model.bpmn"))
 
 // one pool, one lane, or an explicit node set
-#bpmn-figure(M, view: (pool: "Thí Sinh"), caption: [Góc nhìn của thí sinh])
+#bpmn-figure(M, view: (pool: "Thí Sinh"), caption: [The applicant's view])
 #bpmn-figure(M, view: (lane: "Hội Đồng Học Thuật"))
 #bpmn-figure(M, view: (exclude: ("Nhà Trường",)))
 ```
+
+The pool and lane names above are Vietnamese because they are the real names in `samples/b04-btvn01.bpmn`, the model shipped with this repository and the one every measured number on this page was taken from. `view:` matches on the display name, so translating them here would give a line that looks right and selects nothing.
 
 Prefer `yaml("...")` / `xml("...")` at the call site so the path resolves relative to *your* file, exactly as with `bpmap-data`.
 
@@ -211,7 +213,7 @@ When a figure turns sideways the caption turns with it, as one unit, the `sidewa
 `bpmn-figure` returns a wrapper, a `rotate`, a flipped `page`, a `layout`, and in Typst `#foo(..) <lbl>` labels the **outermost** element. A label written after the call therefore lands on the wrapper, and `@lbl` fails with *cannot reference rotate*. Pass it instead:
 
 ```typ
-#bpmn-figure(M, caption: [Quy trình tuyển sinh], label: <fig-admission>)
+#bpmn-figure(M, caption: [The admission process], label: <fig-admission>)
 
 Xem @fig-admission.
 ```
@@ -226,11 +228,11 @@ Two dialects of one schema: **DI form** (absolute coordinates, what the converte
 meta:
   layout: di                     # `di` = bounds authoritative; anything else = grid
 pools:
-  - { id: p_mgr, name: Quản lý, lanes: [{ id: l_hr, name: Nhân sự }] }
+  - { id: p_mgr, name: Management, lanes: [{ id: l_hr, name: HR }] }
 nodes:
-  - { id: g1, kind: gateway, gateway: exclusive, name: "Duyệt?", pool: p_mgr, row: 1, col: 3 }
+  - { id: g1, kind: gateway, gateway: exclusive, name: "Approved?", pool: p_mgr, row: 1, col: 3 }
 flows:
-  - { source: t1, target: g1, name: "Có" }
+  - { source: t1, target: g1, name: "Yes" }
 ```
 
 ## Colours
@@ -238,7 +240,7 @@ flows:
 `color:` on any element names a Camunda Modeler swatch instead of repeating hex:
 
 ```yaml
-- { id: t3, kind: task, task: send, name: Gửi chấp thuận, color: success }
+- { id: t3, kind: task, task: send, name: Send approval, color: success }
 ```
 
 `default` `blue` `orange` `green` `red` `purple`, plus semantic aliases (`success` `happy` `failure` `error` `reject` `warning` `rework` `info` `external`). Values match `bpmn-io/bpmn-js-color-picker`; explicit `fill:`/`stroke:` still wins. Alternative palettes: `outline-palette`, `mono-palette`.

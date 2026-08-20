@@ -106,7 +106,7 @@ Note that `dataInputAssociation` and `dataOutputAssociation` in BPMN XML name th
 
 ```yaml
 meta:
-  caption: The approval process
+  caption: The leave request process (hand-authored, no coordinates)
 
 pools:
   - { id: p_emp, name: Employee }
@@ -118,7 +118,7 @@ pools:
 
 nodes:
   - { id: s1, kind: event,   event: start,       name: Leave needed,  pool: p_emp, row: 1, col: 1 }
-  - { id: t1, kind: task,    task: user,         name: Submit request, pool: p_emp, row: 1, col: 2 }
+  - { id: t1, kind: task,    task: user,         name: Submit the request, pool: p_emp, row: 1, col: 2 }
   - { id: g1, kind: gateway, gateway: exclusive, name: "Approved?",   pool: p_mgr, row: 1, col: 3 }
 
 flows:
