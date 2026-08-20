@@ -20,7 +20,7 @@ nodes:
 
   - { id: t2, kind: task,    task: user,        name: Xem xét đơn,       pool: p_mgr, row: 1, col: 2 }
   - { id: g1, kind: gateway, gateway: exclusive, name: "Duyệt?",         pool: p_mgr, row: 1, col: 3 }
-  # `color:` names a Camunda swatch — green/red/orange/blue/purple, or a
+  # `color:` names a Camunda swatch: green/red/orange/blue/purple, or a
   # semantic alias like success/failure. Beats repeating hex.
   - { id: t3, kind: task, task: send, name: Gửi chấp thuận, pool: p_mgr, row: 1, col: 4, color: success }
   - { id: t4, kind: task, task: send, name: Gửi từ chối,    pool: p_mgr, row: 2, col: 4, color: failure }

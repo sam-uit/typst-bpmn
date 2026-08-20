@@ -37,7 +37,7 @@ jobs:
           python-version: '3.12'
 
       - name: cài bpmn2yaml (ghim theo tag)
-        run: pip install "bpmn-generator @ git+https://github.com/sam-uit/bpmn-generator@v0.5.1"
+        run: pip install "bpmn-generator @ git+https://github.com/sam-uit/bpmn-generator@v0.6.1"
 
       # PYTHON rỗng: `bpmn2yaml` đã nằm trên PATH, không cần `uv run --project ..`
       - name: just check

@@ -22,7 +22,7 @@ Ba công cụ để đưa một sơ đồ rộng vào khổ A4, theo thứ tự 
 
 = 1. Nén khoảng trắng
 
-`compact:` không thu nhỏ hình — nó chỉ bỏ bớt những dải trống. Kích thước shape và
+`compact:` không thu nhỏ hình: nó chỉ bỏ bớt những dải trống. Kích thước shape và
 nhãn giữ nguyên, nên khi scale vừa bề ngang trang, chữ *to ra*.
 
 #let stat(vw, cp) = {
@@ -47,7 +47,7 @@ nhãn giữ nguyên, nên khi scale vừa bề ngang trang, chữ *to ra*.
 
 #bpmn-figure(M, compact: (axis: "both"), theme: T, debug: true,
   caption: [Toàn cảnh sau khi nén cả hai trục. Cạnh vuông vẫn vuông, không có
-    phần tử nào chồng lên nhau — phép biến đổi là ánh xạ đơn điệu từng đoạn.])
+    phần tử nào chồng lên nhau: phép biến đổi là ánh xạ đơn điệu từng đoạn.])
 
 #pagebreak()
 
@@ -63,7 +63,7 @@ nó không phải việc của bạn". Tắt bằng `view: (pool: ..., blackbox:
     kể cả chiều gửi và chiều nhận.])
 
 #bpmn-figure(M, view: (pool: "Thí Sinh", blackbox: false), compact: true, theme: T,
-  caption: [Cùng lát cắt, `blackbox: false` — sạch hơn nhưng mất hẳn phần
+  caption: [Cùng lát cắt, `blackbox: false`, sạch hơn nhưng mất hẳn phần
     tương tác với đối tác.])
 
 #bpmn-figure(M, view: (pool: "Nhà Trường"), compact: true, theme: T,
@@ -74,7 +74,7 @@ nó không phải việc của bạn". Tắt bằng `view: (pool: ..., blackbox:
 = 3. Cắt lát theo lane
 
 #bpmn-figure(M, view: (lane: "Hội Đồng Học Thuật"), compact: true, theme: T,
-  debug: true, caption: [Chỉ lane Hội Đồng Học Thuật — nhãn đã đủ lớn để đọc thoải mái.])
+  debug: true, caption: [Chỉ lane Hội Đồng Học Thuật: nhãn đã đủ lớn để đọc thoải mái.])
 
 #bpmn-figure(M, view: (lane: "Phòng Tuyển Sinh"), compact: true, theme: T,
   caption: [Lane Phòng Tuyển Sinh.])
@@ -96,7 +96,7 @@ nó không phải việc của bạn". Tắt bằng `view: (pool: ..., blackbox:
 = 6. YAML viết tay, không có toạ độ
 
 Bỏ hết `bounds`/`waypoints` và cho mỗi node một `row`/`col`; phần còn lại do
-`bpmn-grid.typ` lo — kể cả định tuyến vuông góc.
+`bpmn-grid.typ` lo, kể cả định tuyến vuông góc.
 
 #bpmn-figure(yaml("/examples/leave-request.yaml"), theme: T, fit: "width",
   caption: [Layout lưới, không có một toạ độ nào trong file YAML.])

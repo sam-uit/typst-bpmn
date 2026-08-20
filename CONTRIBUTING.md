@@ -52,7 +52,7 @@ Every dependency is either synchronised automatically or described explicitly at
 
 This repository has one external dependency and one downstream consumer:
 
-- **`bpmn2yaml` comes from [bpmn-generator](https://github.com/sam-uit/bpmn-generator)** and is needed by `just convert`, `just check`, `just demo` and `just lint`. Locally it defaults to a sibling checkout driven through `uv run --project ../bpmn-generator`; override with `PYTHON=...`. CI installs it from GitHub **pinned to a tag**, because a change to the converter can move the golden manifest and that has to be a decision rather than a red build nobody caused.
+- **`bpmn2yaml` comes from [bpmn-generator](https://github.com/sam-uit/bpmn-generator)** and is needed by `just convert`, `just check`, `just demo` and `just lint`. Locally it defaults to a sibling checkout driven through `uv run --project ../bpmn-generator`; override with `PYTHON=...`. CI installs it from GitHub **pinned to a tag**, because a change to the converter can move the golden manifest and that has to be a decision rather than a red build nobody caused. The tag is written in `.github/workflows/check.yml` and nowhere else, so there is no second copy to disagree with it; raising it means checking first that the converter's new output changes no key this library reads, and pushing the generator's tag before the commit that raises the pin.
 - **The version number must agree in three places**: `typst.toml`, the `#import` line in `README.md` and `docs/integration.md`, and `template/pkg.typ` in the consuming document. `just version-check` guards the first two and is a prerequisite of both `just check` and `just install-lib`, so a release whose own documentation states the wrong number cannot be installed.
 
 ## Before committing

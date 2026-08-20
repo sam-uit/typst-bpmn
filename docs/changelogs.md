@@ -4,6 +4,18 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.17.3
+
+**The em-dash sweep finishes, and the converter pin moves to v0.6.1**
+
+**Six em-dashes the sweep missed.** v0.16.4 swept `src/`, and `demo.typ` and `examples/leave-request.yaml` are not in `src/`. Five were in demo captions and one in a comment that teaches the `color:` key, which means all six were in text a reader meets early. Replaced by meaning: a colon where the second half explains the first, a comma where it qualifies. The only em-dash left in the repository is inside a changelog entry quoting the old string it replaced, which has to stay for the entry to make sense.
+
+**The converter pin moves from v0.5.1 to v0.6.1**, five releases of `bpmn-generator` in one step, and it was checked rather than assumed. Every model this library reads through YAML (`b04-btvn01`, `vertical-pools`, `leading-comment`) was converted with both versions and compared: the only difference is a new `process:` key on each pool, and nothing here reads it. The golden manifest cannot move. What the newer converter brings is worth having: pools that own a process are no longer silently flattened into black boxes, so a model with a single-role pool now arrives intact.
+
+It also closes a gap the two parsers had. `bpmn-xml.typ` marks a participant with no `processRef` as a black box; the YAML path could not, because the converter never wrote the flag, so the same model drew one way through `xml()` and another through `yaml()`. From v0.5.4 the converter states `blackbox: true`, and the two agree. None of the current agreement pairs contains a black box, so nothing moves today; the pairing in `tests/agreement.typ` can now be extended to `two-blackboxes.bpmn`, which was impossible before and is the obvious next line in that file.
+
+Order matters when this lands: `bpmn-generator` v0.6.1 has to be pushed and tagged before the commit that raises the pin, or CI installs a tag that does not exist yet.
+
 ## v0.17.2
 
 **The English-only rule covers commit messages, said out loud**

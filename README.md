@@ -9,7 +9,7 @@ just install-lib      # -> ~/.local/share/typst/packages/local/typst-bpmn/<ver>
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.2": *
+#import "@local/typst-bpmn:0.17.3": *
 ```
 
 This renders BPMN. It is not a modeler, and it deliberately carries no execution semantics: the converter drops `extensionElements`, `zeebe:*`, `camunda:*`, `isExecutable`, expressions, listeners and IO mappings. What survives is what you can see on the canvas.
@@ -81,7 +81,7 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 ```
 
 ```typ
-#import "@local/typst-bpmn:0.17.2": *
+#import "@local/typst-bpmn:0.17.3": *
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 
