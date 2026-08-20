@@ -3,7 +3,7 @@
 //
 // Vì sao cần: một collaboration Level 3 là hình băng, rộng gấp đôi tới gấp ba chiều
 // cao. Ép nó vào bề rộng chữ A4 thì nhãn rơi xuống 2–4pt. Trong chương, lời giải là
-// *cắt lát*: `bpmn-lane`, `bpmn-span`, `bpmn-part`, mỗi hình trả lời một câu hỏi. Nhưng
+// *cắt lát*: `bpmn-figure(view: ..)` và `bpmn-span`, mỗi hình trả lời một câu hỏi. Nhưng
 // người đọc vẫn cần một chỗ nhìn thấy **toàn bộ** mô hình, và đó là việc của phụ lục.
 //
 // Cách làm: vẽ mô hình *một lần* ở tỉ lệ đọc được, rồi cắt thành từng ô cửa sổ, mỗi ô

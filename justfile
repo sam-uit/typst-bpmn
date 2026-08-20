@@ -23,10 +23,16 @@ default:
 
 # ---------------------------------------------------------------- convert ---
 
-# Convert every sample .bpmn into models/*.yaml
+# Convert every .bpmn the tests need into models/*.yaml
+#
+# Hai nguồn, và lý do phải có cả hai: `samples/` là dữ liệu vào, cố ý không nằm trong
+# repo. `tests/fixtures/` thì nằm trong repo, vì đó là đầu vào của bộ kiểm, do mình viết.
+# Trước đây vòng lặp chỉ quét `samples/`, nên `models/vertical-pools.yaml` và
+# `models/leading-comment.yaml` là hai file mồ côi không lệnh nào dựng lại được:
+# `just clean-all` là mất vĩnh viễn, và `just check` hỏng cho tới khi chép tay lại.
 convert:
     @mkdir -p {{models}}
-    @for f in {{samples}}/*.bpmn; do \
+    @for f in {{samples}}/*.bpmn tests/fixtures/*.bpmn; do \
         [ -e "$f" ] || continue; \
         name=$(basename "$f" .bpmn); \
         {{python}} bpmn2yaml "$f" -o {{models}}/$name.yaml; \
@@ -35,7 +41,7 @@ convert:
 # Convert, failing on any drawable element the converter does not recognise
 convert-strict:
     @mkdir -p {{models}}
-    @for f in {{samples}}/*.bpmn; do \
+    @for f in {{samples}}/*.bpmn tests/fixtures/*.bpmn; do \
         [ -e "$f" ] || continue; \
         name=$(basename "$f" .bpmn); \
         {{python}} bpmn2yaml "$f" -o {{models}}/$name.yaml --strict; \
