@@ -21,11 +21,6 @@ _trash/
 .idea/
 .vscode/
 
-# --- typst-bpmn ------------------------------------------------------------
-# Source models and reference renders: inputs, not code
-samples/
-plan.md
-
 # Converted models: build products of tools/bpmn2yaml.py
 models/
 
