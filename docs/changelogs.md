@@ -4,6 +4,22 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.16.4
+
+**Quy ước viết áp cho code base, và hai lỗi lộ ra trong lúc quét**
+
+249 chỗ dùng em-dash trong `src/`, `tests/` và `justfile`. Cùng ba luật đã dùng cho `docs/` ở v0.16.3, thay theo nghĩa chứ không máy móc thành dấu phẩy.
+
+19 chỗ **không** phải chú thích, và đó là phần đáng chú ý. `bpmn-sheet` in nhãn trang `"(1/3 — Phòng Marketing)"`, tức là chữ đi thẳng vào PDF của báo cáo, nên luật bị vi phạm ở chỗ nhìn thấy được nhất. Còn lại là ba thông điệp `panic`, ba dòng `echo` của justfile, và mười hai chuỗi văn bản của `tests/conformance.typ` vốn được in lên chính tờ đối chiếu.
+
+Hai lỗi lộ ra trong lúc quét:
+
+**`models/` có hai file mồ côi.** `just convert` chỉ quét `samples/`, mà `tests/agreement.typ` và `tests/conformance.typ` lại cần `models/vertical-pools.yaml` và `models/leading-comment.yaml`, vốn sinh ra từ `tests/fixtures/`. Không lệnh nào dựng lại được hai file đó, nên `just clean-all` là mất vĩnh viễn và `just check` hỏng cho tới khi chép tay lại. Vòng lặp nay quét cả hai nguồn; đã kiểm cả ba fixture đi qua `bpmn2yaml --strict` sạch.
+
+**`bpmn-lane` và `bpmn-part` không tồn tại.** Chú thích đầu `bpmn-sheet.typ` giới thiệu chúng như anh em của `bpmn-span`. Cách cắt theo lane thật sự là `bpmn-figure(view: (lane: ..))`. Cùng hai cái tên này còn nằm trong một gợi ý mà `bpmn-brief` in ra cho người dùng bên repo bpmn-generator, đã sửa ở đó tại v0.5.1.
+
+Và `typst.toml` còn một em-dash trong `description`, tức là nó nằm trong siêu dữ liệu của chính package.
+
 ## v0.16.3
 
 **Tài liệu: chuẩn hoá cách viết, dựng lại changelog, và roadmap nói đúng trạng thái**
