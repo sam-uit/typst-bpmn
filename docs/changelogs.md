@@ -4,6 +4,18 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.16.3
+
+**Tài liệu: chuẩn hoá cách viết, dựng lại changelog, và roadmap nói đúng trạng thái**
+
+Bản chỉ có tài liệu, nhưng vẫn tăng version, vì `template/pkg.typ` bên báo cáo ghim theo số này.
+
+**Quy ước viết.** Hai luật áp cho toàn bộ `docs/` và README. *Một đoạn là một dòng*: bỏ mọi lần xuống dòng thủ công giữa đoạn, vì xuống dòng giữa đoạn làm `git diff` báo cả đoạn đã đổi khi chỉ đổi một chữ, và làm mọi thao tác tìm/thay bằng script trượt qua chuỗi bị cắt ngang dòng. *Không em-dash*: 84 chỗ, thay theo nghĩa chứ không máy móc, nối hai mệnh đề độc lập thì thành chấm phẩy, mở một lời giải thích thì thành hai chấm, kẹp một cụm chen ngang thì thành dấu ngoặc đơn.
+
+**Changelog.** File này vốn rỗng trong khi repo đã có 37 tag. Những dải bản vá liên tiếp cùng một chủ đề được gộp làm một mục, vì đọc từng bản vá một thì mất mạch.
+
+**Roadmap.** Nó vẫn ghi Phase 1 là "current focus" trong khi tiêu chí thoát đã đạt từ v0.6.0, và không nhắc gì tới chín component vốn giờ chiếm phần lớn package. Nay có bảng trạng thái ở đầu, Phase 1 đóng lại kèm bốn việc còn mở, và một mục mới cho họ component. Điều đáng nói nhất từ mục đó: **chúng không có lớp test nào của riêng chúng**, `just check` chỉ phủ đường BPMN, nên sửa `bpstep` hay `bpportfolio` là kiểm bằng cách nhìn PDF và nhớ.
+
 ## v0.16.2
 
 **Loop marker theo đúng chiều BPMN**
