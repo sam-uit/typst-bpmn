@@ -1,0 +1,61 @@
+# Cổng kiểm của repo, chạy trên mỗi push và mỗi pull request.
+#
+# Vì sao có file này: `just check` vốn chỉ chạy khi có người nhớ chạy, mà nó lại là
+# thứ duy nhất đứng giữa thiết kế hai bộ phân tích và sự trôi dạt âm thầm. Từ khi
+# `samples/b04-btvn01.bpmn` nằm trong repo thì cả bộ kiểm chạy được trên một bản
+# clone sạch, nên nó chạy được ở đây.
+#
+# `bpmn2yaml` thuộc repo bpmn-generator và được **ghim theo tag**, không lấy nhánh
+# mặc định. Cùng lý do với `template/pkg.typ` bên báo cáo: đổi bộ chuyển đổi thì
+# golden manifest có thể trôi, và chuyện đó phải là một quyết định chứ không phải
+# một buổi sáng CI đỏ mà không ai đụng vào repo này.
+
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: typst-community/setup-typst@v4
+        with:
+          typst-version: '0.15.1'
+
+      - uses: extractions/setup-just@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: cài bpmn2yaml (ghim theo tag)
+        run: pip install "bpmn-generator @ git+https://github.com/sam-uit/bpmn-generator@v0.5.1"
+
+      # PYTHON rỗng: `bpmn2yaml` đã nằm trên PATH, không cần `uv run --project ..`
+      - name: just check
+        run: just check
+        env:
+          PYTHON: ''
+
+      - name: just lint
+        run: just lint
+        env:
+          PYTHON: ''
+
+      - name: giữ lại tờ conformance để nhìn khi cần
+        if: always()
+        run: just conformance
+        env:
+          PYTHON: ''
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conformance
+          path: out/conformance.pdf
+          if-no-files-found: ignore
