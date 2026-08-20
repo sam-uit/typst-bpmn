@@ -1,5 +1,5 @@
 // /template/components/orgchart.typ
-// Organization Chart — sơ đồ tổ chức dựng từ YAML, thuần Typst.
+// Organization Chart: sơ đồ tổ chức dựng từ YAML, thuần Typst.
 //
 // Không dùng thư viện ngoài (fletcher/cetz): bố cục cây được tính bằng
 // `measure` + thuật toán xếp cây, sau đó vẽ bằng `place` + `line` + `polygon`.
@@ -71,7 +71,7 @@
   ),
 )
 
-// MARK: Component — một node
+// MARK: Component: một node
 #let ocnode(
   body,
   kind: "o",
@@ -298,7 +298,7 @@
     )
   }
   if stacked and not all-leaf {
-    panic("orgchart: `stack` chỉ dùng được khi mọi node con đều là lá — " + repr(node.label))
+    panic("orgchart: `stack` chỉ dùng được khi mọi node con đều là lá: " + repr(node.label))
   }
 
   if stacked {
@@ -460,7 +460,7 @@
   (nodes: nodes, edges: edges)
 }
 
-// MARK: Component — sơ đồ tổ chức
+// MARK: Component: sơ đồ tổ chức
 #let orgchart(
   tree,
   // "tb" (trên-xuống) | "lr" (trái-phải)
@@ -598,7 +598,7 @@
   }
 })
 
-// MARK: Wrapper — dựng từ dữ liệu đã nạp
+// MARK: Wrapper: dựng từ dữ liệu đã nạp
 // Khóa hiểu được: tree | root | chart (cây), caption, label, options
 #let orgchart-data(data, ..args) = {
   if type(data) == array { return orgchart(data, ..args) }
@@ -623,7 +623,7 @@
   if lbl != none { [#out #label(lbl)] } else { out }
 }
 
-// MARK: Wrapper — nạp và dựng trong một lệnh
+// MARK: Wrapper: nạp và dựng trong một lệnh
 // LƯU Ý: đường dẫn tuyệt đối từ gốc project ("/content/diagrams/x.yaml").
 #let orgchart-file(path, ..args) = {
   let raw = if path.ends-with(".yaml") or path.ends-with(".yml") {

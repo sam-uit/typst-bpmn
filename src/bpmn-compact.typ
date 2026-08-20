@@ -2,8 +2,8 @@
 // carries information.
 //
 // Scaling a diagram to fit the page shrinks the labels along with it. Modeler
-// layouts are usually generous with horizontal air — routing corridors, slack
-// left over from dragging things around — and that air costs label size. This
+// layouts are usually generous with horizontal air, routing corridors, slack
+// left over from dragging things around, and that air costs label size. This
 // walks the diagram as if it were a grid, finds the columns (and optionally the
 // rows) where nothing lives, and collapses each of them to `min-gap`.
 //
@@ -18,7 +18,7 @@
   halo: 7,          // protected margin around a routing line, so parallel
                     // corridors stay visually distinct
   margin: 14,       // air kept at the outer edges
-  air: 0,           // FLOOR for an empty band — the one option that makes the
+  air: 0,           // FLOOR for an empty band, the one option that makes the
                     // diagram bigger. See below.
 )
 
@@ -27,7 +27,7 @@
 // opposite operation. Setting `air` turns the ceiling off for that axis: asking for
 // room and then capping it away in the same pass is not a thing anyone means.
 //
-// The two axes usually want opposite treatment — squeeze x, make room on y — so any
+// The two axes usually want opposite treatment, squeeze x, make room on y, so any
 // option can be overridden per axis by nesting it under `x:` or `y:`:
 //
 //   compact: (axis: "both", y: (air: 90))
@@ -37,12 +37,12 @@
 // `bpmn-notes` confines every comment card to the inside of the diagram box (rule 1,
 // containment). A lane drawn tight in the modeler leaves the solver nowhere legal to
 // put a card, so cards land badly or overlap. `air: 60` guarantees at least 60 units
-// of empty band everywhere, which is room the solver can use — and it costs nothing in
+// of empty band everywhere, which is room the solver can use, and it costs nothing in
 // fidelity, because this is the same monotonic piecewise-linear map as compaction:
 // shapes, labels and text keep their exact size, only the emptiness between them
 // changes.
 //
-// Two limits worth knowing. `air` only resizes gaps that already exist — where two
+// Two limits worth knowing. `air` only resizes gaps that already exist, where two
 // shapes touch, no space is invented. And where `air` and `min-gap` disagree, the
 // floor wins, so `(min-gap: 20, air: 60)` means "collapse generous gaps to 60, not 20".
 
@@ -67,7 +67,7 @@
   let sz(b) = if axis == "x" { b.w } else { b.h }
   let ivs = ()
 
-  // shapes, except frames — a group or pool rectangle spans the whole diagram
+  // shapes, except frames: a group or pool rectangle spans the whole diagram
   // and would mark every band as occupied. The group's *title* is still real
   // text that needs its room, so that stays in.
   for n in model.nodes {
@@ -99,12 +99,12 @@
       let lb = l.bounds
       if axis == "x" { ivs.push((lb.x, lb.x + band)) }
     }
-    // A band whose only content is its own rotated title must keep its height —
+    // A band whose only content is its own rotated title must keep its height,
     // squeeze it and the title runs out of the band and over its neighbours.
     //
     // The `blackbox` flag alone is not enough to find those: it is set by
     // `bpmn-slice`, so a model loaded whole (which is what `bpmn-sheet` does) has
-    // no flag at all and its empty partner pools were being crushed — 60 units to
+    // no flag at all and its empty partner pools were being crushed, 60 units to
     // 19 on the promotion model. Ask the geometry instead: a band with no shape
     // centred inside it is empty, however it was loaded.
     let has-node(bb) = model.nodes.any(n => {
@@ -148,7 +148,7 @@
   }
   // Dải ngoài cùng cũng chịu `air`, và điều đó là cố ý dù thoạt trông giống lãng phí.
   // Khung mà ô chú giải được phép dùng là *cả* extent, nên dải sát mép trên và mép dưới
-  // là chỗ đặt thật — thử cắt nó đi thì ô dồn hết vào giữa và đè lên hình.
+  // là chỗ đặt thật: thử cắt nó đi thì ô dồn hết vào giữa và đè lên hình.
   if hi > cursor {
     let len = hi - cursor
     let target = if o.air > 0 { calc.max(len, o.air) } else { calc.min(len, o.margin) }
@@ -186,7 +186,7 @@
 
   let m = model
   for ax in axes {
-    // Ghi đè theo trục: `(axis: "both", y: (air: 90))` — nén x như thường, còn y thì
+    // Ghi đè theo trục: `(axis: "both", y: (air: 90))`, nén x như thường, còn y thì
     // chỉ nong. Không có nó thì hai trục buộc phải dùng chung một bộ số, mà chúng
     // gần như luôn muốn hai điều ngược nhau.
     let o = o

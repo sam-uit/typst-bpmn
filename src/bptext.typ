@@ -2,7 +2,7 @@
 // Chuỗi trong file dữ liệu -> content của Typst.
 //
 // Vấn đề: `[Chương 2--3]` viết trong tài liệu ra "Chương 2–3", nhưng cùng chuỗi đó
-// nằm trong YAML rồi chèn bằng `#s` thì ra đúng "Chương 2--3" — hai gạch nối, y
+// nằm trong YAML rồi chèn bằng `#s` thì ra đúng "Chương 2--3", hai gạch nối, y
 // nguyên. Không phải lỗi: `--` -> en-dash là việc của *bộ phân tích cú pháp* Typst,
 // mà một `str` thì không đi qua bộ phân tích nào cả.
 //
@@ -15,10 +15,10 @@
 //
 // Bốn cái bẫy của "markup", phải biết trước khi dùng:
 //
-//   1. `#` mở một biểu thức code. "kho #1" ra "kho 1" — dấu thăng *biến mất im
+//   1. `#` mở một biểu thức code. "kho #1" ra "kho 1", dấu thăng *biến mất im
 //      lặng*, không báo lỗi. Muốn dấu thăng thật thì viết `\#`.
 //   2. `~` là *dấu cách không ngắt*, không phải dấu ngã. "≈70 đơn" viết "~70 đơn"
-//      sẽ ra " 70 đơn" — mất luôn nghĩa "xấp xỉ". Viết `\~`, hoặc dùng thẳng ký tự
+//      sẽ ra " 70 đơn": mất luôn nghĩa "xấp xỉ". Viết `\~`, hoặc dùng thẳng ký tự
 //      "≈" cho rõ.
 //   3. Trong math, một dãy nhiều chữ cái là *một biến*, không phải chữ. `$CTE$`
 //      làm hỏng build với "unknown variable: CTE". Viết `$"CTE"$` hoặc `$C T E$`.
@@ -26,7 +26,7 @@
 //      chữ thường kèm một cảnh báo "no text within stars".
 //
 // Ba trong bốn cái trên *hỏng im lặng*. Đó là lý do `bp-text` không phải mặc định
-// cho mọi nguồn — xem `mode` dưới đây.
+// cho mọi nguồn: xem `mode` dưới đây.
 //
 // Typst không có try/catch, nên chế độ "markup" không thể tự bắt lỗi rồi lui về
 // chuỗi thô. Đó là lý do "smart" tồn tại: nhãn lấy từ Camunda Modeler là do người
@@ -59,7 +59,7 @@
 /// Mở phạm vi có nghĩa là tầng dữ liệu gọi được code của tài liệu, và đó là điều muốn:
 /// một ô bảng nói "mức tác động cao" thì nên nói bằng đúng component vẽ nhãn mức tác
 /// động, chứ không phải bằng một chữ "(High)" gõ tay. Nhưng nó cũng có nghĩa là chỉ nên
-/// mở đúng những tên cần mở — đừng đổ cả module vào.
+/// mở đúng những tên cần mở: đừng đổ cả module vào.
 #let bp-text(v, mode: "markup", scope: (:)) = {
   if type(v) != str or v == "" { return v }
   if mode == "raw" { return v }
@@ -67,7 +67,7 @@
   eval(v, mode: "markup", scope: scope)
 }
 
-/// Rút văn bản thuần từ content — dùng để so khớp nhãn sau khi đã dựng.
+/// Rút văn bản thuần từ content: dùng để so khớp nhãn sau khi đã dựng.
 ///
 /// Cần vì `annotate` và `bpmap` neo theo *tên*, mà tên trong dữ liệu là "Chương 2--3"
 /// còn tên đã dựng là "Chương 2–3". So hai chuỗi thô sẽ trượt; so bản đã dựng của cả

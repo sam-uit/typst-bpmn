@@ -1,5 +1,5 @@
 // /template/components/bpstep.typ
-// Business Process Step — trực quan hóa chuỗi các bước của một quy trình
+// Business Process Step: trực quan hóa chuỗi các bước của một quy trình
 // bằng các khối mũi tên (chevron) vẽ trực tiếp bằng Typst visualize.
 //
 // Author: Sam Dinh
@@ -73,7 +73,7 @@
   ),
 )
 
-// MARK: Helpers — màu
+// MARK: Helpers: màu
 // Sinh dải màu tự động bằng cách xoay tông (hue) trong không gian OKLCH.
 // Cho ra n màu pastel, độ sáng đồng đều -> chữ đen luôn đọc được.
 #let bp-auto-colors(n, start-hue: 210deg, spread: 300deg, lightness: 90%, chroma: 0.055) = {
@@ -105,13 +105,13 @@
   if bp-luminance(c) > 0.92 { luma(60%) } else { c.darken(35%).saturate(20%) }
 }
 
-// MARK: Helpers — chuẩn hóa dữ liệu
+// MARK: Helpers: chuẩn hóa dữ liệu
 // Một "step" có thể là:
 //   - string / content                        -> chỉ có nhãn
 //   - dict: (text|title|label|name, color|fill, text-color, stroke, note)
 // Trả về dict chuẩn: (body, fill, text-fill, stroke, note)
 //
-// `mode` quyết định chuỗi được gửi tới engine thế nào — xem `bptext.typ`. Mặc định
+// `mode` quyết định chuỗi được gửi tới engine thế nào, xem `bptext.typ`. Mặc định
 // "markup", vì dữ liệu ở đây do chính người viết tài liệu gõ: họ muốn "2--3" ra
 // en-dash và "$->$" ra mũi tên.
 #let bp-normalize(step, mode: "markup") = {
@@ -212,11 +212,11 @@
   data
 }
 
-// MARK: Component — một bước đơn lẻ
+// MARK: Component: một bước đơn lẻ
 // Vẽ khối chevron (mũi tên) với nội dung căn giữa.
 // `notch` là độ sâu của mũi nhọn; `flat-start`/`flat-end` cắt phẳng đầu/đuôi.
 // MARK: Mốc neo cho chú giải
-// Sơ đồ BPMN có toạ độ tuyệt đối trong dữ liệu; bpstep/bpmap thì không — vị trí do `grid`
+// Sơ đồ BPMN có toạ độ tuyệt đối trong dữ liệu; bpstep/bpmap thì không, vị trí do `grid`
 // của Typst quyết định lúc dàn trang. Nên mỗi khối tự cắm hai mốc vô hình (góc trên-trái và
 // góc dưới-phải) mang theo metadata; `annotate` truy vấn lại bằng `query(<bp-anchor>)` rồi
 // suy ra chữ nhật của khối. Mốc rỗng và đặt bằng `place` nên không ảnh hưởng bố cục.
@@ -297,7 +297,7 @@
   )
 }
 
-// MARK: Component — chuỗi các bước
+// MARK: Component: chuỗi các bước
 #let bpflow(
   steps,
   // Số bước tối đa trên một hàng; auto = tất cả trên một hàng.
@@ -481,7 +481,7 @@
   }
 }
 
-// MARK: Wrapper — bpflow trong figure (có caption + vào Danh Sách Hình Ảnh)
+// MARK: Wrapper: bpflow trong figure (có caption + vào Danh Sách Hình Ảnh)
 #let bpflow-figure(steps, caption: none, ..args) = figure(
   bpflow(steps, ..args),
   caption: caption,
@@ -489,7 +489,7 @@
   supplement: "Hình ảnh",
 )
 
-// MARK: Wrapper — dựng thẳng từ dữ liệu đã nạp
+// MARK: Wrapper: dựng thẳng từ dữ liệu đã nạp
 // data: kết quả của load-steps(), hoặc bất kỳ dict nào có khóa `steps`.
 // Các khóa được hiểu: steps, title, caption, label, options (dict tham số của bpflow).
 // Tham số truyền trực tiếp luôn ghi đè `options` trong file dữ liệu.
@@ -517,6 +517,6 @@
   if lbl != none { [#out #label(lbl)] } else { out }
 }
 
-// MARK: Wrapper — nạp và dựng trong một lệnh
+// MARK: Wrapper: nạp và dựng trong một lệnh
 // bpflow-file("/content/processes/ql-khuyen-mai.yaml")
 #let bpflow-file(path, id: none, ..args) = bpflow-data(load-steps(path, id: id), ..args)

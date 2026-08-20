@@ -1,7 +1,7 @@
 // /template/components/bpmn-span.typ
-// Cắt sơ đồ BPMN theo CHIỀU DỌC — một đoạn quy trình, từ phần tử nào tới phần tử nào.
+// Cắt sơ đồ BPMN theo CHIỀU DỌC, một đoạn quy trình, từ phần tử nào tới phần tử nào.
 //
-// `bpmn-figure` đã cắt được theo chiều đối tượng (`view: (pool:)`, `(lane:)`) — tức là
+// `bpmn-figure` đã cắt được theo chiều đối tượng (`view: (pool:)`, `(lane:)`), tức là
 // theo *ai làm*. Component này cắt theo chiều còn lại: theo *đoạn nào của dòng chảy*.
 //
 //   #bpmn-span(M, from: "StartEvent_NhuCau", to: "Gateway_KetQuaDamPhan")
@@ -54,11 +54,11 @@
   adj
 }
 
-// Cạnh quay lui (vòng rework), tìm bằng DFS lặp — Typst không cho closure sửa biến bắt
+// Cạnh quay lui (vòng rework), tìm bằng DFS lặp, Typst không cho closure sửa biến bắt
 // ngoài nên phải tự giữ ngăn xếp.
 //
 // Vì sao phải loại: một vòng rework nối cuối về đầu làm mọi node "tới được" mọi node.
-// Không loại thì `from: <bắt đầu>, to: <một cổng ở giữa>` trả về gần như cả sơ đồ —
+// Không loại thì `from: <bắt đầu>, to: <một cổng ở giữa>` trả về gần như cả sơ đồ:
 // đúng về mặt đồ thị, vô dụng về mặt đọc hiểu.
 #let bs-back-edges(model) = {
   let adj = bs-adj(model)
@@ -176,7 +176,7 @@
 // Bỏ các lane rỗng ở hai biên của pool.
 //
 // `bpmn-slice` giữ nguyên khung pool/lane, đúng khi cắt theo lane. Nhưng cắt theo đoạn
-// thì thường chỉ chạm vào một hai lane, và những dải rỗng còn lại ăn mất chiều cao —
+// thì thường chỉ chạm vào một hai lane, và những dải rỗng còn lại ăn mất chiều cao,
 // mà chiều cao mất đi là cỡ chữ mất đi khi co vừa bề rộng trang.
 //
 // Chỉ bỏ từ hai biên vào: một lane rỗng nằm GIỮA hai lane có nội dung thì phải giữ, bỏ đi
@@ -213,7 +213,7 @@
   )
 }
 
-/// Model đã cắt theo đoạn — dùng khi cần đưa cho component khác thay vì dựng figure ngay.
+/// Model đã cắt theo đoạn: dùng khi cần đưa cho component khác thay vì dựng figure ngay.
 ///
 /// `bpmn-notes` nhận `src` là một model, nên chú giải chạy trên đoạn cắt dọc như sau:
 ///
@@ -249,12 +249,12 @@
   exclude: (),
   lane: none,
   cycles: false,
-  // Khai `notes:` thì dựng bằng `bpmn-notes` thay vì `bpmn-figure` — cùng một cửa,
+  // Khai `notes:` thì dựng bằng `bpmn-notes` thay vì `bpmn-figure`, cùng một cửa,
   // chú giải chỉ là một tuỳ chọn của lát cắt. `fit:` không dùng được cùng `notes:`.
   notes: (),
-  // Bỏ các dải lane rỗng ở hai biên — dải rỗng ăn chiều cao, mà chiều cao là cỡ chữ
+  // Bỏ các dải lane rỗng ở hai biên, dải rỗng ăn chiều cao, mà chiều cao là cỡ chữ
   trim-lanes: true,
-  // Khoảng thở quanh đoạn, tính bằng đơn vị BPMN — cùng bản chất với lề của sơ đồ gốc
+  // Khoảng thở quanh đoạn, tính bằng đơn vị BPMN, cùng bản chất với lề của sơ đồ gốc
   pad: 24,
   // Nén cả hai trục: cắt theo đoạn hay để lại khoảng rỗng dọc bên trong lane, mà chiều
   // cao thừa là cỡ chữ mất đi khi co vừa bề rộng trang

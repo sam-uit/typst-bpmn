@@ -99,7 +99,7 @@
   let root = if type(doc) != array { doc } else {
     let els = doc.filter(e => type(e) == dictionary and e.at("tag", default: "") != "")
     if els.len() == 0 {
-      panic("bpmn: no root element in the XML — is this a .bpmn file?")
+      panic("bpmn: no root element in the XML; is this a .bpmn file?")
     }
     els.first()
   }
@@ -171,8 +171,8 @@
 
     // A **black-box** participant: BPMN's way of saying "this partner exists and we
     // exchange messages, but this model does not describe what happens inside". The
-    // spec's own marker is that there is nothing to describe — no `processRef` at
-    // all — or that the DI says the shape is collapsed.
+    // spec's own marker is that there is nothing to describe, no `processRef` at
+    // all: or that the DI says the shape is collapsed.
     //
     // Both were slipping through, so an empty participant came out as an ordinary
     // pool: a turned title band down its left side and a body with nothing in it.

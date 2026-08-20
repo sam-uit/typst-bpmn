@@ -13,7 +13,7 @@
 // font-independent and the diff says *what* moved, not just that something did.
 //
 // What this does not catch: changes to how a shape is drawn. The extent is
-// unchanged if an icon is redrawn. That is what tests/conformance.typ is for —
+// unchanged if an icon is redrawn. That is what tests/conformance.typ is for,
 // it is a visual check, run by eye.
 
 #import "/src/bpmn.typ": *

@@ -1,26 +1,26 @@
 // src/bpmn-sheet.typ
 // Trải một mô hình BPMN **nguyên vẹn** ra nhiều trang, kiểu bản đồ gấp.
 //
-// Vì sao cần: một collaboration Level 3 là hình băng — rộng gấp đôi tới gấp ba chiều
+// Vì sao cần: một collaboration Level 3 là hình băng, rộng gấp đôi tới gấp ba chiều
 // cao. Ép nó vào bề rộng chữ A4 thì nhãn rơi xuống 2–4pt. Trong chương, lời giải là
-// *cắt lát*: `bpmn-lane`, `bpmn-span`, `bpmn-part` — mỗi hình trả lời một câu hỏi. Nhưng
+// *cắt lát*: `bpmn-lane`, `bpmn-span`, `bpmn-part`, mỗi hình trả lời một câu hỏi. Nhưng
 // người đọc vẫn cần một chỗ nhìn thấy **toàn bộ** mô hình, và đó là việc của phụ lục.
 //
 // Cách làm: vẽ mô hình *một lần* ở tỉ lệ đọc được, rồi cắt thành từng ô cửa sổ, mỗi ô
 // một trang. Khác hẳn `bpmn-span`:
 //
-//   bpmn-span   cắt theo **ngữ nghĩa** — từ id tới id, mô hình được dựng lại cho lát cắt.
-//   bpmn-sheet  cắt theo **hình học** — cùng một bản vẽ, mỗi trang là một khung nhìn.
+//   bpmn-span   cắt theo **ngữ nghĩa**, từ id tới id, mô hình được dựng lại cho lát cắt.
+//   bpmn-sheet  cắt theo **hình học**: cùng một bản vẽ, mỗi trang là một khung nhìn.
 //
 // Hệ quả của cách cắt hình học, và là lý do chọn nó cho phụ lục: mọi trang **cùng một tỉ
 // lệ**, các dải lane thẳng hàng từ trang này sang trang kia, và cạnh nào bắc qua chỗ cắt
-// thì vẫn liền — nó chỉ chạy ra khỏi mép trang rồi vào lại ở trang sau. Cắt ngữ nghĩa
+// thì vẫn liền: nó chỉ chạy ra khỏi mép trang rồi vào lại ở trang sau. Cắt ngữ nghĩa
 // không giữ được ba thứ đó: mỗi lát tự co giãn theo nội dung của nó.
 //
 // Ba quyết định làm cho việc ghép trang không thành trò xếp hình:
 //
 //   1. **Cắt ngang tại biên pool**, không tại điểm chia đều. Chia đều một mô hình cao
-//      1200 đơn vị thành hai hàng 600 sẽ xẻ đôi một lane — mất hoặc phần tên, hoặc phần
+//      1200 đơn vị thành hai hàng 600 sẽ xẻ đôi một lane, mất hoặc phần tên, hoặc phần
 //      hình; và nếu nửa dưới chỉ có một dải black box thì một trang gần như trống.
 //      Biên pool là chỗ bản vẽ *vốn đã* có đường kẻ.
 //   2. **Lặp lại dải tên** ở mọi cột sau cột đầu, như khoá cột của bảng tính. Không có
@@ -31,21 +31,21 @@
 //      dấu. Không có nó, một task nằm đúng chỗ cắt bị chẻ đôi và không trang nào đọc được.
 //   4. **Mỗi hàng cắt cột theo phần có nội dung của riêng nó.** Một lưới cột dùng chung
 //      cho mọi hàng nghe gọn hơn, nhưng hàng dưới của một mô hình thường chỉ có vài hộp
-//      ở mép trái — dùng chung lưới thì sinh ra một trang gần như trắng. Tỉ lệ vẫn là
+//      ở mép trái: dùng chung lưới thì sinh ra một trang gần như trắng. Tỉ lệ vẫn là
 //      một cho cả bản vẽ, nên vẫn so được; chỉ có số cột là khác nhau giữa các hàng.
 //   5. **Xoay bản vẽ, không xoay tờ giấy.** Trang vẫn dọc như mọi trang khác của tài
 //      liệu; mảnh bản vẽ mới là thứ quay một phần tư vòng, đúng cách `bpmn-figure` tự
 //      xoay khi hình quá rộng so với cột chữ. Hai cái lợi, và cái thứ hai mới là cái
 //      chính:
 //        · Chiều dài của mô hình được chiếu lên chiều *cao* trang (277mm ở A4 thay vì
-//          186mm), còn chiều cao mô hình chiếu lên bề ngang — mỗi trang ôm được nhiều
+//          186mm), còn chiều cao mô hình chiếu lên bề ngang, mỗi trang ôm được nhiều
 //          hơn theo cả hai chiều so với khi lật ngang tờ giấy.
 //        · Tệp PDF không còn trộn hai khổ trang. Trang lật ngang làm hỏng thứ tự đọc
 //          khi in hai mặt và làm lệch phần header/footer của tài liệu.
 //      Chiều xoay là *thuận* kim đồng hồ, ngược với `sidewaysfigure` của LaTeX, và đó
 //      là chỗ duy nhất bộ này đi chệch quy ước cũ. Lý do nằm ở việc nối trang: xoay
 //      thuận thì trục x của mô hình chạy *xuống* trang, nên dòng chảy đi hết trang này
-//      là sang đầu trang sau — đúng chiều lật giấy. Xoay ngược thì dòng chảy đi từ dưới
+//      là sang đầu trang sau: đúng chiều lật giấy. Xoay ngược thì dòng chảy đi từ dưới
 //      lên, và trang sau lại bắt đầu ở đáy: đầu trang này nối vào đít trang kia. Chú
 //      thích quay cùng bản vẽ, nên xoay tờ giấy ngược kim đồng hồ là đọc được cả hai.
 //
@@ -55,8 +55,8 @@
 //
 // API công khai:
 //   - bpmn-sheet(src, ..)       : phát ra n trang, mỗi trang một figure đã xoay.
-//   - bpmn-sheet-plan(model, ..): chỉ tính toán (lưới, tỉ lệ, cỡ chữ) — không vẽ.
-//   - bpmn-sheet-info(src, ..)  : ngân sách trang của một mô hình — cần bao nhiêu
+//   - bpmn-sheet-plan(model, ..): chỉ tính toán (lưới, tỉ lệ, cỡ chữ), không vẽ.
+//   - bpmn-sheet-info(src, ..)  : ngân sách trang của một mô hình, cần bao nhiêu
 //                                 trang ở mỗi cỡ chữ, và phải cắt bớt bao nhiêu đơn
 //                                 vị bề rộng để tròn n trang. Không vẽ gì.
 
@@ -68,12 +68,12 @@
 #import "bptext.typ": bp-text
 
 // Bề rộng dải tên bên trái: dải tên pool cộng dải tên lane (nếu pool có lane).
-// Suy từ chính bản vẽ chứ không phải hằng số — pool không lane chỉ có một dải.
+// Suy từ chính bản vẽ chứ không phải hằng số, pool không lane chỉ có một dải.
 //
 // Đo từ `extent.x`, KHÔNG phải từ mép pool. Khung nhìn cắt dải tên bắt đầu ở gốc
 // extent, mà gốc extent lùi ra trước mép pool đúng một khoảng đệm; đo từ mép pool rồi
-// áp từ gốc extent thì dải bị hụt đúng khoảng đệm đó, và chữ tên lane — vốn căn giữa
-// dải 30 đơn vị của nó — rơi ngay lên đường ghép. Đã dính.
+// áp từ gốc extent thì dải bị hụt đúng khoảng đệm đó, và chữ tên lane, vốn căn giữa
+// dải 30 đơn vị của nó: rơi ngay lên đường ghép. Đã dính.
 #let _band = 30.0 // bề rộng dải tên pool/lane, khớp `_band` của bpmn-render
 #let _header-width(model) = {
   let e = model.meta.extent
@@ -86,7 +86,7 @@
 }
 
 // Mọi đường ngang mà bản vẽ *vốn đã* có: biên trên/dưới của từng pool và từng lane.
-// Đây là tập chỗ cắt hợp lệ — cắt ở đâu khác là xẻ đôi một dải.
+// Đây là tập chỗ cắt hợp lệ, cắt ở đâu khác là xẻ đôi một dải.
 #let _band-cuts(model) = {
   let ys = ()
   for p in model.pools {
@@ -103,7 +103,7 @@
 // Tham lam từ trên xuống, không tối ưu hoá gì thêm: mục tiêu là *ít hàng*, và tham lam
 // đã cho số hàng nhỏ nhất khi các chỗ cắt là cố định. Cách chia "cân bằng" (làm dải cao
 // nhất thấp nhất có thể) nghe hợp lý hơn nhưng lại tách pool black box mỏng ra thành
-// hàng riêng — một trang gần như trống.
+// hàng riêng: một trang gần như trống.
 #let _pack-rows(cuts, maxh) = {
   let bounds = (cuts.first(),)
   let i = 0
@@ -124,7 +124,7 @@
 // theo chiều dọc. Ở nhiều mô hình, hàng dưới chỉ có hai ba hộp nằm sát mép trái; lấy
 // trọn bề ngang của bản vẽ cho hàng đó là in ra một trang trắng có chú thích.
 //
-// Trả `none` khi dải hoàn toàn rỗng — hàng đó không đáng một trang.
+// Trả `none` khi dải hoàn toàn rỗng, hàng đó không đáng một trang.
 #let _row-has-node(model, y0, y1) = {
   model.nodes.any(n => n.bounds.y < y1 and n.bounds.y + n.bounds.h > y0)
 }
@@ -132,7 +132,7 @@
 // Hàng này có đáng một trang không? Khác `_row-has-node` ở đúng một chỗ, và chỗ đó
 // từng làm mất hẳn hai participant khỏi bản vẽ.
 //
-// Một pool hộp đen *không chứa node nào* — đó là định nghĩa của nó, ta cố tình không
+// Một pool hộp đen *không chứa node nào*, đó là định nghĩa của nó, ta cố tình không
 // mô tả bên trong. Nên phép thử "có node không" trả về sai cho mọi băng hộp đen, và
 // băng đó bị `layout-for` bỏ qua. Không có cảnh báo nào: hình vẫn ra hình, chỉ là
 // "Khách Hàng" và "Công Ty Tài Chính" biến mất, còn những message flow chạy tới chúng
@@ -158,7 +158,7 @@
   boxes += model.nodes.filter(n => "label" in n).map(n => n.label).filter(hit)
   boxes += model.flows.filter(f => "label" in f).map(f => f.label).filter(hit)
   let xs = boxes.map(b => (b.x, b.x + b.w)).flatten()
-  // `flatten` là đệ quy, mà waypoint tự nó là một cặp — nên lấy hoành độ *trước* khi trải.
+  // `flatten` là đệ quy, mà waypoint tự nó là một cặp, nên lấy hoành độ *trước* khi trải.
   xs += model.flows
     .map(f => f
       .at("waypoints", default: ())
@@ -172,12 +172,12 @@
 ///
 /// `avail` đo theo **trục của mô hình**, không theo trục tờ giấy: `width` là chỗ dành
 /// cho chiều dài mô hình, `height` cho chiều cao mô hình. Vì bản vẽ được xoay một phần
-/// tư vòng, `width` lấy từ chiều *cao* trang và `height` lấy từ bề *ngang* trang —
+/// tư vòng, `width` lấy từ chiều *cao* trang và `height` lấy từ bề *ngang* trang,
 /// người gọi lo việc đổi trục đó, ở đây chỉ có toạ độ BPMN.
 ///
 /// Vì sao phải cắt cả hai chiều: một collaboration L3 cao 1200 đơn vị, mà bề ngang
 /// dùng được của một trang A4 dọc chỉ ~186mm. Muốn nhãn đạt 6pt thì cần
-/// 1200 × 6/11 = 654pt = 231mm — **rộng hơn cả tờ giấy**. Thêm bao nhiêu trang nối
+/// 1200 × 6/11 = 654pt = 231mm, **rộng hơn cả tờ giấy**. Thêm bao nhiêu trang nối
 /// tiếp cũng vô ích: ràng buộc nằm ở chiều cao mô hình.
 ///
 /// Trả về `(cols, rows, pages, bands, u, label-size, header-w, capped)`.
@@ -194,11 +194,11 @@
   let u-want = min-font / font-size
   let cuts = _band-cuts(model)
   // Hai con số khác nhau, và lẫn chúng là hỏng.
-  //   `hdr` — bề rộng dải tên mà *bản vẽ vốn đã có* ở mép trái. Luôn tồn tại, không
+  //   `hdr`: bề rộng dải tên mà *bản vẽ vốn đã có* ở mép trái. Luôn tồn tại, không
   //           phụ thuộc tuỳ chọn nào; nó là một phần của hình.
-  //   `hw`  — bề rộng dải tên mà mình *dán thêm* vào các trang sau. Bằng 0 khi tắt.
+  //   `hw` : bề rộng dải tên mà mình *dán thêm* vào các trang sau. Bằng 0 khi tắt.
   // Dùng `hw` cho cả hai việc thì tắt `repeat-header` sẽ kéo mép trái của trang đầu
-  // vào tận chỗ có nội dung, xén mất chính dải tên gốc — tắt lặp lại hoá ra xoá luôn
+  // vào tận chỗ có nội dung, xén mất chính dải tên gốc, tắt lặp lại hoá ra xoá luôn
   // bản chính.
   let hdr = _header-width(model)
   let hw = if repeat-header { hdr } else { 0.0 }
@@ -234,7 +234,7 @@
   // Điển hình là băng black box: message flow chạy tới mép pool để lại một waypoint,
   // đủ để dải đó "có nội dung" theo nghĩa toạ độ, nhưng in ra là một trang chỉ có
   // khung rỗng và một dòng chú thích. Gộp lên trên thì băng vẫn hiện, đúng chỗ nó
-  // thuộc về — ngay dưới phần đã gửi thông điệp cho nó.
+  // thuộc về: ngay dưới phần đã gửi thông điệp cho nó.
   let pad = 20.0
   let merge-empty(bounds, maxh) = {
     let out = (bounds.first(),)
@@ -259,7 +259,7 @@
       if sp == none or not _row-has-content(model, y0, y1) { continue }
       // Mép trái của hàng: hoặc đúng gốc bản vẽ (khung nhìn tự mang dải tên), hoặc hẳn
       // ra ngoài dải tên (khung nhìn được dán dải tên vào). Rơi vào *giữa* dải tên thì
-      // trang in ra tên pool hai lần — một lần ở dải dán, một lần trong phần thân.
+      // trang in ra tên pool hai lần, một lần ở dải dán, một lần trong phần thân.
       let raw-lo = sp.at(0) - pad
       let lo = if raw-lo < e.x + hdr { e.x } else { raw-lo }
       let hi = calc.min(e.x + e.w, sp.at(1) + pad)
@@ -283,7 +283,7 @@
   //
   // `min-font` là mức sàn, không phải mức trần: một mô hình thấp và ngắn dừng ở đúng
   // 6pt sẽ để trống nửa bề ngang trang, trong khi cùng số trang đó nó có thể vẽ to hơn.
-  // Điều kiện dừng là *số trang không đổi* chứ không phải "còn dưới max-pages" — nếu
+  // Điều kiện dừng là *số trang không đổi* chứ không phải "còn dưới max-pages", nếu
   // không, một mô hình vốn gọn trong 1 trang sẽ tự phình ra thành 4.
   let target = pages-of(rows)
   let grow = 0
@@ -383,7 +383,7 @@
 
 // MARK: bpmn-sheet
 //
-// src         model đã nạp, `yaml(..)`, hoặc `xml("..bpmn")` — nạp thẳng .bpmn được
+// src         model đã nạp, `yaml(..)`, hoặc `xml("..bpmn")`, nạp thẳng .bpmn được
 // caption     dùng chung mọi trang; thứ tự và vị trí được nối vào cuối
 // label       chỉ gắn vào trang ĐẦU, để `@nhãn` trong chương trỏ tới chỗ bắt đầu
 // max-pages   trần số trang; vượt thì thu tỉ lệ thay vì trải thêm
@@ -392,11 +392,11 @@
 // repeat-header  dán lại dải tên pool/lane vào mép mỗi trang sau trang đầu
 // compact     gấp các dải trống lại trước khi trải (xem bpmn-compact). `none` là mặc
 //             định và là điều đúng cho phụ lục: phụ lục hứa chiếu *nguyên bản*, mà
-//             compact có đụng vào toạ độ. Bật khi mô hình rộng rãi quá mức cần thiết
-//             — hình và chữ giữ nguyên kích thước, chỉ khoảng trống nhỏ lại.
+//             compact có đụng vào toạ độ. Bật khi mô hình rộng rãi quá mức cần thiết,
+//             hình và chữ giữ nguyên kích thước, chỉ khoảng trống nhỏ lại.
 //
 //             Đáng nói: với mô hình vẽ tay trong Camunda Modeler thì `compact: true`
-//             (mặc định `axis: "x"`) gần như không được gì — 0--2% bề rộng, vì các
+//             (mặc định `axis: "x"`) gần như không được gì, 0--2% bề rộng, vì các
 //             bước đã nằm sát nhau theo chiều ngang. Chỗ có mỡ là chiều *dọc*: lane
 //             cao gấp mấy lần hàng phần tử nằm trong nó. `compact: (axis: "both")`
 //             lấy lại 25--30% chiều cao trên sáu mô hình L3 của Hồng Hà, đủ để gộp
@@ -420,7 +420,7 @@
   theme: default-theme,
   supplement: auto,
   kind: image,
-  // (thứ tự, tổng, cột, hàng, số cột, số hàng) — vị trí chỉ nói ra khi lưới chia theo
+  // (thứ tự, tổng, cột, hàng, số cột, số hàng), vị trí chỉ nói ra khi lưới chia theo
   // cả hai chiều; "1/4" một mình không cho biết mảnh này nằm ở đâu trong bản vẽ.
   part-format: (i, n, c, r, cols, rows) => {
     if n <= 1 { return [] }
@@ -433,7 +433,7 @@
       ("dưới",)
     } else { ("giữa",) }
     let vt = (doc + ngang).join(" ")
-    if vt == none { [ (#i/#n)] } else { [ (#i/#n — #vt)] }
+    if vt == none { [ (#i/#n)] } else { [ (#i/#n, #vt)] }
   },
   seam: true,
   debug: false,
@@ -460,7 +460,7 @@
   }
 
   // Không dùng `layout`: `pagebreak` bị cấm trong container, mà mỗi ô phải là một
-  // trang riêng. `context` đọc khổ giấy rồi phát ra n lệnh `page()` — mỗi lệnh mở
+  // trang riêng. `context` đọc khổ giấy rồi phát ra n lệnh `page()`, mỗi lệnh mở
   // đúng một trang, khỏi cần ngắt trang thủ công.
   context {
     // Đổi trục, hoặc không đổi.
@@ -495,7 +495,7 @@
       repeat-header: repeat-header,
     )
 
-    // Hộp đen không có dải tên — BPMN đặt tên nó ở *giữa hộp*. Trên một tờ gấp thì
+    // Hộp đen không có dải tên: BPMN đặt tên nó ở *giữa hộp*. Trên một tờ gấp thì
     // cái "giữa" đó rơi đúng vào một trang, và mọi trang khác nhận một dải xám không
     // tên; người đọc trang 3 không có cách nào biết dải đó là ai. Nên bản vẽ chung bỏ
     // tên hộp đen đi, rồi từng trang tự viết lại tên vào giữa phần hộp đen *mà nó nhìn
@@ -520,7 +520,7 @@
       dash: "dashed",
     )
     // `draw-canvas` đã dịch bản vẽ về gốc extent, nên khung nhìn phải trừ đi gốc đó.
-    // Quên trừ thì mọi ô lệch sang phải đúng `e.x` đơn vị và dải tên bị cắt cụt — lỗi
+    // Quên trừ thì mọi ô lệch sang phải đúng `e.x` đơn vị và dải tên bị cắt cụt, lỗi
     // im lặng, vì hình vẫn ra hình, chỉ là thiếu mất phần lề trái.
     let win(x0, w-u, y0, h-u) = box(
       width: w-u * plan.u,
@@ -608,7 +608,7 @@
         let fig = figure(
           // Cả dải tên lẫn phần thân đều phải `place`. Để dải tên chảy theo dòng rồi
           // mới `place` phần thân thì `place` lấy mốc là vị trí *sau* dải tên, và cả
-          // trang trượt đi — đã dính.
+          // trang trượt đi: đã dính.
           align(center, box(width: w, height: h, {
             if strip != none { place(dx: 0pt, dy: 0pt, strip) }
             place(dx: x-body, dy: 0pt, content)
@@ -634,7 +634,7 @@
           )
         }
         // `chrome: false` trả lại chỗ của header/footer cho hình. Số trang cũng tắt
-        // theo — một trang không có header thì số trang mồ côi ở giữa lề trông như lỗi.
+        // theo: một trang không có header thì số trang mồ côi ở giữa lề trông như lỗi.
         let bare = if chrome { (:) } else {
           (header: none, footer: none, numbering: none, background: none, foreground: none)
         }

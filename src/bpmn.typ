@@ -8,7 +8,7 @@
 //
 // Sizing is decided at layout time: the diagram is scaled to the container
 // width, and if that would make labels illegible it is rotated a quarter turn
-// instead. Neither ever helps a genuinely dense model — use `view:` to cut the
+// instead. Neither ever helps a genuinely dense model; use `view:` to cut the
 // model down instead, the same way `bpmap`'s `only:` works.
 
 #import "bpmn-render.typ": draw-canvas, default-theme, grayscale-theme
@@ -432,7 +432,7 @@
     if t != "" { cap = [#t] }
   }
   // `bpmn-figure` returns a wrapper (a rotate, a flipped page, a layout), and in
-  // Typst `#foo(..) <lbl>` labels the *outermost* element — so a label written
+  // Typst `#foo(..) <lbl>` labels the *outermost* element, so a label written
   // after the call lands on the wrapper and `@lbl` fails with "cannot reference
   // rotate". Pass `label: <lbl>` instead and it is attached to the figure.
   let tag(fig) = if label == none { fig } else { [#fig#label] }
@@ -450,8 +450,8 @@
 
     // A sideways figure whose caption stays horizontal wastes the space the
     // caption sits in twice over: once under the diagram, once as the band the
-    // rotation could not use. Turning the whole figure — diagram and caption as
-    // one unit, the way `sidewaysfigure` does it — reclaims that.
+    // rotation could not use. Turning the whole figure, diagram and caption as
+    // one unit, the way `sidewaysfigure` does it, reclaims that.
     let turning = (probe.mode == "rotate" and cap != none
       and (turn-caption == true or turn-caption == auto))
 

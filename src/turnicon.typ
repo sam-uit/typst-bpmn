@@ -2,8 +2,8 @@
 // Biểu tượng "xoay tờ giấy" cho các trang gấp của `bpmn-sheet`.
 //
 // Vì sao cần: một tờ gấp in ra là trang A4 *dọc* như mọi trang khác, nhưng bản vẽ nằm
-// ngang trên đó. Câu hướng dẫn viết bằng chữ — "xoay tờ giấy 90 độ ngược chiều kim
-// đồng hồ" — đúng nhưng đọc xong vẫn phải dịch sang động tác, mà người đọc thì đang
+// ngang trên đó. Câu hướng dẫn viết bằng chữ, "xoay tờ giấy 90 độ ngược chiều kim
+// đồng hồ", đúng nhưng đọc xong vẫn phải dịch sang động tác, mà người đọc thì đang
 // cầm tờ giấy trên tay. Điện thoại đã giải quyết chuyện này từ lâu bằng đúng một hình:
 // khung màn hình dọc, hai mũi tên vòng quanh. Không cần chú giải, không phụ thuộc ngôn
 // ngữ, và nhìn một cái là tay làm theo.
@@ -25,7 +25,7 @@
 
 /// Biểu tượng hướng dẫn xoay tờ giấy để đọc một trang gấp.
 ///
-/// `turn` nhận **đúng giá trị đã truyền cho `bpmn-sheet`** — tức chiều bản vẽ đã bị
+/// `turn` nhận **đúng giá trị đã truyền cho `bpmn-sheet`**, tức chiều bản vẽ đã bị
 /// xoay đi, không phải chiều người đọc phải xoay tờ giấy. Hai chiều đó ngược nhau, và
 /// đó chính là lý do tham số này không hỏi chiều xoay giấy: bắt người gọi tự đảo là
 /// bắt họ đảo sai, mà mũi tên chỉ nhầm chiều thì tệ hơn hẳn không có mũi tên.
@@ -33,12 +33,12 @@
 ///   #bpmn-sheet(.., turn: "cw")     -> #sheet-turn-icon(turn: "cw")   mũi tên ngược kim đồng hồ
 ///
 /// `mark` là chữ in trong thân tờ giấy. Mặc định `auto`: in "A4" khi biểu tượng đủ lớn
-/// để hai chữ đó còn đọc được (từ khoảng 26pt trở lên), bỏ qua khi không — vì một vệt
+/// để hai chữ đó còn đọc được (từ khoảng 26pt trở lên), bỏ qua khi không, vì một vệt
 /// mờ trong biểu tượng đọc ra thành vết bẩn chứ không thành thông tin. Truyền thẳng
 /// một chuỗi để ép in, hoặc `none` để tắt hẳn.
 ///
 /// `size` là cạnh của khung vuông chứa biểu tượng. Mặc định theo `em` để nó co giãn
-/// cùng cỡ chữ của đoạn văn đặt nó — biểu tượng này gần như luôn nằm xen trong một
+/// cùng cỡ chữ của đoạn văn đặt nó, biểu tượng này gần như luôn nằm xen trong một
 /// dòng chữ hoặc đầu một khối ghi chú.
 #let sheet-turn-icon(
   turn: "cw",
@@ -61,7 +61,7 @@
   // Cắt ngắn cung đúng bằng chiều dài đầu mũi tên, nếu không nét vẽ chọc ra khỏi đỉnh.
   // Suy ra từ `head-len`, không gõ thẳng số đo: dây cung dài L trên đường tròn bán kính
   // r chắn một góc 2·asin(L / 2r). Gõ thẳng "18deg" cũng ra đúng con số này hôm nay,
-  // nhưng sau này chỉnh `r` hay `head-len` thì phần cắt lệch đi mà không có gì báo —
+  // nhưng sau này chỉnh `r` hay `head-len` thì phần cắt lệch đi mà không có gì báo,
   // cùng một lý do `marker-loop` suy góc thay vì gõ. Xem docs/curved-arrows.md.
   let trim = 2 * calc.asin(head-len / (2 * r))
 
@@ -93,13 +93,13 @@
     ))
   }
 
-  // Hai cung đối xứng trên/dưới, chừa hai bên cho tờ giấy thò ra — cùng bố cục với
+  // Hai cung đối xứng trên/dưới, chừa hai bên cho tờ giấy thò ra, cùng bố cục với
   // biểu tượng xoay màn hình của điện thoại, và cũng là lý do nó đọc được ngay.
   let spans = ((35deg, 145deg), (215deg, 325deg))
 
   // Biểu tượng này gần như luôn nằm xen trong một dòng chữ, mà một hộp vuông cao 1,6em
   // đặt trên đường cơ sở thì nhô hẳn lên trên dòng. Hạ nó xuống sao cho *tâm* biểu
-  // tượng trùng với giữa chiều cao chữ thường — cùng chỗ mắt đặt khi đọc dòng đó.
+  // tượng trùng với giữa chiều cao chữ thường, cùng chỗ mắt đặt khi đọc dòng đó.
   let em = 1em.to-absolute()
   box(width: s, height: s, baseline: s / 2 - 0.25 * em, {
     // Tờ giấy: tỉ lệ A4 dọc (1 : √2), bo góc nhẹ cho ra hình một tờ giấy chứ không
@@ -122,9 +122,9 @@
       ),
     )
     // Chữ "A4" trong thân giấy: nói rõ hình chữ nhật kia là *tờ giấy*, không phải màn
-    // hình điện thoại — biểu tượng này mượn bố cục của icon xoay màn hình, nên không có
+    // hình điện thoại: biểu tượng này mượn bố cục của icon xoay màn hình, nên không có
     // gì phân biệt thì người đọc mặc định hiểu theo cái quen hơn.
-    // `auto`: chỉ in khi còn đọc được. Ngưỡng ~4pt — dưới đó hai chữ thành một vệt
+    // `auto`: chỉ in khi còn đọc được. Ngưỡng ~4pt, dưới đó hai chữ thành một vệt
     // mờ, mà một vệt mờ trong biểu tượng đọc ra thành vết bẩn chứ không thành thông
     // tin. Nhờ vậy cùng một lời gọi dùng được cả ở cỡ ghi chú lẫn cỡ xen dòng.
     let mark = if mark == auto {

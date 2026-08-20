@@ -1,18 +1,18 @@
 // /template/components/noteplace.typ
-// Bộ đặt chỗ cho chú giải — luật quần thể kiểu boids, dùng chung cho mọi loại sơ đồ.
+// Bộ đặt chỗ cho chú giải: luật quần thể kiểu boids, dùng chung cho mọi loại sơ đồ.
 //
 // Bài toán: có một khung hình, một mớ vật cản (shape của sơ đồ), và vài ô chú giải cần
 // neo vào một vật cản nào đó. Đặt chúng ở đâu?
 //
 // Cách làm: KHÔNG viết toạ độ cho từng ô, cũng KHÔNG viết if/else cho từng tình huống.
 // Mỗi ô là một cá thể "dummy"; ta chỉ viết vài luật áp chung cho cả quần thể, và trật tự
-// nổi lên từ tương tác giữa các luật — đúng tinh thần mô hình boids của Craig Reynolds.
+// nổi lên từ tương tác giữa các luật, đúng tinh thần mô hình boids của Craig Reynolds.
 //
-//   1. Containment — không ra khỏi khung. Trọng số áp đảo, coi như điều kiện loại.
-//   2. Avoidance   — tránh vật cản cứng (shape, nhãn) và mềm (nét nối).
-//   3. Separation  — các ô chú giải tránh đè lên nhau.
-//   4. Cohesion    — trong các chỗ hợp lệ, chọn chỗ gần vật neo nhất.
-//   5. Alignment   — điểm ngang nhau thì ưu tiên cùng một phía, cho cả trang có nhịp.
+//   1. Containment: không ra khỏi khung. Trọng số áp đảo, coi như điều kiện loại.
+//   2. Avoidance  : tránh vật cản cứng (shape, nhãn) và mềm (nét nối).
+//   3. Separation : các ô chú giải tránh đè lên nhau.
+//   4. Cohesion   : trong các chỗ hợp lệ, chọn chỗ gần vật neo nhất.
+//   5. Alignment  : điểm ngang nhau thì ưu tiên cùng một phía, cho cả trang có nhịp.
 //
 // Hệ quả tự nhiên: vật neo sát mép dưới thì ô nhảy lên trên, sát mép phải thì nhảy sang
 // trái, hai ô cùng nhắm một chỗ thì ô sau né sang bên. Không có dòng if nào cho các ca đó.
@@ -61,7 +61,7 @@
 
 // `out` cố tình lớn hơn hẳn phần còn lại: ra khỏi khung là điều kiện loại, không phải một
 // khoản trừ điểm có thể bù bằng ưu điểm khác. Để nó ngang hàng thì ô sẽ chọn "ra ngoài một
-// tí" thay vì "đè lên shape" — đã mắc đúng lỗi này một lần.
+// tí" thay vì "đè lên shape": đã mắc đúng lỗi này một lần.
 #let np-defaults = (
   out: 5000.0,
   shape: 34.0,
@@ -70,10 +70,10 @@
   near: 0.016,
   side: 0.6,
   detach: 4.0,
-  // Luật 6 — Distinctness. Phạt đường dẫn nằm đúng phương ngang hoặc phương dọc.
+  // Luật 6: Distinctness. Phạt đường dẫn nằm đúng phương ngang hoặc phương dọc.
   //
   // Cung BPMN chạy vuông góc, chỉ ngang và dọc. Ô chú giải đặt thẳng dưới một node thì
-  // đường dẫn của nó cũng dọc, và nó biến mất vào đúng cái cung đi ra từ node đó —
+  // đường dẫn của nó cũng dọc, và nó biến mất vào đúng cái cung đi ra từ node đó,
   // người đọc không còn biết ô đang nói về ai. Đường chéo không trùng phương với thứ gì
   // trong bản vẽ, nên nó luôn đọc được. Đặt 0 để tắt.
   skew: 9.0,
@@ -110,8 +110,8 @@
 /// Giải bài toán đặt chỗ.
 ///
 /// - canvas: khung được phép dùng (đã trừ mép trong)
-/// - hard: vật cản cứng — shape, nhãn
-/// - soft: vật cản mềm — nét nối
+/// - hard: vật cản cứng (shape, nhãn)
+/// - soft: vật cản mềm (nét nối)
 /// - items: mảng (w, h, anchor, side, fixed) với
 ///     w, h   : kích thước ô chú giải (float pt)
 ///     anchor : chữ nhật của vật được neo vào
@@ -173,7 +173,7 @@
 
     // Ứng viên hạng hai: quét một lưới thô khắp khung. Khi quanh vật neo không còn chỗ,
     // ô chú giải vẫn tìm được một khoảng trắng thật sự ở nơi khác và nối về bằng đường
-    // dẫn — thay vì trèo ra ngoài khung.
+    // dẫn: thay vì trèo ra ngoài khung.
     if side == auto {
       let (nx, ny) = grid
       let sx = calc.max(0.0, canvas.w - nw)
@@ -204,7 +204,7 @@
       s += weights.near * calc.sqrt(dcx * dcx + dcy * dcy) // 4. Cohesion
       s += c.bias //                                          5. Alignment
 
-      // 6. Distinctness — đo trên chính đoạn thẳng sẽ được vẽ, không phải trên tâm hai
+      // 6. Distinctness: đo trên chính đoạn thẳng sẽ được vẽ, không phải trên tâm hai
       // hình, vì đường dẫn nối *cạnh gần nhau nhất*. `ortho` bằng 1 khi đoạn nằm đúng
       // phương ngang hoặc dọc, bằng 0 khi đúng 45 độ.
       let sk = weights.at("skew", default: 0.0)

@@ -1,5 +1,5 @@
 // src/bpmap.typ
-// Business Process Map — Bản đồ quy trình (Value Chain) theo cách tổ chức của SAP:
+// Business Process Map: Bản đồ quy trình (Value Chain) theo cách tổ chức của SAP:
 //   Level 1: Management Processes / Core Processes / Support Processes
 //   Level 2: một Process Area được bóc tách thành các quy trình con
 //
@@ -31,7 +31,7 @@
 //   shape       : nền mặc định của các khối hình
 //   line        : màu đường viền các dải
 #let bp-themes = (
-  // Đen trắng — an toàn khi in, giống sơ đồ mẫu
+  // Đen trắng: an toàn khi in, giống sơ đồ mẫu
   bw: (
     accent: luma(35%),
     accent-text: white,
@@ -63,9 +63,9 @@
   ),
 )
 
-// MARK: Component — hộp mái nhà
-// point: "down" (đỉnh chúc xuống — Quy trình Quản lý)
-//        "up"   (đỉnh hướng lên  — Quy trình Hỗ trợ)
+// MARK: Component: hộp mái nhà
+// point: "down" (đỉnh chúc xuống: Quy trình Quản lý)
+//        "up"   (đỉnh hướng lên : Quy trình Hỗ trợ)
 #let bphouse(
   body,
   // Cắm mốc để component chú giải neo vào; xem bp-anchor-marks
@@ -119,7 +119,7 @@
   })
 }
 
-// MARK: Component — hộp chữ nhật
+// MARK: Component: hộp chữ nhật
 #let bpbox(
   body,
   // Cắm mốc để component chú giải neo vào; xem bp-anchor-marks
@@ -162,7 +162,7 @@
   )
 }
 
-// MARK: Component — dải dọc hai biên
+// MARK: Component: dải dọc hai biên
 // Hình thang vát nhẹ, chữ xoay 90 độ (đọc từ dưới lên) như sơ đồ SAP.
 #let bpvbar(
   body,
@@ -205,7 +205,7 @@
   })
 }
 
-// MARK: Helpers — hình dạng
+// MARK: Helpers: hình dạng
 #let bp-shape-fn(name) = {
   if name == "house-down" or name == "management" {
     (body, ..a) => bphouse(body, point: "down", ..a)
@@ -250,7 +250,7 @@
 #let bp-is-house(name) = name in ("house-down", "house-up", "management", "support")
 #let bp-is-chevron(name) = not bp-is-house(name) and name != "box"
 
-// MARK: Helpers — chuẩn hóa item có toạ độ lưới
+// MARK: Helpers: chuẩn hóa item có toạ độ lưới
 // Ngoài các khóa của bpstep, mỗi item còn nhận: row, col, span.
 //   thiếu `row` -> cùng hàng với item trước (mặc định hàng 1)
 //   thiếu `col` -> nối tiếp ô trống kế tiếp của hàng đó
@@ -280,7 +280,7 @@
   out
 }
 
-// MARK: Helpers — lưới các hình
+// MARK: Helpers: lưới các hình
 // width: bề rộng thực (length) của vùng vẽ; columns: auto = suy ra từ items
 #let bp-shape-grid(
   items,
@@ -368,7 +368,7 @@
   }
 }
 
-// MARK: Helpers — một nhóm trong vùng Cốt lõi
+// MARK: Helpers: một nhóm trong vùng Cốt lõi
 // group: (title | group, label-side, fill, shape, columns, steps | items)
 #let bp-core-group(
   group,
@@ -420,7 +420,7 @@
   )
 }
 
-// MARK: Component — bản đồ quy trình
+// MARK: Component: bản đồ quy trình
 #let bpmap(
   // Tên nhóm mốc neo cho `annotate`; none = không cắm mốc
   anchors: none,
@@ -593,7 +593,7 @@
   block(width: 100%, breakable: false, align(bp-align-left, stack(dir: ttb, spacing: gutter, ..blocks)))
 })
 
-// MARK: Wrapper — dựng từ dữ liệu đã nạp
+// MARK: Wrapper: dựng từ dữ liệu đã nạp
 // Khóa hiểu được: management, core, support, left, right, caption, label, options
 #let bpmap-data(data, ..args) = {
   if type(data) != dictionary { return bpmap(core: data, ..args) }
@@ -618,6 +618,6 @@
   if lbl != none { [#out #label(lbl)] } else { out }
 }
 
-// MARK: Wrapper — nạp và dựng trong một lệnh
+// MARK: Wrapper: nạp và dựng trong một lệnh
 // LƯU Ý: đường dẫn tuyệt đối từ gốc project ("/content/processes/x.yaml").
 #let bpmap-file(path, id: none, ..args) = bpmap-data(load-steps(path, id: id), ..args)

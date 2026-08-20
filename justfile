@@ -1,4 +1,4 @@
-# typst-bpmn — build runner
+# typst-bpmn: build runner
 #
 #   just            list recipes
 #   just watch      live-rebuild the demo while you edit
@@ -60,7 +60,7 @@ watch: convert
     @mkdir -p {{out}}
     {{typst}} watch --root {{src}} {{font_flag}} {{src}}/demo.typ {{out}}/demo.pdf
 
-# Build the visual conformance sheet — every symbol at three scales
+# Build the visual conformance sheet: every symbol at three scales
 conformance:
     @mkdir -p {{out}}
     {{typst}} compile --root {{src}} {{font_flag}} \
@@ -86,7 +86,7 @@ all: convert-strict demo conformance
 
 # Typst tìm package local trong thư mục *data của hệ điều hành*, không phải một
 # đường dẫn cố định. Đoán sai thì `install-lib` báo thành công còn Typst vẫn nói
-# "package not found" — im lặng và khó lần ra.
+# "package not found": im lặng và khó lần ra.
 #
 #   macOS    ~/Library/Application Support/typst   (KHÔNG phải ~/.local/share)
 #   Linux    $XDG_DATA_HOME/typst, mặc định ~/.local/share/typst
@@ -109,11 +109,11 @@ where-lib:
     if [ -d "{{typst_pkgs}}/{{pkg_name}}" ]; then
         echo "đã cài       : $(ls "{{typst_pkgs}}/{{pkg_name}}" | tr '\n' ' ')"
     else
-        echo "đã cài       : (chưa có gì) — chạy \`just install-lib\`"
+        echo "đã cài       : (chưa có gì), chạy \`just install-lib\`"
     fi
     other="$HOME/.local/share/typst/packages/local/{{pkg_name}}"
     if [ "{{os()}}" != "linux" ] && [ -d "$other" ]; then
-        echo "CẢNH BÁO     : còn một bản cũ ở $other mà Typst không đọc — xoá đi"
+        echo "CẢNH BÁO     : còn một bản cũ ở $other mà Typst không đọc, xoá đi"
     fi
 
 # Cài package vào kho local: tài liệu dùng `#import "@local/typst-bpmn:<ver>"`
@@ -129,10 +129,10 @@ install-lib: lint-src
     echo "   dùng: #import \"@local/{{pkg_name}}:$ver\": *"
     other="$HOME/.local/share/typst/packages/local/{{pkg_name}}"
     if [ "{{os()}}" != "linux" ] && [ -d "$other" ]; then
-        echo "   ! còn một bản cũ ở $other mà Typst không đọc — xoá đi cho khỏi lẫn"
+        echo "   ! còn một bản cũ ở $other mà Typst không đọc, xoá đi cho khỏi lẫn"
     fi
 
-# Trỏ kho local vào repo này bằng symlink — sửa là thấy, không phải cài lại
+# Trỏ kho local vào repo này bằng symlink, sửa là thấy, không phải cài lại
 link-dev:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -182,7 +182,7 @@ check: convert-strict golden
         {{src}}/tests/agreement.typ {{out}}/agreement.pdf
     @echo "✓ converter strict-clean, parsers agree"
 
-# Gate for `install-lib`: compile every src/ file — no models/, no sibling repo
+# Gate for `install-lib`: compile every src/ file, no models/, no sibling repo
 lint-src:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -196,7 +196,7 @@ lint-src:
     done
     exit $bad
 
-# Same, plus demo.typ and tests/ — those need models/, so `just convert` first
+# Same, plus demo.typ and tests/: those need models/, so `just convert` first
 lint: lint-src
     #!/usr/bin/env bash
     set -uo pipefail

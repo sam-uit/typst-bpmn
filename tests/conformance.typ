@@ -1,6 +1,6 @@
 // Visual conformance sheet: every symbol in the vocabulary, at three scales.
 //
-// Open beside Camunda Modeler and compare proportions. The three scales matter —
+// Open beside Camunda Modeler and compare proportions. The three scales matter,
 // several icons that read fine at full size turn to mush when a diagram is
 // squeezed onto A4, and this is where that shows up.
 //
@@ -60,7 +60,7 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
   ev("start", "signal", false, "signal"),
   ev("start", "conditional", false, "conditional"))
 
-*Intermediate — catch (outline) and throw (solid)*
+*Intermediate: catch (outline) and throw (solid)*
 #grid(columns: 5, row-gutter: 9pt,
   ev("intermediate", "message", false, "message catch"),
   ev("intermediate", "timer", false, "timer"),
@@ -71,7 +71,7 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
   ev("intermediate", "signal", true, "signal throw"),
   ev("intermediate", "link", true, "link throw"))
 
-*End — thick ring, solid icons*
+*End: thick ring, solid icons*
 #grid(columns: 5, row-gutter: 9pt,
   ev("end", "none", true, "none"),
   ev("end", "message", true, "message"),
@@ -82,7 +82,7 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
   ev("end", "cancel", true, "cancel"),
   ev("end", "terminate", false, "terminate"))
 
-*Boundary — double ring; dashed when non-interrupting*
+*Boundary: double ring; dashed when non-interrupting*
 #grid(columns: 4, row-gutter: 9pt,
   scales("error (interrupting)", u => shape-event(36 * u, 36 * u, family: "boundary",
     definition: "error", stroke: ink)),
@@ -93,12 +93,12 @@ Ring says *when*, icon says *what*, fill says *catch or throw*.
   scales("message (non-interrupting)", u => shape-event(36 * u, 36 * u, family: "boundary",
     definition: "message", interrupting: false, stroke: ink)))
 
-*Ring grammar — the one comparison worth making deliberately*
+*Ring grammar: the one comparison worth making deliberately*
 
 The families are only meaningful if they stay apart from each other. Read this row
 across, not down: start must be *one thin* ring, intermediate and boundary *two thin
 rings with white between them*, end *one thick* ring. The failure mode is silent and
-specific — draw the double ring at the single-ring weight and the two strokes touch,
+specific: draw the double ring at the single-ring weight and the two strokes touch,
 so an intermediate event renders as a thick ring and reads as an end event. The icon
 inside stays correct the whole time, which is what makes it easy to miss.
 
@@ -106,13 +106,13 @@ Check the *smallest* column hardest. A figure squeezed onto A4 puts an event at
 roughly 25pt across, between the first and second column here.
 
 #grid(columns: 4, row-gutter: 9pt,
-  scales("start — one thin", u => shape-event(36 * u, 36 * u, family: "start",
+  scales("start: one thin", u => shape-event(36 * u, 36 * u, family: "start",
     definition: "message", fill: white, stroke: ink)),
-  scales("intermediate — two thin", u => shape-event(36 * u, 36 * u,
+  scales("intermediate: two thin", u => shape-event(36 * u, 36 * u,
     family: "intermediate", definition: "message", fill: white, stroke: ink)),
-  scales("boundary — two thin", u => shape-event(36 * u, 36 * u, family: "boundary",
+  scales("boundary: two thin", u => shape-event(36 * u, 36 * u, family: "boundary",
     definition: "message", fill: white, stroke: ink)),
-  scales("end — one thick", u => shape-event(36 * u, 36 * u, family: "end",
+  scales("end: one thick", u => shape-event(36 * u, 36 * u, family: "end",
     definition: "none", fill: white, stroke: ink)))
 
 At the size a report actually uses, side by side, no icons to distract:
@@ -172,7 +172,7 @@ At the size a report actually uses, side by side, no icons to distract:
     u => shape-gateway(50 * u, 50 * u, kind: "exclusive", marker: false,
       fill: white, stroke: ink), base: 50))
 
-*Event-based* — BPMN tells these apart by `eventGatewayType` and `instantiate`,
+*Event-based*: BPMN tells these apart by `eventGatewayType` and `instantiate`,
 not by element name. Ring radii follow bpmn-js: outer inset 0.20 × height, inner
 0.26, so a 50-unit gateway gets r = 15 and r = 12.
 
@@ -207,7 +207,7 @@ not by element name. Ring radii follow bpmn-js: outer inset 0.20 × height, inne
 = Centring
 
 Every icon is drawn into a square box and then centred inside its shape, so an icon
-that is off-centre *within its own box* shifts inside every symbol that uses it — and
+that is off-centre *within its own box* shifts inside every symbol that uses it, and
 nothing looks broken, it just looks slightly wrong in a way nobody can name. The
 crosshair is the whole test: it marks the true centre of the box, so anything that
 does not straddle it is off.
@@ -218,7 +218,7 @@ circle's *edge* at the origin, so a dial written as `radius: 0.46 * size` centre
 ring that reads as a fatter white margin on the right and below.
 
 Judge the *ink*, not the outline: a shape with mass off to one side (the hand, the
-compensation arrows) is meant to look that way — what matters is that its bounding box
+compensation arrows) is meant to look that way; what matters is that its bounding box
 straddles the cross.
 
 #let xbox(label, body, s: 46pt) = box(width: 62pt)[
@@ -245,7 +245,7 @@ straddles the cross.
   xi("compensation", marker-compensation))
 
 #v(6pt)
-And the same icon inside the shape that carries it — the margin around the dial has to
+And the same icon inside the shape that carries it: the margin around the dial has to
 look equal on all four sides:
 
 #grid(columns: 4, column-gutter: 12pt, align: horizon,
@@ -280,7 +280,7 @@ green and red.
 #grid(columns: 4, row-gutter: 10pt, column-gutter: 4pt,
   ..("default", "blue", "orange", "green", "red", "purple").map(sw))
 
-*Semantic aliases* — `success` `happy` → green, `failure` `error` `reject` → red,
+*Semantic aliases*: `success` `happy` → green, `failure` `error` `reject` → red,
 `warning` `rework` → orange, `info` → blue, `external` → purple.
 
 = Connections
@@ -317,6 +317,6 @@ title along the top and its lanes down. The fixture below is rendered from
 #bpmn(yaml("/models/vertical-pools.yaml"), theme: T, fit: "width")
 
 #v(8pt)
-*Sliced to one pool — the partner collapses to a band on the side it came from*
+*Sliced to one pool: the partner collapses to a band on the side it came from*
 #bpmn(yaml("/models/vertical-pools.yaml"), view: (pool: "Ngân hàng"),
   compact: (axis: "both"), theme: T, fit: "width")

@@ -12,7 +12,7 @@
 
 #let default-theme = (
   font: "DejaVu Sans",
-  // Nhãn lấy từ mô hình đi qua chế độ nào — xem bptext.typ.
+  // Nhãn lấy từ mô hình đi qua chế độ nào, xem bptext.typ.
   //   "smart"  (mặc định) đổi `--`/`---`/`...` thành ký hiệu đúng, không eval
   //   "markup" eval đầy đủ: được cả `$->$`, nhưng `#` sẽ biến mất im lặng
   //   "raw"    giữ nguyên
@@ -212,7 +212,7 @@
   if kind == "group" {
     // A group is grey *unless the author coloured it*. Everywhere else the theme
     // is the fallback and the model wins; a group had the theme hard-wired, so a
-    // deliberate colour chosen in the modeler was silently thrown away — and a
+    // deliberate colour chosen in the modeler was silently thrown away, and a
     // group is one of the few elements whose only job is to say "these belong
     // together", which is exactly what people reach for colour to say.
     let painted = (n.at("stroke", default: none) != none
@@ -333,10 +333,10 @@
   // vertical one, with the text turned to match. Lanes follow the same rule: they
   // stack downwards in a horizontal pool and sit side by side in a vertical one,
   // so their bands and their text turn with the pool.
-  // `rule` — draw the line that closes the band off from the body of the pool.
+  // `rule`: draw the line that closes the band off from the body of the pool.
   //
   // A participant has one: the modeler boxes its name off. A lane does not, and adding
-  // it is not a small liberty — it reads as a table header row, which invites the eye
+  // it is not a small liberty: it reads as a table header row, which invites the eye
   // to look for columns that are not there. The name already sits turned on its side
   // against the frame; nothing more is needed to tell it apart from the shapes. This
   // matches what bpmn-js draws, which is the whole promise of the renderer.
@@ -409,7 +409,7 @@
   //   6  message and (data) association flows
   //
   // The two that matter, and that the old order got wrong: a message flow is a
-  // *conversation between pools*, so it has to stay legible wherever it passes —
+  // *conversation between pools*, so it has to stay legible wherever it passes,
   // it was being buried under sub-process frames. And a sub-process is scenery
   // for its own children, so it belongs below them, not above the flows.
   let is-frame(n) = n.kind == "subprocess" and n.at("expanded", default: false)

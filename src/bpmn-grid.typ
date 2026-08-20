@@ -3,7 +3,7 @@
 // You give each node a `row` and `col` (same idea as `bpmap`'s grid) and this
 // assigns bounds, derives pool/lane frames, and routes the flows orthogonally.
 // It is deliberately simple: no crossing minimisation, no label collision
-// avoidance. For anything intricate, draw it in a modeler and convert the XML —
+// avoidance. For anything intricate, draw it in a modeler and convert the XML,
 // the modeler is better at layout than a few hundred lines of Typst will ever be.
 
 #let grid-defaults = (
@@ -38,7 +38,7 @@
 }
 
 // ------------------------------------------------------------------ ports ---
-// A shape has four attachment points — right, bottom, left, top — which on a
+// A shape has four attachment points: right, bottom, left, top, which on a
 // gateway diamond are exactly its four vertices. Every flow touching a node gets
 // one of its own, so a gateway with two outgoing branches sends one out of the
 // right vertex and the other out of the bottom vertex, the way a modeler would

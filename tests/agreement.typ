@@ -64,7 +64,7 @@
 )
 
 #if failures > 0 {
-  panic("parser disagreement in " + str(failures) + " case(s) — "
+  panic("parser disagreement in " + str(failures) + " case(s), "
     + "the YAML converter and bpmn-xml.typ have drifted apart")
 }
 

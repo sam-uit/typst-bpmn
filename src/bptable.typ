@@ -1,5 +1,5 @@
 // /template/components/bptable.typ
-// Business Process Table — Danh mục quy trình nghiệp vụ dưới dạng bảng:
+// Business Process Table: Danh mục quy trình nghiệp vụ dưới dạng bảng:
 //   mỗi dòng là một quy trình, các cột là Tên / Tác Nhân / Khách Hàng /
 //   Kết Quả / Mô Tả Các Bước.
 //
@@ -17,7 +17,7 @@
 #import "bpstep.typ": load-steps
 #import "bptext.typ": bp-text
 
-// MARK: Helpers — nội dung một ô
+// MARK: Helpers: nội dung một ô
 // Giá trị trong YAML có thể là chuỗi hoặc mảng:
 //   - `sep != none`  -> nối các phần tử bằng dấu phân cách (mũi tên cho cột Các Bước)
 //   - mảng 1 phần tử -> in thẳng, không cần gạch đầu dòng
@@ -37,7 +37,7 @@
   }
 }
 
-// MARK: Component — bảng danh mục quy trình
+// MARK: Component: bảng danh mục quy trình
 #let bptable(
   processes,
   // Bề rộng từng cột
@@ -82,7 +82,7 @@
   )
 }
 
-// MARK: Wrapper — dựng từ dữ liệu đã nạp
+// MARK: Wrapper: dựng từ dữ liệu đã nạp
 // Khóa hiểu được: processes, caption, label, options (dict tham số của bptable).
 // Tham số truyền trực tiếp luôn ghi đè `options` trong file dữ liệu.
 #let bptable-data(data, ..args) = {
@@ -114,6 +114,6 @@
   if lbl != none { [#out #label(lbl)] } else { out }
 }
 
-// MARK: Wrapper — nạp và dựng trong một lệnh
+// MARK: Wrapper: nạp và dựng trong một lệnh
 // LƯU Ý: đường dẫn tuyệt đối từ gốc project ("/content/processes/x.yaml").
 #let bptable-file(path, id: none, ..args) = bptable-data(load-steps(path, id: id), ..args)

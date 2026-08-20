@@ -1,5 +1,5 @@
 // src/bpportfolio.typ
-// Process Portfolio Matrix — ma trận danh mục quy trình, dùng để *chọn* quy trình
+// Process Portfolio Matrix: ma trận danh mục quy trình, dùng để *chọn* quy trình
 // nào đáng cải tiến trước, theo ba tiêu chí của FBPM2e:
 //
 //   Importance   quy trình đóng góp bao nhiêu vào mục tiêu chiến lược
@@ -13,7 +13,7 @@
 // Vì sao Health nằm ở trục hoành và tăng dần sang phải, dù "đáng chọn" lại là bên
 // trái: đảo trục cho vùng đáng chọn về góc trên bên phải sẽ khiến trục đọc ngược
 // (100% ở gốc), và người đọc quen với "trục tăng dần từ gốc" hơn là quen với "góc
-// trên bên phải là tốt". Đổi lại phải nói rõ vùng chọn — nên vùng đó được tô nền
+// trên bên phải là tốt". Đổi lại phải nói rõ vùng chọn, nên vùng đó được tô nền
 // và có nhãn.
 //
 // Author: Sam Dinh
@@ -21,7 +21,7 @@
 // License: MIT
 //
 // Legend kích thước nằm dọc ở lề phải, đối xứng với nhãn trục tung, và chạy từ dưới
-// lên (25% ở đáy, 100% ở đỉnh) — cùng chiều với Importance, nên mắt so hai thứ mà
+// lên (25% ở đáy, 100% ở đỉnh), cùng chiều với Importance, nên mắt so hai thứ mà
 // không phải đổi quy ước giữa chừng.
 //
 // Bảng chú giải mã (chế độ "tag") là một lưới 5 cột cho mỗi khối:
@@ -29,7 +29,7 @@
 //   ● mã | tên quy trình ......... | Imp | Health | Feas
 //        căn trái                      ba cột căn phải
 //
-// Ba con số căn phải để hàng đơn vị thẳng nhau — đọc dọc một cột là so sánh được
+// Ba con số căn phải để hàng đơn vị thẳng nhau, đọc dọc một cột là so sánh được
 // ngay. `key-columns` là số khối cạnh nhau; nhiều khối thì xếp *theo cột*, tức là
 // chạy hết khối trái rồi mới sang khối phải, để thứ tự khai báo không vỡ vụn.
 //
@@ -46,8 +46,8 @@
 //   processes:
 //     - name: Xử lý bảo hành
 //       importance: 90        # 0..100
-//       health: 25            # 0..100 — THẤP là xấu
-//       feasibility: 70       # 0..100 — đường kính bong bóng
+//       health: 25            # 0..100, THẤP là xấu
+//       feasibility: 70       # 0..100, đường kính bong bóng
 //       tag: C4               # nhãn ngắn vẽ trong bong bóng (tuỳ chọn)
 //       select: true          # tô đậm, coi là quy trình được chọn
 //       side: "left"          # ép nhãn sang một phía: "left" | "right"
@@ -60,19 +60,19 @@
 #import "bptext.typ": bp-text
 
 // MARK: Ba kênh mã hoá
-// Ba tiêu chí, ba kênh thị giác độc lập — không cái nào phải chia sẻ kênh với cái nào:
+// Ba tiêu chí, ba kênh thị giác độc lập, không cái nào phải chia sẻ kênh với cái nào:
 //
 //   Importance   -> vị trí dọc   (càng quan trọng càng lên trên)
 //   Feasibility  -> đường kính   (càng khả thi càng to)
 //   Health       -> vị trí ngang *và* màu (càng thấp càng đỏ, càng cao càng xanh)
 //
 // Health chiếm hai kênh là cố ý: mã hoá dư (redundant encoding). Trục trả lời "thấp
-// bao nhiêu", màu trả lời "có đáng lo không" — mắt đọc được câu thứ hai từ xa mà
+// bao nhiêu", màu trả lời "có đáng lo không", mắt đọc được câu thứ hai từ xa mà
 // không cần dò trục. Vì màu ở đây chỉ nhắc lại trục đã có nhãn, hình không cần thêm
 // một chú giải màu riêng.
 //
 // Hệ quả với `select`: quy trình được chọn KHÔNG đổi màu nền. Đổi là cướp mất kênh
-// của Health, và cướp đúng lúc nó đang nói điều quan trọng nhất — quy trình được
+// của Health, và cướp đúng lúc nó đang nói điều quan trọng nhất, quy trình được
 // chọn thì gần như luôn là quy trình đỏ nhất. Chọn được thể hiện bằng viền dày và
 // chữ đậm.
 
@@ -81,7 +81,7 @@
 // `semantic-aliases` đã đặt tên.
 // Bảng màu Camunda được chế cho *nền hình chữ nhật to*, nên nó rất nhạt. Bong bóng
 // 10–30pt thì nhạt tới mức đỏ và xanh nhìn gần như nhau, nhất là ở khoảng giữa. Nên
-// tăng bão hoà cho riêng thang này — vẫn đúng hue của bảng màu, chỉ đậm lên đủ để
+// tăng bão hoà cho riêng thang này, vẫn đúng hue của bảng màu, chỉ đậm lên đủ để
 // đọc được thứ tự ở kích thước nhỏ.
 #let _sw(name, sat: 45%) = {
   let c = camunda-palette.at(name)
@@ -105,13 +105,13 @@
 
 // MARK: Themes
 #let bpf-themes = (
-  // Bảng màu của chính typst-bpmn — mặc định
+  // Bảng màu của chính typst-bpmn: mặc định
   camunda: (
     plot: white,
     grid: luma(90%),
     axis: rgb("#22242A"),
     // "Vùng ưu tiên" là một cảnh báo, nên nó lấy swatch cảnh báo (orange/warning)
-    // pha loãng — đủ để thấy vùng, không đủ để cãi nhau với bong bóng nằm trong.
+    // pha loãng: đủ để thấy vùng, không đủ để cãi nhau với bong bóng nằm trong.
     zone: rgb("#FFE0B2").lighten(64%),
     zone-line: rgb("#6B3C00").lighten(35%),
     zone-text: rgb("#6B3C00"),
@@ -122,7 +122,7 @@
     text: black,
     muted: luma(40%),
   ),
-  // Đen trắng — an toàn khi in
+  // Đen trắng: an toàn khi in
   bw: (
     plot: white,
     grid: luma(90%),
@@ -190,7 +190,7 @@
 }
 
 // YAML không có kiểu độ dài: `size: [12.2cm, 8cm]` về tới đây là hai chuỗi. Đọc tay
-// thay vì `eval`. Khác với `bp-text` — ở đó eval *là* mục đích (người viết muốn dash
+// thay vì `eval`. Khác với `bp-text`: ở đó eval *là* mục đích (người viết muốn dash
 // và math); ở đây eval chỉ là một cách lười để đọc một con số kèm đơn vị.
 #let _units = (("cm", 1cm), ("mm", 1mm), ("in", 1in), ("pt", 1pt), ("em", 1em))
 #let _len(v, default: 0pt) = {
@@ -243,7 +243,7 @@
 // MARK: bpportfolio
 //
 // size          : (rộng, cao) của *vùng vẽ*, chưa tính lề trục
-// zone          : ngưỡng vùng "cải tiến ngay" — (health-max, importance-min)
+// zone          : ngưỡng vùng "cải tiến ngay", (health-max, importance-min)
 // bubble        : (nhỏ nhất, lớn nhất) đường kính bong bóng
 // axis-labels   : nhãn hai trục
 // zone-label    : nhãn vùng chọn; `none` để tắt
@@ -278,7 +278,7 @@
   // Tên quy trình thật thường dài; viết thẳng cạnh bong bóng thì hai nhãn ở hai phía
   // đối diện vẫn đâm vào nhau, và không có cách sắp xếp nào cứu được. Chế độ "tag"
   // bỏ hẳn bài toán đó: trong bong bóng chỉ có mã ngắn, tên nằm ở bảng chú giải bên
-  // dưới. "auto" chọn giúp — quá bốn quy trình thì dùng tag.
+  // dưới. "auto" chọn giúp: quá bốn quy trình thì dùng tag.
   // Khai `tag:` bằng tay là đã nói rõ ý muốn dùng mã; viết cả mã lẫn tên cạnh nhau
   // là thừa, và làm hai nhãn dài đâm vào nhau ngay.
   let mode = if labels != "auto" { labels } else if (
@@ -376,7 +376,7 @@
       )
       // Xoay quanh góc trên-trái: hộp rộng `ph` đổ *lên trên* từ điểm neo, nên điểm
       // neo là đáy vùng vẽ. Tính theo tâm sẽ đẩy hộp chưa xoay ra ngoài trang và
-      // bị cắt mất — đã dính một lần.
+      // bị cắt mất: đã dính một lần.
       place(
         dx: 0pt,
         dy: pad-top + ph,
@@ -389,7 +389,7 @@
       // --- legend kích thước: cột dọc ở lề phải ---
       //
       // Đặt đối xứng với nhãn trục tung, và chạy *từ dưới lên*: 25% ở đáy, 100% ở
-      // đỉnh — cùng chiều với Importance, nên mắt so hai thứ mà không phải đổi quy
+      // đỉnh: cùng chiều với Importance, nên mắt so hai thứ mà không phải đổi quy
       // ước giữa chừng.
       //
       // Trị số nằm trong bong bóng khi lọt, rơi xuống dưới khi không. Ngưỡng đo
@@ -467,7 +467,7 @@
 
       // --- nhãn ---
       // Mặc định đặt bên phải bong bóng, lật sang trái khi sát mép phải. Hai nhãn
-      // cùng phía mà quá gần nhau thì đẩy xuống theo thứ tự từ trên xuống — và khi
+      // cùng phía mà quá gần nhau thì đẩy xuống theo thứ tự từ trên xuống, và khi
       // đã đẩy thì kẻ một đường dẫn mảnh, nếu không người đọc gán nhãn nhầm bong bóng.
       let placed = ()
       for side in (if mode == "tag" { () } else { ("left", "right") }) {
@@ -529,7 +529,7 @@
   // --- bảng chú giải mã, chỉ ở chế độ tag ---
   //
   // Năm cột cho mỗi khối: chấm+mã | tên | Imp | Health | Feas. Ba con số căn phải
-  // để hàng đơn vị thẳng nhau — đọc dọc một cột số là so sánh được ngay, việc mà
+  // để hàng đơn vị thẳng nhau: đọc dọc một cột số là so sánh được ngay, việc mà
   // "· I 65 · H 70 · F 50" chạy trong dòng văn không làm được.
   //
   // Nhiều khối thì xếp *theo cột*: M01…S04 chạy hết khối trái rồi mới sang khối
@@ -539,7 +539,7 @@
 
     // Chấm màu + mã, chấm căn giữa theo chiều dọc của dòng.
     //
-    // Cách hiển nhiên — `box(baseline: ..)` — là đặt đáy hộp lên baseline rồi đẩy
+    // Cách hiển nhiên (`box(baseline: ..)`) là đặt đáy hộp lên baseline rồi đẩy
     // xuống một khoảng. Nhưng khoảng đó phải suy từ chiều cao chữ, mà Typst không
     // cho đọc font metrics: `measure(text("x")).height` trả về chiều cao *khung
     // dòng* (bằng nhau cho "x", "X" và "xy"), không phải x-height. Mọi con số rút
@@ -588,11 +588,11 @@
 
     grid(
       columns: ((auto, 1fr, auto, auto, auto) * key-columns).flatten(),
-      // `figure` căn giữa nội dung của nó, nên phải khai căn chỉnh ở đây — nếu không
+      // `figure` căn giữa nội dung của nó, nên phải khai căn chỉnh ở đây, nếu không
       // tên quy trình trôi vào giữa cột và cả bảng mất trục trái.
       align: ((left, left, right, right, right) * key-columns).flatten(),
       // `column-gutter` chỉ có (số cột − 1) khe. Bốn khe trong một khối, cộng một khe
-      // rộng giữa hai khối — khe cuối cùng của khối cuối không tồn tại.
+      // rộng giữa hai khối: khe cuối cùng của khối cuối không tồn tại.
       column-gutter: range(key-columns)
         .map(c => (4pt, 7pt, 5pt, 5pt) + (if c + 1 < key-columns { (13pt,) } else { () }))
         .flatten(),
@@ -610,7 +610,7 @@
   block(breakable: false, chart)
 }
 
-// MARK: Wrapper — dựng từ dữ liệu đã nạp
+// MARK: Wrapper: dựng từ dữ liệu đã nạp
 // Khoá hiểu được: processes, caption, label, options
 #let bpportfolio-data(data, ..args) = {
   if type(data) == array { return bpportfolio(processes: data, ..args) }

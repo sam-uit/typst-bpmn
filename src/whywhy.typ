@@ -1,7 +1,7 @@
 // /template/components/whywhy.typ
-// Why-Why (5 Whys) — chuỗi truy vấn nguyên nhân gốc rễ, dựng từ một file dữ liệu.
+// Why-Why (5 Whys): chuỗi truy vấn nguyên nhân gốc rễ, dựng từ một file dữ liệu.
 //
-// Lý do component này tồn tại không phải là phần trình bày — một danh sách lồng nhau
+// Lý do component này tồn tại không phải là phần trình bày: một danh sách lồng nhau
 // viết tay cũng ra đúng chừng đó chữ. Lý do là **cùng một chuỗi đang được dùng ở hai
 // chỗ**: danh sách trong văn bản, và các ô chú giải trên sơ đồ BPMN. Hai bản chép tay
 // thì sớm muộn lệch nhau. Ở đây chỉ có một file, hai cách đọc.
@@ -24,10 +24,10 @@
 //   whys:
 //     - ask:     <câu hỏi "Tại sao ...?">
 //       because: <câu trả lời>
-//       node:    <id phần tử BPMN>     # tuỳ chọn — chỉ cần khi muốn có chú giải
-//       note:    <câu rút gọn cho ô chú giải>   # tuỳ chọn — bỏ trống thì lấy `because`
-//       side/dx/dy/color/width:                # tuỳ chọn — ép chỗ đặt của riêng ô này
-//   root: <nguyên nhân gốc rễ>          # tuỳ chọn — bỏ trống thì lấy `because` cuối
+//       node:    <id phần tử BPMN>     # tuỳ chọn, chỉ cần khi muốn có chú giải
+//       note:    <câu rút gọn cho ô chú giải>   # tuỳ chọn, bỏ trống thì lấy `because`
+//       side/dx/dy/color/width:                # tuỳ chọn, ép chỗ đặt của riêng ô này
+//   root: <nguyên nhân gốc rễ>          # tuỳ chọn, bỏ trống thì lấy `because` cuối
 
 // MARK: Nạp dữ liệu
 #import "bptext.typ": bp-text
@@ -57,7 +57,7 @@
 //
 // Gạch nối viết thẳng bằng ký tự en-dash, không phải "--". Chuỗi này do *code* dựng
 // nên nó không bao giờ đi qua bộ phân tích cú pháp của Typst, mà "--" -> en-dash là
-// việc của bộ phân tích. Viết "--" ở đây thì in ra đúng hai dấu gạch — và đó là lỗi
+// việc của bộ phân tích. Viết "--" ở đây thì in ra đúng hai dấu gạch, và đó là lỗi
 // im lặng, vì phần thân của ô chú giải (do người viết gõ, có qua `bp-text`) lại ra
 // en-dash thật, nên hai nửa của cùng một ô hiện hai kiểu gạch khác nhau.
 #let ww-label(from, to, word: "Why") = {
@@ -66,10 +66,10 @@
   }
 }
 
-// MARK: Trình bày — danh sách lồng
+// MARK: Trình bày: danh sách lồng
 // Giữ đúng hình dạng đang dùng ở chương 3: một mục "Vấn đề", bên dưới là n cặp
 // câu hỏi -> nguyên nhân. Đổi cách vẽ (bảng, chuỗi mũi tên) thì sửa ở đây, mọi chỗ
-// dùng được hưởng theo — đó là điểm của việc tách dữ liệu ra.
+// dùng được hưởng theo: đó là điểm của việc tách dữ liệu ra.
 #let whywhy(
   src,
   // Nhãn của mỗi tầng; đổi khi tài liệu viết bằng ngôn ngữ khác
@@ -116,7 +116,7 @@
 // MARK: Chú giải cho sơ đồ BPMN
 // Một phần tử chỉ nên mang một ô chú giải, mà nhiều tầng nguyên nhân thường dồn vào
 // cùng một phần tử. Nên: các tầng **liền nhau** cùng `node` được gộp thành một ô,
-// nhãn ghi khoảng ("Why 2--3"). Tầng không khai `node` thì bỏ qua — nó vẫn nằm trong
+// nhãn ghi khoảng ("Why 2--3"). Tầng không khai `node` thì bỏ qua, nó vẫn nằm trong
 // danh sách phân tích, chỉ là không neo được vào sơ đồ.
 //
 // `note` thắng `because` vì ô chú giải hẹp: câu trong văn bản thường quá dài để đặt
@@ -134,8 +134,8 @@
   // Khoá đặt chỗ được phép khai ngay trong file dữ liệu, cho từng tầng một.
   //
   // Vì sao để ở đó chứ không ở chỗ gọi: `..extra` áp cho *mọi* ô, mà thường chỉ một ô
-  // cần ép. Mà ô nào cần ép thì lý do nằm ở chính nội dung nó — "câu này dài, đặt lên
-  // trên kẻo che nhãn của sự kiện hẹn giờ" — nên nó thuộc về file phân tích, cạnh câu
+  // cần ép. Mà ô nào cần ép thì lý do nằm ở chính nội dung nó, "câu này dài, đặt lên
+  // trên kẻo che nhãn của sự kiện hẹn giờ", nên nó thuộc về file phân tích, cạnh câu
   // chữ, chứ không phải nằm rải trong chương.
   let placement = ("side", "dx", "dy", "color", "width")
   let pick(w) = {
@@ -167,7 +167,7 @@
         to: i + 1,
         text: text,
         because: w.at("because", default: ""),
-        // Gộp nhiều tầng thì lấy khoá đặt chỗ của tầng đầu — ô là một, chỗ đặt cũng
+        // Gộp nhiều tầng thì lấy khoá đặt chỗ của tầng đầu, ô là một, chỗ đặt cũng
         // phải là một.
         place: pick(w),
       ))

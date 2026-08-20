@@ -1,4 +1,4 @@
-// BPMN 2.0 shape vocabulary — pure Typst, no external packages.
+// BPMN 2.0 shape vocabulary: pure Typst, no external packages.
 //
 // Every function returns content sized exactly (w, h) so the renderer can
 // `place` it at absolute coordinates. Icons are drawn in a unit square and
@@ -12,7 +12,7 @@
 ///
 /// Shapes are handed pre-scaled lengths (`b.w * u`), not the model's numbers, so
 /// they cannot see the scale directly. The old trick was to divide by 100 and
-/// assume the caller had drawn an activity — true for a task, which BPMN fixes at
+/// assume the caller had drawn an activity, true for a task, which BPMN fixes at
 /// 100x80, and badly wrong for an expanded sub-process at 350 wide, whose border
 /// then came out three and a half times too thick. Callers that know the scale
 /// pass `unit:`; the division stays as the fallback so a hand call still works.
@@ -47,7 +47,7 @@
 }
 
 // The dial is centred on the box, like every other icon here. It used to be built
-// around 0.46 — `place(circle(radius: 0.46 * size))` puts the *edge* at the origin,
+// around 0.46: `place(circle(radius: 0.46 * size))` puts the *edge* at the origin,
 // so the centre lands at 0.46, not 0.5, and the whole clock sat 0.04 × size up and
 // to the left inside its box. Subtle on its own and obvious once the icon is inside
 // an event ring, where the white margin is visibly fatter on the right and below.
@@ -201,13 +201,13 @@
 /// Three revisions, each fixing what the previous one still got wrong:
 ///
 /// 1. Two hand-fitted cubics with the head pinned at fixed unit coordinates. The head
-///    was not on the curve at all — a wedge parked beside it — and the mark was
+///    was not on the curve at all, a wedge parked beside it, and the mark was
 ///    off-centre.
 /// 2. A real arc with the head built on the *tangent at the tip*. Geometrically correct
 ///    and still wrong to look at: a straight head leaving a curve reads as flying off
 ///    the path, and its square base met the curving stroke at an angle, leaving a notch.
 /// 3. This one. Both ends of the head sit **on the circle**, so the head leans with the
-///    turn instead of escaping it — the arc's momentum carries through the tip. And the
+///    turn instead of escaping it: the arc's momentum carries through the tip. And the
 ///    base edge runs **along the radius** at its own angle, which is by construction
 ///    perpendicular to the arc's tangent exactly where the stroke ends, so the two meet
 ///    square and the notch is gone.
@@ -216,12 +216,12 @@
 ///
 ///   - run the arc round to the far end of the sweep and call that point the tip;
 ///   - from the tip, step back **along the circle** by the head's length to get the
-///     base point — so both points are on the curve and the head's axis is their chord;
+///     base point, so both points are on the curve and the head's axis is their chord;
 ///   - open the base out to either side along the radius by the head's height.
 ///
 /// So the two knobs are the ones you would actually reach for: `head-len` and
-/// `head-half`, both a fraction of the box. The angle is derived, never typed —
-/// `Δ = 2·asin(L / 2r)` — which keeps the head the same *length* if the radius is ever
+/// `head-half`, both a fraction of the box. The angle is derived, never typed,
+/// `Δ = 2·asin(L / 2r)`, which keeps the head the same *length* if the radius is ever
 /// retuned, instead of silently growing.
 ///
 /// ## Which way round, and where the gap sits
@@ -229,7 +229,7 @@
 /// BPMN 2.0 draws this marker **anticlockwise with the gap at the bottom**: the tail
 /// starts around half past five, the arc runs the long way round, and the head stops
 /// around seven. The first version here ran clockwise with the gap at the top, which is
-/// the same picture flipped about the horizontal axis — right shape, wrong statement.
+/// the same picture flipped about the horizontal axis, right shape, wrong statement.
 ///
 /// Two lines carry that. `P` measures y **downwards** from the centre instead of
 /// upwards, which mirrors the whole construction and, because mirroring reverses
@@ -242,14 +242,14 @@
 ///
 /// The figure is built around the origin and moved to the middle afterwards, from the
 /// **inked** extent: the arc widened by half the stroke, plus the three corners of the
-/// solid head. Solving that by hand only works while the gap sits on an axis — the
+/// solid head. Solving that by hand only works while the gap sits on an axis; the
 /// moment `phase` moves it, a hand-fitted centre is silently wrong on one side.
 ///
 /// Corners are rounded with a `join: "round"` stroke in the fill colour. Everything
 /// else in this family is drawn with `cap: "round"`, and a single sharp point is
 /// exactly the kind of detail that looks wrong without anyone being able to say why.
 ///
-/// The obvious alternative — the glyph `↻` — was tried and rejected: it comes out far
+/// The obvious alternative (the glyph `↻`) was tried and rejected: it comes out far
 /// lighter than the neighbouring markers (this family is drawn at 0.09–0.13 × size),
 /// and it would make a BPMN symbol depend on whichever font the host document happens
 /// to set. The same symbol has to look the same in every report.
@@ -267,7 +267,7 @@
   let base-a = 360deg - 2 * calc.asin(head-len / (2 * r))
   let bc = P(base-a)
   // Outward radial at the base angle. The base edge lies along it, so it is square to
-  // the arc where the stroke stops — hence the arc runs to exactly `base-a`, no
+  // the arc where the stroke stops: hence the arc runs to exactly `base-a`, no
   // overlap and no shortfall.
   let (rx, ry) = (calc.sin(base-a + phase), calc.cos(base-a + phase))
   let n = 60
@@ -301,7 +301,7 @@
   )
 }
 
-// Three bars of 0.13 with 0.17 between them span 0.73, so the margins are 0.135 —
+// Three bars of 0.13 with 0.17 between them span 0.73, so the margins are 0.135,
 // not the 0.16 that was there, which pushed the group 0.025 off centre.
 #let marker-mi(size, paint: black, sequential: false) = canvas(size, size,
   ..range(3).map(i => if sequential {
@@ -362,22 +362,22 @@
                  interrupting: true, fill: white, stroke: black) = {
   let r = calc.min(w, h) / 2
   let dash = if family == "boundary" and not interrupting { "dashed" } else { none }
-  // Weights follow bpmn-js on its 36-unit event box: start 2, end 4, and — the part
-  // that is easy to get wrong — **1.5 for both rings of a double-ring event**, with
+  // Weights follow bpmn-js on its 36-unit event box: start 2, end 4, and (the part
+  // that is easy to get wrong) **1.5 for both rings of a double-ring event**, with
   // the inner circle 3 units smaller in radius (`INNER_OUTER_DIST`).
   //
   // Those three numbers are one system, not three independent knobs. Draw the double
   // ring at the single-ring weight (0.055 d) and the white gap works out to exactly
   // zero: centreline distance 0.11 r == 0.055 d, minus two half-strokes of 0.0275 d,
-  // leaves nothing. The two rings touch and read as one thick ring — indistinguishable
+  // leaves nothing. The two rings touch and read as one thick ring, indistinguishable
   // from an end event, which is precisely the distinction the ring grammar carries.
-  let thin = 0.055 * r * 2            // 2/36  — start
+  let thin = 0.055 * r * 2            // 2/36 , start
   let thick = 0.13 * r * 2            // end
-  let double = 0.042 * r * 2          // 1.5/36 — each ring of a double-ring event
+  let double = 0.042 * r * 2          // 1.5/36, each ring of a double-ring event
   // bpmn-js puts the inner circle 3/18 r inside, which leaves 4,2% of the diameter
   // as white. That is enough on a modeller canvas at 100% zoom and not enough on an
   // A4 figure, where the whole event is a few millimetres: the gap closes up and the
-  // double ring reads as one thick ring again — the same failure, just later.
+  // double ring reads as one thick ring again, the same failure, just later.
   // Pulling the inner circle in to 0.22 r nearly doubles the white to 7,4% and buys
   // the distinction back. It stays clear of the icon, which occupies the middle
   // r x r box (corners at 0.71 r).
@@ -419,7 +419,7 @@
 /// several hundred units wide, so `unit:` matters here more than anywhere else:
 /// without it the frame's stroke, corner radius and markers all grow with the
 /// frame and the container ends up drawn heavier than the tasks inside it. BPMN
-/// gives a sub-process the *same* border as a task — it is a container, not an
+/// gives a sub-process the *same* border as a task: it is a container, not an
 /// emphasis.
 #let shape-subprocess(w, h, expanded: false, event-sub: false, transaction: false,
                       markers: (), fill: white, stroke: black, unit: none) = {
@@ -537,12 +537,12 @@
 }
 
 /// Group: dashed rounded rectangle (no semantics, purely visual grouping).
-/// Group: the spec's dash-**dot** frame. Fill is `none` — a group marks a region,
+/// Group: the spec's dash-**dot** frame. Fill is `none`, a group marks a region,
 /// it does not own it, so whatever it encloses stays visible through it.
 ///
 /// The dash pattern is bpmn-js's `10,6,0,6` verbatim: a 10-long dash, a gap, a
 /// *zero-length* dash, a gap. A zero-length dash under a round cap is a dot, which
-/// is why `cap: "round"` is not cosmetic here — with a butt cap the dot vanishes
+/// is why `cap: "round"` is not cosmetic here; with a butt cap the dot vanishes
 /// and the frame degrades to a plain dashed line, which in BPMN is the notation
 /// for something else entirely.
 #let shape-group(w, h, stroke: rgb("#666666"), unit: none) = {

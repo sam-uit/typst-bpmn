@@ -1,7 +1,7 @@
 // /template/components/bpmn-note.typ
 // Chú giải đặt chồng lên sơ đồ BPMN, tự tìm chỗ trống.
 //
-// `bpmn-figure` vẽ đúng những gì Camunda Modeler thấy — không có chỗ cho lời bình của
+// `bpmn-figure` vẽ đúng những gì Camunda Modeler thấy, không có chỗ cho lời bình của
 // người phân tích. Component này vẽ lại cùng một lát cắt rồi dùng `place` để gắn các ô
 // chú giải neo vào từng node, kèm đường dẫn nối.
 //
@@ -9,21 +9,21 @@
 // thể chịu chung vài luật, theo tinh thần mô hình boids của Craig Reynolds: bản thân ô
 // chú giải là "dummy", trật tự nổi lên từ các luật chứ không từ toạ độ chỉ định sẵn.
 //
-//   1. Containment — không được ra khỏi khung sơ đồ. Ô chú giải chỉ dùng không gian
+//   1. Containment: không được ra khỏi khung sơ đồ. Ô chú giải chỉ dùng không gian
 //      *bên trong* kích thước sơ đồ, không mượn lề của figure.
-//   2. Avoidance   — tránh đè lên shape, lên nhãn của shape, và (nhẹ hơn) lên nét vẽ
+//   2. Avoidance  : tránh đè lên shape, lên nhãn của shape, và (nhẹ hơn) lên nét vẽ
 //      của các dòng chảy.
-//   3. Separation  — các ô chú giải tránh đè lên nhau.
-//   4. Cohesion    — trong các chỗ hợp lệ, chọn chỗ gần node được chú giải nhất.
-//   5. Alignment   — khi điểm số ngang nhau thì ưu tiên cùng một phía (dưới → trên →
+//   3. Separation : các ô chú giải tránh đè lên nhau.
+//   4. Cohesion   : trong các chỗ hợp lệ, chọn chỗ gần node được chú giải nhất.
+//   5. Alignment  : khi điểm số ngang nhau thì ưu tiên cùng một phía (dưới → trên →
 //      phải → trái) để cả trang trông có nhịp.
-//   6. Distinctness — đường dẫn tránh nằm đúng phương ngang hoặc dọc. Cung BPMN chạy
+//   6. Distinctness: đường dẫn tránh nằm đúng phương ngang hoặc dọc. Cung BPMN chạy
 //      vuông góc; một đường dẫn dọc kẻ ngay dưới node sẽ biến mất vào chính cái cung
 //      đi ra từ node đó. Vì luật này mà bốn *góc* cũng là chỗ đặt hợp lệ, không chỉ
 //      bốn phía. Tắt bằng `diagonal: false`.
 //
 // Hệ quả tự nhiên: node sát mép dưới thì ô chú giải nhảy lên trên, node sát mép phải thì
-// ô nhảy sang trái — không cần khai báo gì thêm.
+// ô nhảy sang trái: không cần khai báo gì thêm.
 //
 // Người viết vẫn thắng máy: khai `side` thì chỉ tìm trong phía đó, khai thêm `dx`/`dy`
 // thì đặt đúng chỗ được chỉ định và bỏ qua toàn bộ phần tìm kiếm.
@@ -99,7 +99,7 @@
     let cw = avail.width
     let u = cw / e.w
     let ch = e.h * u
-    // pt trên một đơn vị BPMN — đổi hết sang float để tính diện tích chồng lấn
+    // pt trên một đơn vị BPMN: đổi hết sang float để tính diện tích chồng lấn
     let U = u.pt()
     let W = cw.pt()
     let H = ch.pt()
@@ -113,7 +113,7 @@
     let soft = ()
     for p in m.pools {
       let b = p.bounds
-      // Dải tiêu đề bên trái của pool/lane — chỗ có chữ dựng đứng
+      // Dải tiêu đề bên trái của pool/lane, chỗ có chữ dựng đứng
       hard.push(np-rect(px(b.x), py(b.y), calc.min(30.0, b.w) * U, b.h * U))
       for l in p.at("lanes", default: ()) {
         let lb = l.bounds

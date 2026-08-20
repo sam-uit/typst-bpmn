@@ -5,7 +5,7 @@
 // (`colors/ColorPopupProvider.js`) and against the colours Camunda actually wrote
 // into the reference model.
 //
-// Only the numbers are taken — the shapes in this project are drawn from the OMG
+// Only the numbers are taken: the shapes in this project are drawn from the OMG
 // BPMN 2.0 specification, not copied from bpmn-js.
 //
 //   #bpmn-figure(M, theme: default-theme + (palette: solarized))
@@ -27,7 +27,7 @@
   purple:  (fill: rgb("#E1BEE7"), stroke: rgb("#5B176D")),
 )
 
-/// Same hues, no fill — for documents that want colour coding without the wash.
+/// Same hues, no fill: for documents that want colour coding without the wash.
 #let outline-palette = {
   let p = (:)
   for (k, v) in camunda-palette { p.insert(k, (fill: rgb("#FFFFFF"), stroke: v.stroke)) }
@@ -58,7 +58,7 @@
 )
 
 /// Resolve a swatch name to (fill, stroke). Unknown names fall back to `default`
-/// rather than failing the build — a typo in a colour should not stop a report.
+/// rather than failing the build: a typo in a colour should not stop a report.
 #let swatch(name, palette: camunda-palette) = {
   if name == none { return none }
   let key = lower(str(name))

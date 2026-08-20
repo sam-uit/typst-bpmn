@@ -1,4 +1,4 @@
-// typst-bpmn — public API.
+// typst-bpmn: public API.
 //
 //   #import "@local/typst-bpmn:0.6.0": *
 //
@@ -17,8 +17,8 @@
 // keeping two copies of that system in step by hand.
 //
 // It does **not** own the authoring side. Turning a coordinate-free
-// `*-brief.yaml` into a `.bpmn` — layout, well-formedness rules, id conventions
-// — is `bpmn-generator`, a Python package. The split is by direction of travel:
+// `*-brief.yaml` into a `.bpmn`: layout, well-formedness rules, id conventions
+// is `bpmn-generator`, a Python package. The split is by direction of travel:
 //
 //   brief.yaml ──► .bpmn        bpmn-generator   (authoring)
 //   .bpmn ──► .yaml ──► figure  typst-bpmn       (rendering)
@@ -29,7 +29,7 @@
 // ---------------------------------------------------------------------------
 
 // --- BPMN 2.0: read a model, slice it, draw it -----------------------------
-// `bpmn-figure` is the one to reach for. It takes `yaml(..)` or `xml(..)` —
+// `bpmn-figure` is the one to reach for. It takes `yaml(..)` or `xml(..)`,
 // two parsers, one model dictionary, kept in step by tests/agreement.typ.
 #import "bpmn.typ": *
 #import "bpmn-render.typ": default-theme, grayscale-theme
@@ -69,8 +69,8 @@
 #import "annotate.typ": annotate
 #import "noteplace.typ": *
 
-// `whywhy` reads a 5 Whys chain from one data file and renders it two ways —
-// as a list in the prose, and as the `notes:` array for a diagram — so the
+// `whywhy` reads a 5 Whys chain from one data file and renders it two ways,
+// as a list in the prose, and as the `notes:` array for a diagram, so the
 // chain never exists as two hand-written copies.
 #import "whywhy.typ": *
 

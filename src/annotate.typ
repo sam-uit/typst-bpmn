@@ -1,5 +1,5 @@
 // /template/components/annotate.typ
-// Chú giải đặt chồng lên sơ đồ dựng bằng lưới (bpflow, bpmap) — tự tìm chỗ.
+// Chú giải đặt chồng lên sơ đồ dựng bằng lưới (bpflow, bpmap), tự tìm chỗ.
 //
 // Vì sao cần một component riêng, không dùng lại `bpmn-notes`?
 //
@@ -10,7 +10,7 @@
 //   `query(<bp-anchor>)` sau khi trang đã dàn xong, rồi mới suy ra chữ nhật.
 //
 // Hai component khác nhau ở chỗ *lấy toạ độ từ đâu*; phần quyết định chỗ đặt thì dùng
-// chung `noteplace.typ` — cùng một bộ luật, cùng hành vi.
+// chung `noteplace.typ`: cùng một bộ luật, cùng hành vi.
 //
 // Author: Sam Dinh
 // Version: 0.1.0
@@ -80,7 +80,7 @@
 // MARK: Component
 #let annotate(
   body,
-  // Tên nhóm mốc neo — phải trùng tham số `anchors:` đã truyền cho bpflow/bpmap.
+  // Tên nhóm mốc neo: phải trùng tham số `anchors:` đã truyền cho bpflow/bpmap.
   // Mỗi lần dùng một tên khác nhau, nếu không các sơ đồ sẽ nhặt nhầm mốc của nhau.
   group: none,
   // Mỗi chú giải: (node: "id|tên|số thứ tự", body: [...], side: auto|"top".., dx:, dy:,
