@@ -4,6 +4,30 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.17.0
+
+**LICENSE, CI, và lớp kiểm đầu tiên cho họ component**
+
+Ba việc còn lại từ bản đánh giá độ vững, cộng một việc anh đã làm ở phía mình.
+
+**`tests/smoke.typ`.** `bpstep`, `bpmap`, `orgchart`, `bptable`, `bpportfolio` và `whywhy` cộng lại là 2721 dòng, 39% của `src/`, và cho tới bản này chúng không có một dòng kiểm nào. Không phải vì lười: chúng được migrate từ repo báo cáo sang, nơi thứ được kiểm là bản PDF cuối cùng, nên mỗi component chỉ từng nhìn thấy đúng một file dữ liệu thật.
+
+Bài kiểm vì vậy đi theo **hình dạng dữ liệu** chứ không theo nội dung: rỗng, một phần tử, nhiều phần tử, nhãn dài, thiếu khoá tuỳ chọn, và chuỗi có `--` với `#` để đường `bp-text` cũng được đi qua. 17 ca, dữ liệu ở `examples/family-fixtures.yaml`.
+
+Nó khẳng định đúng hai điều: dựng xong không nổ, và ra một khối có kích thước hữu hạn khác 0, trừ những ca cố ý rỗng. Không so số đo với giá trị mong đợi, vì số đo phụ thuộc font và bài kiểm phải chạy được trên máy khác. Nói thẳng phạm vi: **đây không phải golden manifest**, nó không thấy được đổi màu, đổi khoảng cách hay lệch căn chỉnh. Cái nó thấy ngay là component gãy hẳn, tức là đúng thứ một lần refactor gây ra. Với sáu file chưa có gì canh thì đó là bước đầu tiên đáng giá nhất, và bước tiếp theo đã ghi trong [`roadmap.md`](roadmap.md).
+
+Không cần `models/`, nên nó chạy được ngay trên một bản clone sạch. Đã vào `just check`.
+
+**CI.** `.github/workflows/check.yml` chạy `just check` và `just lint` trên mỗi push và mỗi pull request. Trước đây cổng kiểm chỉ chạy khi có người nhớ chạy. Nó chạy được ở đây là nhờ `samples/b04-btvn01.bpmn` đã nằm trong repo: dựng thử một bản clone chỉ gồm file `git ls-files` liệt kê thì cả bốn lớp cộng `demo.typ` đều dựng được.
+
+`bpmn2yaml` được **ghim theo tag** chứ không lấy nhánh mặc định, cùng lý do với `template/pkg.typ` bên báo cáo: đổi bộ chuyển đổi thì golden manifest có thể trôi, và chuyện đó phải là một quyết định.
+
+**LICENSE.** `typst.toml` khai `license = "MIT"` từ v0.6.0 mà repo không có file giấy phép nào. Không sao khi còn dùng nội bộ, nhưng đó là điều kiện bắt buộc để đưa lên Typst Universe.
+
+**`exclude` của typst.toml** thêm `.github`, bỏ `plan.md` đã xoá.
+
+Và hai cái tên ma cuối cùng: `bpmn-lane` với `bpmn-part` còn nằm trong docstring của `whywhy.typ`.
+
 ## v0.16.5
 
 **`just version-check`, và số version trong tài liệu đã đứng yên chín bản**

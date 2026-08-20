@@ -8,7 +8,7 @@ What shipped when is in [changelogs.md](changelogs.md). This file is about what 
 | --- | --- | --- |
 | Phase 0, shape vocabulary | closed | v0.3.0 |
 | Phase 1, modeler-first | closed | v0.6.0 |
-| The process-drawing family | in use, uneven | v0.6.0 |
+| The process-drawing family | in use, smoke-tested | v0.6.0, smoke from v0.17.0 |
 | Phase 2, hand-authored BPMN | started, far from done | |
 
 ---
@@ -112,7 +112,7 @@ Nine components arrived together in v0.6.0, lifted out of the report that grew t
 
 **What this family is missing, in the order it hurts.**
 
-1. **No test layer of its own.** `just check` covers the BPMN path only: the two parsers agreeing, and the golden manifest. Nothing at all guards `bpstep`, `bpmap`, `orgchart`, `bptable`, `bpportfolio` or `whywhy`, so a change to any of them is verified by looking at a PDF and remembering. A structural manifest in the same shape as `tests/golden.typ` (element counts, extents, resolved label size) is the cheapest thing that would change that, and it is the single most valuable item on this page.
+1. **A smoke layer exists; a golden layer does not.** `tests/smoke.typ` (v0.17.0) drives all six through `examples/family-fixtures.yaml`: empty, one, many, long labels, missing optional keys, and strings carrying `--` and `#`. It catches a component that breaks outright, which is what a refactor causes, and it is deliberately not a golden manifest: it cannot see a changed colour, a changed gap or a drifted alignment. Getting there needs an `*-info()` per component returning counts and extents, the same shape `bpmn-info` has. That is the next item, and it is worth doing before anything is built on top of these six.
 2. **No schema validation.** A typo in a key is silently ignored or reaches `panic` with a Typst-level message. The BPMN path has the same gap; a shared validator with useful messages would serve both.
 3. **No documentation beyond docstrings.** `docs/design-system.md` covers BPMN geometry and the shared tokens. The family's own conventions live in the source. A `docs/components.md` in the same spirit would close it.
 4. **The placement rules are not shared far enough.** `noteplace` was extracted so `annotate` and `bpmn-notes` could agree; `bpstep` and `bpmap` still place their own labels by hand.
@@ -160,7 +160,7 @@ Both compose with `air:` rather than replacing it.
 
 ## Cross-cutting
 
-- **Testing.** Three layers exist and they cover the BPMN path only: see [architecture.md](architecture.md#testing). Extending the structural manifest to the process-drawing family is item 1 above.
+- **Testing.** Four layers now: agreement, golden and conformance on the BPMN path (see [architecture.md](architecture.md#testing)), plus `tests/smoke.typ` on the process-drawing family. Extending the *structural manifest* to that family is item 1 above; smoke is a floor, not a ceiling.
 - **Validation.** A schema validator for hand-written YAML, with useful messages instead of `panic`, serving both the BPMN path and the family.
 - **Performance.** Not yet measured. The 33-node example renders instantly; a 300-node model is untested and the compaction pass is `O(n log n)` at best.
 - **Documentation.** `docs/` tracks the design, the README stays a front door, and [changelogs.md](changelogs.md) records what each version changed and why. Prose in this repo follows one rule worth stating because it is easy to undo: **one paragraph is one line**, no manual wrapping. Wrapping makes `git diff` claim a whole paragraph changed when one word did, and it makes every search-and-replace slip past strings that happen to straddle a line break.

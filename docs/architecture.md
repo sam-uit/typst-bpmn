@@ -81,6 +81,8 @@ Three layers, in increasing cost to run and decreasing automation:
 2. **`tests/golden.typ`**: a structural manifest over model x view x compact: counts, extents, and the label size each extent implies at a reference width. `just golden` diffs it and fails on drift. Deliberately *not* pixel goldens: a PNG depends on which fonts the machine has, so image comparison would fail on someone else's laptop for reasons unrelated to the code. The trade is that a redrawn icon does not move any number here.
 3. **`tests/conformance.typ`**: the visual check for exactly that gap. Run by eye, beside Camunda Modeler.
 
+A fourth layer sits beside these three rather than inside them. **`tests/smoke.typ`** drives the six non-BPMN components (`bpstep`, `bpmap`, `orgchart`, `bptable`, `bpportfolio`, `whywhy`) through every *shape* of data rather than every value: empty, one, many, long labels, missing optional keys. It asserts only that each builds and produces a box of finite non-zero size, because a measured size depends on the machine's fonts and this has to pass on someone else's laptop. It needs no `models/`, so it runs on a bare clone.
+
 Fixtures in `tests/fixtures/` exist for shapes no real sample covers. Both bugs they have caught so far, the XML root lookup and the missing-`pools` key, were in code paths the reference model simply never took.
 
 ## Known sharp edges
