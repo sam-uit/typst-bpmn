@@ -187,9 +187,13 @@ golden-update: convert
 # Vì sao là một recipe chứ không phải một thói quen: README và integration.md đứng yên
 # ở `0.7.5` qua chín lần phát hành minor, mà đó lại là dòng đầu tiên người dùng chép.
 # Quy ước "version phải khớp ba chỗ" chỉ có nghĩa khi có cái gì đó kiểm nó.
+#
+# `changelogs.md` được loại trừ: một changelog *phải* trích số version cũ, đó là việc
+# của nó. Không loại thì recipe này báo lỗi ngay ở bản đầu tiên nó được thêm vào.
 version-check:
     @ver=$(grep '^version' typst.toml | cut -d'"' -f2); \
-    bad=$(grep -rn "@local/typst-bpmn:[0-9]" README.md docs/*.md | grep -v "typst-bpmn:$ver" || true); \
+    files=$(ls README.md docs/*.md | grep -v 'changelogs.md'); \
+    bad=$(grep -n "@local/typst-bpmn:[0-9]" $files | grep -v "typst-bpmn:$ver" || true); \
     if [ -n "$bad" ]; then \
         echo "version lệch: typst.toml là $ver, còn tài liệu ghi:"; \
         echo "$bad"; \
