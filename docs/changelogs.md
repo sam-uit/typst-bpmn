@@ -4,6 +4,14 @@ Mỗi version được tag ghi một mục ở đây, mới nhất lên trước
 
 Đánh số: **minor** cho một component hoặc một khả năng mới, **patch** cho sửa lỗi và mở rộng một component đã có. Version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu của thư viện, và `template/pkg.typ` bên phía báo cáo.
 
+## v0.16.5
+
+**`just version-check`, và số version trong tài liệu đã đứng yên chín bản**
+
+README và `docs/integration.md` vẫn viết `#import "@local/typst-bpmn:0.7.5"` trong khi package đã ở 0.16.4. Đó là dòng **đầu tiên** người dùng chép, và nó sai chín lần phát hành minor liền.
+
+Quy ước của repo là "version phải khớp ba chỗ: `typst.toml`, dòng `#import` trong tài liệu, và `template/pkg.typ` bên báo cáo". Một quy ước không có gì kiểm thì nó là một lời hứa, không phải một luật. Nay có `just version-check`, và nó là điều kiện của cả `just check` lẫn `just install-lib`, tức là không cài được một bản mà tài liệu của nó nói sai số.
+
 ## v0.16.4
 
 **Quy ước viết áp cho code base, và hai lỗi lộ ra trong lúc quét**

@@ -123,7 +123,7 @@ where-lib:
     fi
 
 # Cài package vào kho local: tài liệu dùng `#import "@local/typst-bpmn:<ver>"`
-install-lib: lint-src
+install-lib: lint-src version-check
     #!/usr/bin/env bash
     set -euo pipefail
     ver=$(grep -m1 '^version' typst.toml | cut -d'"' -f2)
@@ -182,7 +182,22 @@ golden-update: convert
 # ------------------------------------------------------------------ check ---
 
 # Converter clean, parsers agree, structural manifest unchanged
-check: convert-strict golden
+# Số version phải khớp `typst.toml` và mọi dòng `#import` trong tài liệu.
+#
+# Vì sao là một recipe chứ không phải một thói quen: README và integration.md đứng yên
+# ở `0.7.5` qua chín lần phát hành minor, mà đó lại là dòng đầu tiên người dùng chép.
+# Quy ước "version phải khớp ba chỗ" chỉ có nghĩa khi có cái gì đó kiểm nó.
+version-check:
+    @ver=$(grep '^version' typst.toml | cut -d'"' -f2); \
+    bad=$(grep -rn "@local/typst-bpmn:[0-9]" README.md docs/*.md | grep -v "typst-bpmn:$ver" || true); \
+    if [ -n "$bad" ]; then \
+        echo "version lệch: typst.toml là $ver, còn tài liệu ghi:"; \
+        echo "$bad"; \
+        exit 1; \
+    fi; \
+    echo "✓ version khớp ($ver)"
+
+check: convert-strict golden version-check
     @mkdir -p {{out}}
     {{typst}} compile --root {{src}} {{font_flag}} \
         {{src}}/tests/agreement.typ {{out}}/agreement.pdf

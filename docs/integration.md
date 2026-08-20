@@ -25,7 +25,7 @@ cd <typst-bpmn> && just install-lib
 Rồi thêm một dòng import vào file template trung tâm của tài liệu (`template/lib.typ` hoặc tương đương), để mọi chương dùng được mà không phải khai lại:
 
 ```typ
-#import "@local/typst-bpmn:0.7.5": *
+#import "@local/typst-bpmn:0.16.5": *
 ```
 
 **Ghim version trong dòng import.** Nâng version bên thư viện thì phải sửa dòng này. Cố ý, vì một tài liệu đã nộp phải dựng lại được y hệt.
