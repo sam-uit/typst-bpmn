@@ -1,11 +1,8 @@
 # YAML schema
 
-Two dialects of the same schema. **DI form** carries absolute coordinates and is
-what the converter emits. **Grid form** carries none and lets `bpmn-grid.typ`
-compute them. The renderer sees the same dictionary either way.
+Two dialects of the same schema. **DI form** carries absolute coordinates and is what the converter emits. **Grid form** carries none and lets `bpmn-grid.typ` compute them. The renderer sees the same dictionary either way.
 
-The switch is `meta.layout`: `di` means the bounds are authoritative; anything
-else (or any node missing `bounds`) sends the model through the grid layout.
+The switch is `meta.layout`: `di` means the bounds are authoritative; anything else (or any node missing `bounds`) sends the model through the grid layout.
 
 ## meta
 
@@ -35,9 +32,7 @@ pools:
       - { id: l_hr, name: Nhân sự, bounds: { x, y, w, h } }
 ```
 
-In grid form `bounds` is omitted and lanes may be bare strings:
-`lanes: [Trưởng nhóm, Nhân sự]`. Giving them ids is better — a node can then say
-`lane: l_hr` and renaming the lane will not break anything.
+In grid form `bounds` is omitted and lanes may be bare strings: `lanes: [Trưởng nhóm, Nhân sự]`. Giving them ids is better: a node can then say `lane: l_hr` and renaming the lane will not break anything.
 
 Within a pool, `row` maps to lane order: row 1 lands in the first lane.
 
@@ -103,13 +98,9 @@ flows:
     stroke: "#205022"
 ```
 
-A flow with explicit `waypoints` is always honoured, even in grid form — the
-layout engine only fills in what is missing.
+A flow with explicit `waypoints` is always honoured, even in grid form; the layout engine only fills in what is missing.
 
-Note that `dataInputAssociation` and `dataOutputAssociation` in BPMN XML name
-their far end in a *child element* and take their near end from the activity they
-are declared inside; both parsers resolve that, so in YAML they look like any
-other flow.
+Note that `dataInputAssociation` and `dataOutputAssociation` in BPMN XML name their far end in a *child element* and take their near end from the activity they are declared inside; both parsers resolve that, so in YAML they look like any other flow.
 
 ## Minimal grid-form model
 
@@ -139,7 +130,4 @@ A runnable version is `examples/leave-request.yaml`.
 
 ## Validation
 
-There is none yet beyond `panic` on an unknown node id. A schema validator with
-readable errors is a Phase 2 item. Until then the converter's `--strict` flag is
-the closest thing: it exits non-zero if the source `.bpmn` contains a drawable
-element the converter does not recognise.
+There is none yet beyond `panic` on an unknown node id. A schema validator with readable errors is a Phase 2 item. Until then the converter's `--strict` flag is the closest thing: it exits non-zero if the source `.bpmn` contains a drawable element the converter does not recognise.

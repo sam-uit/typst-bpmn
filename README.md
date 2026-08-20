@@ -24,19 +24,18 @@ Hand-written YAML with no coordinates falls back to a `row`/`col` grid with orth
 
 - [docs/architecture.md](docs/architecture.md): pipeline, coordinate model, invariants
 - [docs/design-system.md](docs/design-system.md): geometry, shape grammar, theme tokens
-- [docs/curved-arrows.md](docs/curved-arrows.md): how to draw an arc with a head
-  in pure Typst: sampling, the derived base angle, where the stroke has to stop
+- [docs/curved-arrows.md](docs/curved-arrows.md): how to draw an arc with a head in pure Typst: sampling, the derived base angle, where the stroke has to stop
 - [docs/schema.md](docs/schema.md): YAML field reference, both dialects
-- [docs/integration.md](docs/integration.md): installing the package into a document,
-  the file-access constraint, path conventions
-- [docs/roadmap.md](docs/roadmap.md): Phase 0 / 1 / 2
+- [docs/integration.md](docs/integration.md): installing the package into a document, the file-access constraint, path conventions
+- [docs/roadmap.md](docs/roadmap.md): what is closed, what is open, and what is missing from the process-drawing family
+- [docs/changelogs.md](docs/changelogs.md): every tagged version, what it changed and why
 
 ## Files
 
 ```
 typst.toml               package manifest; entrypoint is src/lib.typ
 src/
-  lib.typ                 the facade — one import gets everything below
+  lib.typ                 the facade, one import gets everything below
   bpmn.typ                public API: bpmn-figure, bpmn, bpmn-info, bpmn-slice
   bpmn-render.typ         canvas: pools, lanes, edges, labels, themes
   bpmn-shapes.typ         shape vocabulary: events, activities, gateways, data
@@ -54,7 +53,7 @@ src/
   orgchart.typ            org charts
   bptable.typ             tabular views of the same step data
   whywhy.typ              5 Whys chains, as prose list or diagram notes
-  bpportfolio.typ         process portfolio matrix — importance × health × feasibility
+  bpportfolio.typ         process portfolio matrix: importance × health × feasibility
   bptext.typ              data-layer strings -> content: dashes, math, markup
 docs/                     design notes and roadmap
 tests/conformance.typ     every symbol at three scales, both pool orientations
@@ -83,7 +82,7 @@ uv run bpmn2yaml model.bpmn -o models/model.yaml     # from bpmn-generator
 
 #bpmn-figure(yaml("/models/model.yaml"), caption: [Quy trình tuyển sinh])
 
-// no build step — parse the XML in Typst
+// no build step, parse the XML in Typst
 #bpmn-figure(xml("/model.bpmn"))
 
 // one pool, one lane, or an explicit node set
@@ -247,9 +246,9 @@ Full table in [docs/design-system.md](docs/design-system.md#colour).
 ```bash
 just              # list recipes
 just install-lib  # install the package into the local Typst package store
-just link-dev     # point the store at this checkout instead — edit and see
+just link-dev     # point the store at this checkout instead, edit and see
 just unlink-lib   # remove it from the store
-just lint-src     # compile every file in src/ — the gate for install-lib
+just lint-src     # compile every file in src/, the gate for install-lib
 just demo         # convert samples, build out/demo.pdf
 just watch        # live rebuild while editing
 just conformance  # every symbol at three scales
